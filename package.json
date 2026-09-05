@@ -1,0 +1,17 @@
+{
+  "name": "webgpu-mechanical-wheel",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@webgpu/types": "^0.1.64",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.3",
+    "vitest": "^3.2.4"
+  }
+}
