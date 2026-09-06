@@ -77,6 +77,7 @@ export class App {
     });
     this.resizeObserver.observe(this.required("#stage"));
     document.addEventListener("visibilitychange", () => {
+      void this.audio.setVisible(!document.hidden).catch(() => this.notice("Audio is unavailable. You can still spin the wheel."));
       if (document.hidden) this.loop?.stop(); else this.wake();
     });
     await this.initializeRenderer();

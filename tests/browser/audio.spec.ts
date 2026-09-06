@@ -58,6 +58,15 @@ for (const sessionSupport of ['supported', 'missing', 'rejects', 'touchend-only'
     const spin = page.locator('#spin-button');
     const mute = page.locator('#mute');
     await expect(spin).toBeEnabled();
+    const setHidden = async (hidden: boolean) => page.evaluate(value => {
+      Object.defineProperty(document, 'hidden', { configurable: true, value });
+      Object.defineProperty(document, 'visibilityState', { configurable: true, value: value ? 'hidden' : 'visible' });
+      document.dispatchEvent(new Event('visibilitychange'));
+    }, hidden);
+    await setHidden(true);
+    await setHidden(false);
+    expect(await page.evaluate(() =>
+      !!(window as unknown as { wheelAudio?: AudioContext }).wheelAudio)).toBe(false);
     if (sessionSupport === 'touchend-only') {
       const touch = await page.context().newCDPSession(page);
       const bounds = (await spin.boundingBox())!;
@@ -86,6 +95,32 @@ for (const sessionSupport of ['supported', 'missing', 'rejects', 'touchend-only'
     await expect.poll(() => page.evaluate(() =>
       (window as unknown as { audioLevel?: () => number }).audioLevel?.() ?? 0)).toBeGreaterThan(0.0001);
     if (sessionSupport === 'supported') {
+      for (let cycle = 0; cycle < 3; cycle++) {
+        await setHidden(true);
+        await expect.poll(() => page.evaluate(() =>
+          (window as unknown as { wheelAudio: AudioContext }).wheelAudio.state)).toBe('suspended');
+        await page.keyboard.up('Space');
+        await expect(spin).not.toHaveClass(/charging/);
+        await setHidden(false);
+        await expect.poll(() => page.evaluate(() =>
+          (window as unknown as { wheelAudio: AudioContext }).wheelAudio.state)).toBe('running');
+        await spin.focus();
+        await page.keyboard.down('Space');
+        await expect.poll(() => page.evaluate(() =>
+          (window as unknown as { audioLevel: () => number }).audioLevel())).toBeGreaterThan(0.0001);
+      }
+      // Also cover returning immediately while the suspension is still pending.
+      await page.evaluate(() => {
+        for (const hidden of [true, false]) {
+          Object.defineProperty(document, 'hidden', { configurable: true, value: hidden });
+          document.dispatchEvent(new Event('visibilitychange'));
+        }
+      });
+      await page.keyboard.up('Space');
+      await expect.poll(() => page.evaluate(() =>
+        (window as unknown as { wheelAudio: AudioContext }).wheelAudio.state)).toBe('running');
+    }
+    if (sessionSupport === 'supported') {
       expect(await page.evaluate(() => (window as unknown as { sessionType: string }).sessionType)).toBe('playback');
     }
     await page.evaluate(async () => {
@@ -101,6 +136,11 @@ for (const sessionSupport of ['supported', 'missing', 'rejects', 'touchend-only'
     if (sessionSupport === 'supported') {
       expect(await page.evaluate(() => (window as unknown as { sessionType: string }).sessionType)).toBe('auto');
     }
+    await setHidden(true);
+    await setHidden(false);
+    await expect(mute).toHaveAttribute('aria-pressed', 'true');
+    await expect.poll(() => page.evaluate(() =>
+      (window as unknown as { previousAudio: AudioContext }).previousAudio.state)).toBe('closed');
     await mute.click();
     expect(await page.evaluate(() => {
       const probe = window as unknown as { wheelAudio: AudioContext; previousAudio: AudioContext };

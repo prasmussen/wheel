@@ -5,6 +5,7 @@ export class WheelAudio {
   private output?: GainNode;
   private chargeOscillator?: OscillatorNode;
   private chargeGain?: GainNode;
+  private suspension?: Promise<void>;
 
   muted = false;
 
@@ -25,7 +26,7 @@ export class WheelAudio {
   }
 
   async resume(): Promise<void> {
-    if (this.muted) return;
+    if (this.muted || document.hidden) return;
     // Touch pointerdown precedes browser user activation. Creating the context
     // there can leave iOS silent; create it on release, just as Unmute does on tap.
     if (!this.context && navigator.userActivation && !navigator.userActivation.isActive) return;
@@ -37,6 +38,29 @@ export class WheelAudio {
     }
     this.output.gain.value = this.muted ? 0 : 0.3;
     await this.context.resume();
+  }
+
+  async setVisible(visible: boolean): Promise<void> {
+    const context = this.context;
+    // Returning to a tab must not create audio before the first activated gesture.
+    if (!context) return;
+    if (!visible) {
+      this.chargeOscillator?.stop();
+      this.chargeOscillator?.disconnect();
+      this.chargeGain?.disconnect();
+      this.chargeOscillator = undefined;
+      this.chargeGain = undefined;
+      if (this.output) this.output.gain.value = 0;
+      // Explicitly release the audio device before iOS backgrounds the page.
+      const suspension = context.suspend();
+      this.suspension = suspension;
+      try { await suspension; }
+      finally { if (this.suspension === suspension) this.suspension = undefined; }
+    } else {
+      // A quick app switch can return before suspend() has finished.
+      await this.suspension;
+      if (this.context === context && !document.hidden) await this.resume();
+    }
   }
 
   private configureSession(): void {
