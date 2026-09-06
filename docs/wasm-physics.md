@@ -141,8 +141,13 @@ impact streams against single-tick execution, including capped/resumed runs,
 zero-tick frames, configuration changes, and resets from event listeners.
 `tests/fixed-step.test.ts` checks frame batching and pause/resume scheduling.
 Existing physics, replay, pointer, and browser tests exercise the same
-Wasm implementation. The distribution diagnostic checks 24,576 spins and
-refreshes the current version's duration and outcome report.
+Wasm implementation. The distribution diagnostic checks 98,304 spins across 96 scenarios and
+refreshes the current version's duration and outcome report. It covers
+0/5/10/25% charge at five starting offsets for each of 2/8/40/50 choices,
+including quarter-, half-, and three-quarter-segment offsets that vary peg
+alignment. The 55% and 100% charge scenarios retain two starting offsets.
+Each scenario uses 1,024 seeds and is checked separately for settling,
+duration, and outcome concentration.
 
 ## Cross-browser replay
 

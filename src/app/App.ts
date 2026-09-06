@@ -577,6 +577,9 @@ export class App {
         <p>Holding longer adds power. The wheel then slows down and bumps against the pointer until it stops.</p>
         <p>Each entry gets the same amount of space on the wheel. Randomness can still produce repeats or streaks: a previous winner is not ruled out of the next spin.</p>
         <p>Replaying a saved spin repeats its original push and starting position, so you see the same result. Start a new spin for fresh randomness.</p>
+        <h3>How evenly do choices win?</h3>
+        <p>Our latest tests covered 98,304 simulated spins across 96 combinations of wheel size, power and starting position. None showed a large imbalance in which choices won, including the gentle-release tests.</p>
+        <p>These results are reassuring, but equal-sized slices do not guarantee exactly equal odds. The starting position and power can affect the outcome, and tests cannot cover every possible spin.</p>
       </dialog>
       <dialog id="share-dialog" class="editor" aria-labelledby="share-title">
         <div class="panel-heading"><h2 id="share-title">Share wheel</h2><button id="close-share" class="ghost" type="button">Done</button></div>
