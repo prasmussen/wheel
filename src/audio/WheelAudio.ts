@@ -10,8 +10,10 @@ export class WheelAudio {
   private suspension?: Promise<void>;
 
   // iPadOS can identify as a Mac when requesting desktop sites.
-  muted = /iPad|iPhone|iPod/.test(navigator.userAgent)
+  readonly isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
     || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+  muted = this.isIOS;
 
   setMuted(muted: boolean): void {
     this.muted = muted;

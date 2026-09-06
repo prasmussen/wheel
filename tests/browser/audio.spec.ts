@@ -140,6 +140,7 @@ for (const device of ['iPhone', 'iPad-desktop'] as const) {
       };
       const NativeAudioContext = window.AudioContext;
       window.AudioContext = class extends NativeAudioContext {
+        private metered = false;
         constructor() {
           super();
           probe.wheelAudio = this;
@@ -147,7 +148,8 @@ for (const device of ['iPhone', 'iPad-desktop'] as const) {
         }
         override createGain(): GainNode {
           const gain = super.createGain();
-          if (!probe.audioLevel) {
+          if (!this.metered) {
+            this.metered = true;
             const meter = this.createAnalyser();
             gain.connect(meter);
             const samples = new Float32Array(meter.fftSize);
@@ -187,6 +189,40 @@ for (const device of ['iPhone', 'iPad-desktop'] as const) {
     await expect(mute).toHaveAttribute('aria-pressed', 'false');
     expect(await page.evaluate(() =>
       (window as unknown as { createdByClick: boolean }).createdByClick)).toBe(true);
+    for (const reason of ['hidden', 'blur', 'pagehide'] as const) {
+      await page.evaluate(reason => {
+        const probe = window as unknown as { wheelAudio: AudioContext; previousAudio: AudioContext };
+        probe.previousAudio = probe.wheelAudio;
+        if (reason === 'hidden') {
+          for (const hidden of [true, false]) {
+            Object.defineProperty(document, 'hidden', { configurable: true, value: hidden });
+            document.dispatchEvent(new Event('visibilitychange'));
+          }
+        } else {
+          window.dispatchEvent(new Event(reason));
+          window.dispatchEvent(new Event('focus'));
+        }
+      }, reason);
+      await expect(mute).toHaveAccessibleName('Unmute');
+      await expect(mute).toHaveAttribute('aria-pressed', 'true');
+      await expect(mute).toHaveAttribute('title', 'Unmute');
+      await expect.poll(() => page.evaluate(() =>
+        (window as unknown as { previousAudio: AudioContext }).previousAudio.state)).toBe('closed');
+      await press(spin);
+      await expect(spin).toHaveClass(/charging/);
+      expect(await page.evaluate(() => {
+        const probe = window as unknown as { wheelAudio: AudioContext; previousAudio: AudioContext };
+        return probe.wheelAudio === probe.previousAudio && probe.wheelAudio.state === 'closed';
+      })).toBe(true);
+      await touch.send('Input.dispatchTouchEvent', { type: 'touchCancel', touchPoints: [] });
+      await press(mute);
+      await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      await expect(mute).toHaveAccessibleName('Mute');
+      expect(await page.evaluate(() => {
+        const probe = window as unknown as { wheelAudio: AudioContext; previousAudio: AudioContext };
+        return probe.wheelAudio !== probe.previousAudio;
+      })).toBe(true);
+    }
     await press(spin);
     await expect.poll(() => page.evaluate(() =>
       (window as unknown as { audioLevel: () => number }).audioLevel())).toBeGreaterThan(0.0001);

@@ -77,9 +77,15 @@ export class App {
     });
     this.resizeObserver.observe(this.required("#stage"));
     document.addEventListener("visibilitychange", () => {
-      void this.audio.setVisible(!document.hidden).catch(() => this.notice("Audio is unavailable. You can still spin the wheel."));
+      if (this.audio.isIOS) {
+        if (document.hidden) this.setMuted(true);
+      } else {
+        void this.audio.setVisible(!document.hidden).catch(() => {});
+      }
       if (document.hidden) this.loop?.stop(); else this.wake();
     });
+    window.addEventListener("blur", () => { if (this.audio.isIOS) this.setMuted(true); });
+    window.addEventListener("pagehide", () => { if (this.audio.isIOS) this.setMuted(true); });
     await this.initializeRenderer();
 
     const spinButton = this.required<HTMLButtonElement>("#spin-button");
@@ -261,11 +267,7 @@ export class App {
       this.launch(this.state.lastSpin.charge, this.state.lastSpin);
     });
     this.required("#mute").addEventListener("click", () => {
-      this.effect(() => this.audio.setMuted(!this.audio.muted));
-      if (!this.audio.muted) this.resumeAudio();
-      this.required("#mute").setAttribute("aria-pressed", String(this.audio.muted));
-      this.required("#mute").title = this.audio.muted ? "Unmute" : "Mute";
-      this.required("#mute").setAttribute("aria-label", this.audio.muted ? "Unmute" : "Mute");
+      this.setMuted(!this.audio.muted);
     });
     this.required("#retry-gpu").addEventListener("click", () => { void this.initializeRenderer(); });
     this.required("#batch-edit").addEventListener("click", () => {
@@ -544,11 +546,20 @@ export class App {
   private wake(): void { if (this.gpuReady && !document.hidden) this.loop?.start(); }
   private effect(action: () => void): void {
     try { action(); }
-    catch { this.notice("Sound or vibration is unavailable. You can still spin the wheel."); }
+    catch { /* Optional sound and vibration must not interrupt the wheel. */ }
+  }
+
+  private setMuted(muted: boolean): void {
+    this.effect(() => this.audio.setMuted(muted));
+    const button = this.required<HTMLButtonElement>("#mute");
+    button.setAttribute("aria-pressed", String(this.audio.muted));
+    button.title = this.audio.muted ? "Unmute" : "Mute";
+    button.setAttribute("aria-label", button.title);
+    if (!this.audio.muted) this.resumeAudio();
   }
 
   private resumeAudio(): void {
-    void this.audio.resume().catch(() => this.notice("Audio is unavailable. You can still spin the wheel."));
+    void this.audio.resume().catch(() => {});
   }
 
   private clearResult(): void {
