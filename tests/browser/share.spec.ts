@@ -133,6 +133,7 @@ test('keeps the URL current after batch edits, additions, reordering, and blank 
     return raw.split(',').map(decodeURIComponent);
   });
   expect(await urlChoices()).toEqual(['first', 'second', 'third']);
+  await openEditor(page);
   await page.locator('#add-item').click();
   expect(await urlChoices()).toEqual(['first', 'second', 'third', 'option 4']);
   await page.locator('#editor-list button[data-action="up"]').last().click();

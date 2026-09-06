@@ -226,7 +226,7 @@ export class App {
       this.required("#batch-edit").focus();
     });
     this.required("#apply-bulk").addEventListener("click", () => {
-      if (this.applyBatch()) this.required<HTMLInputElement>("#editor-list input").focus();
+      if (this.applyBatch()) this.required<HTMLDialogElement>("#wheel-editor").close();
     });
     this.required("#spin-history").addEventListener("click", event => {
       const button = (event.target as HTMLElement).closest<HTMLButtonElement>("button[data-history]");

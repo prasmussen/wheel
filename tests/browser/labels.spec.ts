@@ -17,7 +17,7 @@ test("renders complete Unicode labels and reuses their texture while spinning", 
   const labels = ["Café", "Æøå", "東京", "مرحبا", "नमस्ते", "👩🏽‍💻", "שלום", "Pizza"];
   await page.locator("#bulk-choices").fill(labels.join("\n"));
   await page.locator("#apply-bulk").click();
-  await page.locator("#close-editor").click();
+  await expect(page.locator("#wheel-editor")).toBeHidden();
   const drawn = () => page.evaluate(() => (window as unknown as { drawnLabels: string[] }).drawnLabels);
   await expect.poll(drawn).toEqual(expect.arrayContaining(labels.map(label => label.toUpperCase())));
   await page.evaluate(() => document.fonts.ready);

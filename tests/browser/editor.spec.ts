@@ -119,6 +119,8 @@ test('keeps the editor open if removing blanks would leave fewer than two choice
   await page.locator('#batch-edit').click();
   await page.locator('#bulk-choices').fill('first\nsecond');
   await page.locator('#apply-bulk').click();
+  await expect(page.locator('#wheel-editor')).toBeHidden();
+  await page.locator('#edit-wheel').click();
   const first = page.locator('#editor-list input').first();
   await first.fill('');
   await page.locator('#close-editor').click();
