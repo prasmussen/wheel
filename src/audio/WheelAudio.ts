@@ -12,26 +12,28 @@ export class WheelAudio {
     this.muted = muted;
     if (this.output) this.output.gain.value = muted ? 0 : 0.3;
     if (this.context) this.configureSession();
+    if (muted && this.context) {
+      // A running context can still be silent on iOS. Let Unmute create a fresh
+      // context from its own user gesture instead of repeatedly resuming that one.
+      const context = this.context;
+      this.context = undefined;
+      this.output = undefined;
+      this.chargeOscillator = undefined;
+      this.chargeGain = undefined;
+      void context.close().catch(() => {});
+    }
   }
 
   async resume(): Promise<void> {
-    this.context ??= new AudioContext();
+    if (this.muted) return;
     this.configureSession();
+    this.context ??= new AudioContext();
     if (!this.output) {
       this.output = this.context.createGain();
       this.output.connect(this.context.destination);
     }
     this.output.gain.value = this.muted ? 0 : 0.3;
-    const resumed = this.context.resume();
-    // Start a source inside the gesture, rather than waiting for the animation loop.
-    if (this.context.state !== "running") {
-      const unlock = this.context.createBufferSource();
-      unlock.buffer = this.context.createBuffer(1, 1, this.context.sampleRate);
-      unlock.connect(this.output);
-      unlock.onended = () => unlock.disconnect();
-      unlock.start();
-    }
-    await resumed;
+    await this.context.resume();
   }
 
   private configureSession(): void {

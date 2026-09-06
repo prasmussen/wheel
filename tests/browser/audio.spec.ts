@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 for (const sessionSupport of ['supported', 'missing', 'rejects', 'touchend-only'] as const) {
-  test(`sound starts and unmute resumes suspended audio when Audio Session is ${sessionSupport}`, async ({ page }) => {
+  test(`sound starts and unmute recreates audio when Audio Session is ${sessionSupport}`, async ({ page }) => {
     await page.addInitScript(support => {
       const probe = window as unknown as {
         wheelAudio?: AudioContext;
@@ -81,16 +81,24 @@ for (const sessionSupport of ['supported', 'missing', 'rejects', 'touchend-only'
     if (sessionSupport === 'supported') {
       expect(await page.evaluate(() => (window as unknown as { sessionType: string }).sessionType)).toBe('playback');
     }
+    await page.evaluate(async () => {
+      const probe = window as unknown as { wheelAudio: AudioContext; previousAudio: AudioContext };
+      probe.previousAudio = probe.wheelAudio;
+      await probe.wheelAudio.suspend();
+    });
     await mute.click(); // Moving focus cancels the hold without launching a spin.
     await page.keyboard.up('Space');
     await expect(mute).toHaveAccessibleName('Unmute');
     await expect.poll(() => page.evaluate(() =>
-      (window as unknown as { audioLevel: () => number }).audioLevel())).toBe(0);
+      (window as unknown as { previousAudio: AudioContext }).previousAudio.state)).toBe('closed');
     if (sessionSupport === 'supported') {
       expect(await page.evaluate(() => (window as unknown as { sessionType: string }).sessionType)).toBe('auto');
     }
-    await page.evaluate(() => (window as unknown as { wheelAudio: AudioContext }).wheelAudio.suspend());
     await mute.click();
+    expect(await page.evaluate(() => {
+      const probe = window as unknown as { wheelAudio: AudioContext; previousAudio: AudioContext };
+      return probe.wheelAudio !== probe.previousAudio;
+    })).toBe(true);
     await expect(mute).toHaveAccessibleName('Mute');
     await expect.poll(() => page.evaluate(() =>
       (window as unknown as { wheelAudio: AudioContext }).wheelAudio.state)).toBe('running');
