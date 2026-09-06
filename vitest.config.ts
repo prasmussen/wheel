@@ -1,2 +1,7 @@
 import { defineConfig } from "vitest/config";
-export default defineConfig({ test: { include: ["tests/**/*.test.ts"] } });
+import { handwrittenWasm } from "./build/wasm";
+
+export default defineConfig({
+  plugins: [handwrittenWasm()],
+  test: { include: ["tests/**/*.test.ts"] },
+});

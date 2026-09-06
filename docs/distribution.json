@@ -1,5 +1,5 @@
 {
-  "simulationVersion": 5,
+  "simulationVersion": 6,
   "samplesTotal": 24576,
   "seedRecipe": "[sampleIndex, segmentCount, 0xb17d]",
   "physicsConfig": {

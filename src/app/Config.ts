@@ -26,7 +26,6 @@ export const DEFAULT_PHYSICS: PhysicsConfig = {
 };
 
 export const FIXED_DT = 1 / 240;
-export const SLOW_CONTACT_SPEED = 0.12;
 
 // Increment when seeded trajectories change. Replay is scoped to this version.
-export const SIMULATION_VERSION = 5;
+export const SIMULATION_VERSION = 6;

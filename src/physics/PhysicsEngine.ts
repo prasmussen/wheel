@@ -1,8 +1,6 @@
-import { SLOW_CONTACT_SPEED, type PhysicsConfig } from "../app/Config";
-import { clamp, signedAngle, TAU, wrapAngle } from "../utils/Math";
-import type { RandomSource } from "../utils/Random";
-import { sampleLaunchSpeed } from "./LaunchEnergy";
-import { launchBrakeScale, speedBrakeTorque } from "./SpeedBrake";
+import type { PhysicsConfig } from "../app/Config";
+import type { SeededRandom } from "../utils/Random";
+import { CONFIG_FIELDS, CONFIG_OFFSET, createPhysicsCore, EVENT_CAPACITY, EVENT_OFFSET, STATE_OFFSET } from "./WasmCore";
 
 export interface WheelState { angle: number; angularVelocity: number }
 export interface PointerState { angle: number; angularVelocity: number }
@@ -12,7 +10,6 @@ export interface PegImpact {
   wheelVelocity: number;
   timestamp: number;
 }
-
 export interface PhysicsSnapshot {
   wheel: WheelState;
   pointer: PointerState;
@@ -21,400 +18,76 @@ export interface PhysicsSnapshot {
   stableTime: number;
 }
 
+/** Browser-facing adapter. State, mechanics, and seeded draws live in Wasm. */
 export class PhysicsEngine {
-  readonly wheel: WheelState = { angle: 0, angularVelocity: 0 };
-  readonly pointer: PointerState = { angle: 0, angularVelocity: 0 };
-  private readonly impactTimes = new Float64Array(50).fill(-Infinity);
-  private impactListeners = new Set<(event: PegImpact) => void>();
-  private lastPeg = -1;
-  private contactPeg = -1;
-  private contactDirection = 1;
-  private wheelContactTorque = 0;
-  private lastWheelDirection = 1;
-  private lastImpactTime = -1;
-  private simTime = 0;
-  private launchTorque = 0;
-  private brakeScale = 1;
-  private launchRemaining = 0;
-  private restitutionScale = 1;
-  private dragScale = 1;
-  stableTime = 0;
-  lastImpactStrength = 0;
+  private readonly core = createPhysicsCore();
+  private readonly state = new Float64Array(this.core.memory.buffer, STATE_OFFSET, 7);
+  private readonly settings = new Float64Array(this.core.memory.buffer, CONFIG_OFFSET, CONFIG_FIELDS.length);
+  private readonly events = new Float64Array(this.core.memory.buffer, EVENT_OFFSET, EVENT_CAPACITY * 4);
+  private readonly impactListeners = new Set<(event: PegImpact) => void>();
+  readonly wheel: WheelState;
+  readonly pointer: PointerState;
 
-  constructor(public config: PhysicsConfig, public segmentCount: number) {
-    // Begin in a mechanically valid detent: the pointer sits halfway between
-    // two pegs instead of occupying the same space as one.
-    this.wheel.angle = wrapAngle(Math.PI / 2 - Math.PI / segmentCount);
+  constructor(public config: PhysicsConfig, segmentCount: number) {
+    const state = this.state;
+    this.wheel = {
+      get angle() { return state[0]; }, set angle(value) { state[0] = value; },
+      get angularVelocity() { return state[1]; }, set angularVelocity(value) { state[1] = value; },
+    };
+    this.pointer = {
+      get angle() { return state[2]; }, set angle(value) { state[2] = value; },
+      get angularVelocity() { return state[3]; }, set angularVelocity(value) { state[3] = value; },
+    };
+    this.syncConfig();
+    this.core.init(segmentCount);
   }
+
+  get segmentCount(): number { return this.core.get_count(); }
+  get stableTime(): number { return this.state[4]; }
+  get lastImpactStrength(): number { return this.state[5]; }
 
   onImpact(listener: (event: PegImpact) => void): () => void {
     this.impactListeners.add(listener);
     return () => this.impactListeners.delete(listener);
   }
 
-  setSegmentCount(count: number): void {
-    this.segmentCount = clamp(Math.round(count), 2, 50);
-    this.lastPeg = -1;
-    this.contactPeg = -1;
-    this.impactTimes.fill(-Infinity);
-  }
+  setSegmentCount(count: number): void { this.core.set_count(count); }
 
-  launch(charge: number, random: RandomSource): void {
-    // Every launch begins from a canonical resting state, making its record
-    // independent of contacts and impulses left over from the previous spin.
-    this.wheel.angularVelocity = 0;
-    this.lastPeg = this.contactPeg = -1;
-    this.contactDirection = this.lastWheelDirection = 1;
-    this.wheelContactTorque = 0;
-    this.lastImpactTime = -1;
-    this.impactTimes.fill(-Infinity);
-    this.simTime = 0;
-    this.lastImpactStrength = 0;
-    this.brakeScale = launchBrakeScale(charge);
-    const targetOmega = sampleLaunchSpeed(charge, random);
-    this.launchRemaining = random.range(0.065, 0.095);
-    this.launchTorque = targetOmega * this.config.wheelInertia / this.launchRemaining;
-    this.pointer.angle = random.range(-0.012, 0.012);
-    this.pointer.angularVelocity = random.range(-0.08, 0.08);
-    this.dragScale = random.range(0.985, 1.015);
-    this.restitutionScale = random.range(0.96, 1.04);
-    this.lastWheelDirection = 1;
-    this.stableTime = 0;
+  launch(charge: number, random: SeededRandom): void {
+    this.syncConfig();
+    this.core.launch(charge, random.state);
+    random.state = this.core.rng_state();
   }
 
   step(dt: number): void {
-    // Resolve fast peg travel within the fixed tick, including acceleration
-    // during launch. Sampling only the end of a tick can miss an entire pin.
-    const launchDelta = this.launchTorque * Math.min(dt, this.launchRemaining) / this.config.wheelInertia;
-    const speedBound = Math.abs(this.wheel.angularVelocity) + Math.abs(launchDelta);
-    const maxTravel = Math.min(0.025, TAU / this.segmentCount / 8);
-    const springSteps = dt * Math.sqrt((this.config.pointerSpring + 125) / this.config.pointerInertia) / 0.5;
-    const dampingSteps = dt * (this.config.pointerDamping + 2) / this.config.pointerInertia;
-    const travelSteps = speedBound * dt / maxTravel;
-    const subdivisions = Math.max(1, Math.min(32,
-      Math.ceil(Math.max(travelSteps, springSteps, dampingSteps))));
-    for (let index = 0; index < subdivisions; index++) this.integrate(dt / subdivisions);
-  }
-
-  private integrate(dt: number): void {
-    this.simTime += dt;
-    if (this.launchRemaining > 0) {
-      const applied = Math.min(dt, this.launchRemaining);
-      this.wheel.angularVelocity += this.launchTorque * applied / this.config.wheelInertia;
-      this.launchRemaining -= applied;
+    this.syncConfig();
+    this.core.step(dt);
+    // Deliver after the complete tick. Wasm never calls into JS, including
+    // during contact resolution. Each event keeps its simulation timestamp.
+    const count = this.core.event_count();
+    if (this.impactListeners.size === 0 || count === 0) return;
+    // Snapshot before callbacks, so a listener may safely reset the engine.
+    const pending: PegImpact[] = [];
+    for (let index = 0; index < count; index++) {
+      const offset = index * 4;
+      pending.push({ pegIndex: this.events[offset], strength: this.events[offset + 1],
+        wheelVelocity: this.events[offset + 2], timestamp: this.events[offset + 3] });
     }
-
-    const omega = this.wheel.angularVelocity;
-    let resistance = -this.config.linearDrag * this.dragScale * omega
-      - this.config.quadraticDrag * omega * Math.abs(omega)
-      + speedBrakeTorque(omega, this.config.brakeDrag * this.brakeScale)
-      + this.wheelContactTorque;
-    const appliedContactTorque = this.wheelContactTorque;
-    this.wheelContactTorque = 0;
-    if (Math.abs(omega) > 0.0001) {
-      resistance -= Math.sign(omega) * this.config.bearingFriction;
-    } else if (Math.abs(resistance) <= this.config.bearingFriction) {
-      resistance = 0;
-    } else {
-      resistance -= Math.sign(resistance) * this.config.bearingFriction;
-    }
-    const previousAngle = this.wheel.angle;
-    this.wheel.angularVelocity += resistance / this.config.wheelInertia * dt;
-    if (omega !== 0
-      && Math.sign(omega) !== Math.sign(this.wheel.angularVelocity)
-      && Math.abs(appliedContactTorque) <= this.config.bearingFriction) {
-      this.wheel.angularVelocity = 0;
-    }
-    this.wheel.angle = wrapAngle(this.wheel.angle + this.wheel.angularVelocity * dt);
-
-    this.resolvePegCrossings(previousAngle, this.wheel.angle);
-
-    const contactTorque = this.pegContactTorque();
-    const pointerTorque = -this.config.pointerSpring * this.pointer.angle
-      - this.config.pointerDamping * this.pointer.angularVelocity
-      + contactTorque;
-    this.pointer.angularVelocity += pointerTorque / this.config.pointerInertia * dt;
-    this.pointer.angle += this.pointer.angularVelocity * dt;
-    this.pointer.angle = clamp(this.pointer.angle, -1, 1);
-    this.resolvePointerPenetration(dt);
-
-    this.lastImpactStrength *= Math.exp(-dt * 9);
-    const pointerHasValidRest = Math.abs(this.pointer.angle) < 0.012
-      && this.contactPeg < 0;
-    const stopped = Math.abs(this.wheel.angularVelocity) < 0.025
-      && Math.abs(this.pointer.angularVelocity) < 0.06
-      && pointerHasValidRest
-      && this.launchRemaining <= 0;
-    this.stableTime = stopped ? this.stableTime + dt : 0;
-    if (this.stableTime >= 0.35) this.wheel.angularVelocity = 0;
+    for (const event of pending) for (const listener of this.impactListeners) listener(event);
   }
 
-  /**
-   * Models the pointer tip riding up a round peg. Contact is unilateral: a peg
-   * can lift the pointer, but it cannot pull it back after passing underneath.
-   */
-  private pegContactTorque(): number {
-    const motionDirection = Math.sign(this.wheel.angularVelocity);
-    if (motionDirection !== 0 && this.contactPeg < 0) this.lastWheelDirection = motionDirection;
-    const wheelDirection = this.contactPeg >= 0
-      ? this.contactDirection
-      : (motionDirection || this.lastWheelDirection);
-
-    const step = TAU / this.segmentCount;
-    const pointerLine = Math.PI / 2;
-    const logicalPeg = Math.round((pointerLine - this.wheel.angle) / step);
-    const pegIndex = ((logicalPeg % this.segmentCount) + this.segmentCount) % this.segmentCount;
-    const pegAngle = this.wheel.angle + logicalPeg * step;
-    const phase = signedAngle(pegAngle - pointerLine);
-    // The tip must travel completely across the peg diameter before release.
-    // Wider segment spacing permits the full lever excursion; dense wheels
-    // scale it down to the available pitch while retaining clear separation.
-    const maxDeflection = Math.min(0.52, 0.28 + step * 0.28);
-
-    // Near rest, resolve the geometry symmetrically toward the nearest clear
-    // side. This avoids direction-dependent chatter when pins are close.
-    if (Math.abs(this.wheel.angularVelocity) < SLOW_CONTACT_SPEED) {
-      // Match the rendered bead/pin separation. Dense wheels must approach
-      // half a segment pitch before the pointer is genuinely clear.
-      const clearance = Math.min(0.06, step * 0.45);
-      if (Math.abs(phase) >= clearance) {
-        this.contactPeg = -1;
-        return 0;
-      }
-      if (this.contactPeg !== pegIndex) {
-        this.contactPeg = pegIndex;
-        this.emitContact(pegIndex);
-      }
-      const pointerSide = Math.abs(phase) < 1e-5
-        ? this.lastWheelDirection
-        : Math.sign(phase);
-      const detentPhase = Math.min(step * 0.5, clearance + 0.01);
-      const targetPhase = Math.abs(phase) < 1e-5
-        ? -this.lastWheelDirection * detentPhase
-        : Math.sign(phase) * detentPhase;
-      const overlap = 1 - Math.abs(phase) / clearance;
-      const desiredAngle = -pointerSide * maxDeflection * overlap * overlap;
-      const torque = clamp(
-        125 * (desiredAngle - this.pointer.angle) - 2 * this.pointer.angularVelocity,
-        -35,
-        35,
-      );
-      // Equal-and-opposite reaction from the loaded pointer spring. Near the
-      // trailing edge this can gently roll the wheel back instead of always
-      // forcing it onward into the next detent.
-      const pointerReaction = clamp(
-        this.config.pointerSpring * this.pointer.angle * 0.018,
-        -0.9,
-        0.9,
-      );
-      this.wheelContactTorque = clamp(
-        40 * (targetPhase - phase)
-          - 15 * this.wheel.angularVelocity
-          + pointerReaction,
-        -2.5,
-        2.5,
-      );
-      this.lastPeg = pegIndex;
-      return torque;
-    }
-
-    const travel = phase * wheelDirection;
-    const approach = Math.min(0.14, step * 0.62);
-    const release = Math.min(0.06, step * 0.28);
-    if (travel <= -approach || travel >= release) {
-      this.contactPeg = -1;
-      if (motionDirection !== 0) this.lastWheelDirection = motionDirection;
-      return 0;
-    }
-
-    if (this.contactPeg !== pegIndex) {
-      this.contactPeg = pegIndex;
-      this.contactDirection = wheelDirection;
-      this.emitContact(pegIndex);
-    }
-
-    const progress = clamp((travel + approach) / (approach + release), 0, 1);
-    const lift = progress * progress * (3 - 2 * progress);
-    const desiredAngle = -wheelDirection * maxDeflection * lift;
-    const liftDerivative = 6 * progress * (1 - progress);
-    const desiredVelocity = -wheelDirection * maxDeflection * liftDerivative
-      * Math.abs(this.wheel.angularVelocity) / (approach + release);
-
-    let torque = 125 * (desiredAngle - this.pointer.angle)
-      + 1.8 * (desiredVelocity - this.pointer.angularVelocity);
-    // The peg may only push in the direction of travel, never glue the pointer
-    // to its back face after the contact has released.
-    if (torque * wheelDirection > 0) torque = 0;
-    torque = clamp(torque, -35, 35);
-
-    // While geometry overlaps, the detent must overcome static bearing
-    // friction all the way to the edge of the peg. This prevents a false
-    // equilibrium on either flank and guarantees a clear vertical rest.
-    const reaction = Math.max(
-      Math.abs(torque) * 0.028,
-      this.config.bearingFriction + 0.06,
-    );
-    this.wheelContactTorque = -wheelDirection * reaction;
-    this.lastPeg = pegIndex;
-    return torque;
-  }
-
-  /**
-   * Position-level contact correction using the same dimensions as the WGSL
-   * meshes. The force model supplies the motion; this constraint guarantees
-   * the visible pointer bead can never cut through a visible pin.
-   */
-  private resolvePointerPenetration(dt:number):void {
-    const pegOrbit=0.83;
-    const pointerPivotY=0.955;
-    const pointerLength=0.145;
-    const visibleClearance=0.046; // .027 pin + .014 bead + a small air gap
-    const step=TAU/this.segmentCount;
-    const nearestLogical=Math.round((Math.PI/2-this.wheel.angle)/step);
-
-    const clearsNearbyPins = (angle: number): boolean => {
-      for (let offset = -1; offset <= 1; offset++) {
-        const pegAngle = this.wheel.angle + (nearestLogical + offset) * step;
-        if (this.pointerPinDistance(angle, Math.cos(pegAngle) * pegOrbit,
-          Math.sin(pegAngle) * pegOrbit, pointerPivotY, pointerLength) < visibleClearance) return false;
-      }
-      return true;
-    };
-
-    for(let offset=-1;offset<=1;offset++){
-      const logicalPeg=nearestLogical+offset;
-      const pegIndex=((logicalPeg%this.segmentCount)+this.segmentCount)%this.segmentCount;
-      const pegAngle=this.wheel.angle+logicalPeg*step;
-      const pegX=Math.cos(pegAngle)*pegOrbit;
-      const pegY=Math.sin(pegAngle)*pegOrbit;
-      if(this.pointerPinDistance(this.pointer.angle,pegX,pegY,pointerPivotY,pointerLength)>=visibleClearance)continue;
-
-      const startAngle=this.pointer.angle;
-      let resolvedAngle=Number.NaN;
-      let smallestCorrection=Infinity;
-      // Both sides are valid collision exits. Choosing the nearest one lets
-      // the pointer ride the leading face, then snap behind the trailing face.
-      for(let side=0;side<2;side++){
-        const targetAngle=side===0?-1:1;
-        let insideAngle=startAngle;
-        let outsideAngle=targetAngle;
-        let foundOutside=false;
-        for(let scan=1;scan<=32;scan++){
-          const candidate=startAngle+(targetAngle-startAngle)*scan/32;
-          if(clearsNearbyPins(candidate)){outsideAngle=candidate;foundOutside=true;break;}
-          insideAngle=candidate;
-        }
-        if(!foundOutside)continue;
-        for(let iteration=0;iteration<12;iteration++){
-          const middle=(insideAngle+outsideAngle)*0.5;
-          if(!clearsNearbyPins(middle))insideAngle=middle;
-          else outsideAngle=middle;
-        }
-        const correction=Math.abs(outsideAngle-startAngle);
-        if(correction<smallestCorrection){smallestCorrection=correction;resolvedAngle=outsideAngle;}
-      }
-      if(!Number.isFinite(resolvedAngle))resolvedAngle=-this.lastWheelDirection;
-
-      const correction=resolvedAngle-this.pointer.angle;
-      const correctionDirection=Math.sign(correction)||1;
-      this.pointer.angle=clamp(resolvedAngle+correctionDirection*0.001,-1,1);
-      const wheelSpeed=Math.abs(this.wheel.angularVelocity);
-      if(wheelSpeed<0.5){
-        // Projection prevents overlap, but it is not an impact. Feeding its
-        // full displacement back into velocity creates energy and makes slow
-        // contacts kick. At low speed, let the spring/contact forces provide
-        // all visible motion and dissipate velocity at the constrained face.
-        this.pointer.angularVelocity*=wheelSpeed<SLOW_CONTACT_SPEED?0.12:0.62;
-        if(wheelSpeed<SLOW_CONTACT_SPEED){
-          // A returning pointer can remain wedged against a pin after the
-          // wheel has lost its momentum. Pass that spring load into the wheel
-          // so the pin yields gently instead of holding a static deadlock.
-          const phase = signedAngle(pegAngle - Math.PI / 2);
-          // A deflected tip can touch the neighboring pin on a dense wheel.
-          // Move that pin away from the top instead of pushing it into the
-          // tip and fighting the nearest pin's detent torque indefinitely.
-          const escapeDirection = Math.abs(phase) > step * 0.5 ? Math.sign(phase) : correctionDirection;
-          this.wheelContactTorque = escapeDirection * (this.config.bearingFriction + 0.08);
-        }
-      }else{
-        this.pointer.angularVelocity=clamp(
-          this.pointer.angularVelocity+correction/dt*0.035,
-          -9,
-          9,
-        );
-      }
-      if(this.contactPeg!==pegIndex){this.contactPeg=pegIndex;this.emitContact(pegIndex);}
-    }
-  }
-
-  private pointerPinDistance(angle:number,pegX:number,pegY:number,pivotY:number,length:number):number {
-    const tipX=Math.sin(angle)*length;
-    const tipY=pivotY-Math.cos(angle)*length;
-    return Math.hypot(tipX-pegX,tipY-pegY);
-  }
-
-  private resolvePegCrossings(previous: number, current: number): void {
-    const step = TAU / this.segmentCount;
-    const delta = signedAngle(current - previous);
-    if (Math.abs(delta) < 1e-9) return;
-    const direction = Math.sign(delta);
-    // The audible click occurs just after the peg crown passes the fixed top
-    // line and the pointer is released to strike the trailing face.
-    const pointerLine = Math.PI / 2 + direction * Math.min(0.06, step * 0.28);
-    const prevPhase = (previous - pointerLine) / step;
-    const nextPhase = (previous + delta - pointerLine) / step;
-    const from = Math.floor(prevPhase);
-    const to = Math.floor(nextPhase);
-    if (from === to) return;
-
-    const crossings = Math.min(4, Math.abs(to - from));
-    for (let n = 1; n <= crossings; n++) {
-      const boundary = direction > 0 ? from + n : from - n + 1;
-      const pegIndex = (((-boundary) % this.segmentCount) + this.segmentCount) % this.segmentCount;
-      this.collide(pegIndex);
-    }
-  }
-
-  private collide(pegIndex: number): void {
-    if (pegIndex === this.contactPeg) return;
-    if (pegIndex === this.lastPeg && this.simTime - this.lastImpactTime < 0.025) return;
-    this.lastPeg = pegIndex;
-    this.lastImpactTime = this.simTime;
-    const relativeSpeed = this.wheel.angularVelocity - this.pointer.angularVelocity * 0.18;
-    const strength = clamp(Math.abs(relativeSpeed) / 17, 0.06, 1);
-    const direction = Math.sign(relativeSpeed) || 1;
-    const pointerImpulse = -direction * (2.5 + 10 * strength) * this.config.collisionRestitution * this.restitutionScale;
-    this.pointer.angularVelocity += pointerImpulse;
-    this.wheel.angularVelocity -= direction * (0.012 + strength * this.config.collisionCoupling * 0.55);
-    this.lastImpactStrength = strength;
-    const event: PegImpact = {
-      pegIndex, strength, wheelVelocity: this.wheel.angularVelocity, timestamp: this.simTime,
-    };
-    this.notifyImpact(event);
-  }
-
-  private emitContact(pegIndex:number):void {
-    this.lastPeg=pegIndex; this.lastImpactTime=this.simTime;
-    const strength=clamp(Math.abs(this.wheel.angularVelocity)/17,0.06,1);
-    this.lastImpactStrength=strength;
-    const event:PegImpact={pegIndex,strength,wheelVelocity:this.wheel.angularVelocity,timestamp:this.simTime};
-    this.notifyImpact(event);
-  }
-
-  private notifyImpact(event: PegImpact): void {
-    // Substeps can revisit the same pin through both contact constraints.
-    // Notify once for that traversal, rather than synthesizing many clicks.
-    if (this.simTime - this.impactTimes[event.pegIndex] < 0.025) return;
-    this.impactTimes[event.pegIndex] = this.simTime;
-    for (const listener of this.impactListeners) listener(event);
-  }
-
-  isSettled(): boolean { return this.stableTime >= 0.35; }
+  isSettled(): boolean { return this.core.is_settled() !== 0; }
 
   snapshot(): PhysicsSnapshot {
     return {
-      wheel: { ...this.wheel }, pointer: { ...this.pointer }, currentPeg: this.lastPeg,
-      lastImpact: this.lastImpactStrength, stableTime: this.stableTime,
+      wheel: { angle: this.state[0], angularVelocity: this.state[1] },
+      pointer: { angle: this.state[2], angularVelocity: this.state[3] },
+      currentPeg: this.state[6], lastImpact: this.state[5], stableTime: this.state[4],
     };
+  }
+
+  private syncConfig(): void {
+    // Preserve callers' existing mutable PhysicsConfig interface.
+    for (let index = 0; index < CONFIG_FIELDS.length; index++) this.settings[index] = this.config[CONFIG_FIELDS[index]];
   }
 }

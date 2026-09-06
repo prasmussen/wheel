@@ -1,31 +1,32 @@
+import { numericCore, SEED_CAPACITY, SEED_OFFSET } from "../physics/WasmCore";
+
 export interface RandomSource {
   next(): number;
   range(min: number, max: number): number;
 }
 
+const seedWords = new Uint32Array(numericCore.memory.buffer, SEED_OFFSET, SEED_CAPACITY);
+
+/** Opaque state transport; hashing, xorshift, and range mapping run in Wasm. */
 export class SeededRandom implements RandomSource {
-  private state: number;
+  state: number;
 
   constructor(seed: readonly number[]) {
     let hash = 0x811c9dc5;
-    for (const value of seed) {
-      hash ^= value >>> 0;
-      hash = Math.imul(hash, 0x01000193);
+    for (let offset = 0; offset < seed.length; offset += SEED_CAPACITY) {
+      const chunk = seed.slice(offset, offset + SEED_CAPACITY);
+      seedWords.set(chunk);
+      hash = numericCore.hash_seed(hash, chunk.length);
     }
-    this.state = hash || 0x9e3779b9;
+    this.state = numericCore.finish_seed(hash);
   }
 
-  next(): number {
-    let x = this.state;
-    x ^= x << 13;
-    x ^= x >>> 17;
-    x ^= x << 5;
-    this.state = x >>> 0;
-    return this.state / 0x1_0000_0000;
-  }
+  next(): number { return this.range(0, 1); }
 
   range(min: number, max: number): number {
-    return min + (max - min) * this.next();
+    const value = numericCore.rng_sample(this.state, min, max);
+    this.state = numericCore.rng_state();
+    return value;
   }
 }
 

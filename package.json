@@ -12,9 +12,11 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
+    "@types/node": "^26.4.1",
     "@webgpu/types": "^0.1.64",
     "typescript": "^5.9.2",
     "vite": "^7.1.3",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "wabt": "^1.0.39"
   }
 }
