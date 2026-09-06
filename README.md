@@ -79,7 +79,7 @@ npm run analyze:distribution
 WHEEL_WRITE_DISTRIBUTION=1 npm run analyze:distribution
 ```
 
-The fast tests cover deterministic replay after previous spins, charge tension, launch extremes, high-speed contacts in both directions and across tick alignments, passive brake torque, spin duration, peg crossings, pointer rebound, low-speed reversal, settling at every segment count from 2 through 50, winner geometry, history and stored-data validation, bulk entry, and label handling.
+The fast tests cover deterministic replay after previous spins, stationary charging, launch extremes, high-speed contacts in both directions and across tick alignments, passive brake torque, spin duration, peg crossings, pointer rebound, low-speed reversal, settling at every segment count from 2 through 50, winner geometry, history and stored-data validation, bulk entry, and label handling.
 
 Browser tests use locally installed Google Chrome with WebGPU enabled. They cover keyboard and pointer cancellation, locked controls, full-speed pointer motion reaching the GPU, replay, bulk editing, 30-entry history retention and restoration, persistence failures, unsupported WebGPU, desktop/mobile resizing, idle rendering, and injected device-loss recovery. The distribution diagnostic is separate from the fast suite and prints per-scenario histograms and concentration metrics. It also checks settling, guards against the old severe outcome concentration, and checks short-hold averages below 12.5 seconds, the 95th percentile below 16 seconds, and every sampled short-hold spin below 20 seconds. Full-charge spins instead target a 15–23-second average, a 95th percentile below 27 seconds, and all sampled spins below 30 seconds.
 

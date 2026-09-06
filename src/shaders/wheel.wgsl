@@ -21,7 +21,7 @@ struct VertexOutput {
   let s = sin(u.wheel_angle);
   let rotated = vec2f(input.position.x * c - input.position.y * s,
                       input.position.x * s + input.position.y * c);
-  let pulse = 1.0 - u.charge * 0.018 + u.impact * 0.004;
+  let pulse = 1.0 + u.impact * 0.004;
   var output: VertexOutput;
   output.position = vec4f(rotated.x * pulse / u.aspect, rotated.y * pulse, 0.0, 1.0);
   output.position = vec4f(output.position.xy * min(u.aspect, 1.0), 0.0, 1.0);

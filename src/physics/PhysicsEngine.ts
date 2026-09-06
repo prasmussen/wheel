@@ -82,13 +82,6 @@ export class PhysicsEngine {
     this.stableTime = 0;
   }
 
-  applyChargeTension(charge: number, dt: number): void {
-    if (Math.abs(this.wheel.angularVelocity) < 0.08) {
-      this.wheel.angle = wrapAngle(this.wheel.angle - charge * 0.042 * dt);
-      this.pointer.angle = -charge * 0.025;
-    }
-  }
-
   step(dt: number): void {
     // Resolve fast peg travel within the fixed tick, including acceleration
     // during launch. Sampling only the end of a tick can miss an entire pin.

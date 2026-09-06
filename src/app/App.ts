@@ -91,7 +91,6 @@ export class App {
 
   private step(dt: number): void {
     this.previousSnapshot = this.currentSnapshot;
-    if (this.input?.charging) this.physics.applyChargeTension(this.input.charge, dt);
     this.physics.step(dt);
     this.currentSnapshot = this.physics.snapshot();
     if (this.spinActive && this.physics.isSettled() && !this.resultAnnounced) this.announceResult();

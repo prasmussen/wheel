@@ -187,13 +187,7 @@ describe("launch isolation", () => {
     expect(engine.isSettled()).toBe(true);
   });
 
-  it("scales charge tension by elapsed simulation time", () => {
-    const slow = new PhysicsEngine({ ...DEFAULT_PHYSICS }, 8);
-    const fast = new PhysicsEngine({ ...DEFAULT_PHYSICS }, 8);
-    for (let i = 0; i < 60; i++) slow.applyChargeTension(0.5, 1 / 60);
-    for (let i = 0; i < 240; i++) fast.applyChargeTension(0.5, 1 / 240);
-    expect(fast.wheel.angle).toBeCloseTo(slow.wheel.angle, 12);
-  });
+
 });
 
 
