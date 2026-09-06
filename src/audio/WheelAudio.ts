@@ -7,35 +7,30 @@ export class WheelAudio {
   private output?: GainNode;
   private chargeOscillator?: OscillatorNode;
   private chargeGain?: GainNode;
-  private unlockSource?: AudioBufferSourceNode;
   private suspension?: Promise<void>;
 
-  muted = false;
+  // iPadOS can identify as a Mac when requesting desktop sites.
+  muted = /iPad|iPhone|iPod/.test(navigator.userAgent)
+    || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
   setMuted(muted: boolean): void {
     this.muted = muted;
     if (this.output) this.output.gain.value = muted ? 0 : OUTPUT_GAIN;
     if (this.context) this.configureSession();
     if (muted && this.context) {
-      // A running context can still be silent on iOS. Let Unmute create a fresh
-      // context from its own user gesture instead of repeatedly resuming that one.
+      // Release the device while muted; Unmute creates audio in its click handler.
       const context = this.context;
       this.context = undefined;
       this.output = undefined;
       this.chargeOscillator = undefined;
       this.chargeGain = undefined;
-      this.unlockSource?.disconnect();
-      this.unlockSource = undefined;
       void context.close().catch(() => {});
     }
   }
 
-  async resume(event?: Event): Promise<void> {
+  async resume(): Promise<void> {
     if (this.muted || document.hidden) return;
-    // Native touchstart can unlock Web Audio even before the browser's general
-    // userActivation flag is set. Keep pointerdown and background calls gated.
-    const touchGesture = event?.isTrusted && event.type === "touchstart";
-    if (!this.context && !touchGesture && navigator.userActivation && !navigator.userActivation.isActive) return;
+    if (!this.context && navigator.userActivation && !navigator.userActivation.isActive) return;
     this.configureSession();
     this.context ??= new AudioContext();
     if (!this.output) {
@@ -43,21 +38,6 @@ export class WheelAudio {
       this.output.connect(this.context.destination);
     }
     this.output.gain.value = this.muted ? 0 : OUTPUT_GAIN;
-    // Start a source synchronously inside the gesture, before awaiting resume().
-    // Some iOS audio paths need this in addition to resuming the context; the
-    // charge oscillator is otherwise only started later by the animation loop.
-    // Replace any blocked attempt so repeated gestures cannot queue sources.
-    this.unlockSource?.stop();
-    this.unlockSource?.disconnect();
-    const source = this.context.createBufferSource();
-    source.buffer = this.context.createBuffer(1, 1, this.context.sampleRate);
-    source.connect(this.context.destination);
-    source.onended = () => {
-      source.disconnect();
-      if (this.unlockSource === source) this.unlockSource = undefined;
-    };
-    this.unlockSource = source;
-    source.start(0);
     await this.context.resume();
   }
 

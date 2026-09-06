@@ -83,24 +83,13 @@ export class App {
     await this.initializeRenderer();
 
     const spinButton = this.required<HTMLButtonElement>("#spin-button");
-    spinButton.addEventListener("touchstart", event => {
-      if (event.isTrusted && !spinButton.disabled) this.resumeAudio(event);
-    }, { passive: true });
-    // iOS may reject pointerdown/pointerup for audio. Capture touchend even after
-    // pointerup starts the spin and disables its button (suppressing the click).
-    this.root.addEventListener("touchend", event => {
-      if (event.isTrusted && event.target instanceof Node && spinButton.contains(event.target)) this.resumeAudio();
-    }, { capture: true, passive: true });
     this.input = new ChargeInput(spinButton, charge => this.launch(charge), charge => {
       this.state.interaction.charging = charge > 0;
       this.effect(() => this.audio.setCharge(charge));
       this.updateChargeUI(charge);
       this.updateLocks();
       this.wake();
-    }, event => {
-      // Touch uses its native touchstart handler; pen retries on release.
-      if (!(event instanceof PointerEvent) || event.pointerType === "mouse") this.resumeAudio();
-    }, () => this.gpuReady && !this.spinActive && !this.root.querySelector("dialog[open]"));
+    }, () => this.resumeAudio(), () => this.gpuReady && !this.spinActive && !this.root.querySelector("dialog[open]"));
     this.physics.onImpact(event => {
       this.effect(() => this.audio.impact(event, this.state.wheelConfig.items.length));
       this.effect(() => { if (navigator.vibrate && event.strength > 0.7) navigator.vibrate(8); });
@@ -558,8 +547,8 @@ export class App {
     catch { this.notice("Sound or vibration is unavailable. You can still spin the wheel."); }
   }
 
-  private resumeAudio(event?: Event): void {
-    void this.audio.resume(event).catch(() => this.notice("Audio is unavailable. You can still spin the wheel."));
+  private resumeAudio(): void {
+    void this.audio.resume().catch(() => this.notice("Audio is unavailable. You can still spin the wheel."));
   }
 
   private clearResult(): void {
@@ -632,7 +621,7 @@ export class App {
 
   private renderShell(): void {
     this.root.innerHTML = `
-      <header><h1 class="app-title">Mechanical Wheel</h1><div class="header-actions"><div class="actions-menu"><button id="toggle-actions" class="ghost" type="button" aria-label="Wheel menu" aria-expanded="false" aria-controls="wheel-actions"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button><div id="wheel-actions"><button id="edit-wheel" class="ghost" type="button" aria-haspopup="dialog" aria-controls="wheel-editor">Edit wheel</button><button id="share-wheel" class="ghost" type="button" aria-haspopup="dialog" aria-controls="share-dialog">Share</button><button id="show-history" class="ghost" type="button" aria-haspopup="dialog" aria-controls="history-dialog">Spin history</button></div></div><button id="show-info" class="ghost" type="button" aria-label="About Mechanical Wheel" title="About Mechanical Wheel" aria-haspopup="dialog" aria-controls="info-dialog"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><circle cx="12" cy="7" r="1" fill="currentColor" stroke="none"/></svg></button><button id="mute" class="ghost" type="button" aria-pressed="false" aria-label="Mute" title="Mute"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4Z"/><path class="sound-on" d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/><path class="sound-off" d="m16 9 6 6m0-6-6 6"/></svg></button></div></header>
+      <header><h1 class="app-title">Mechanical Wheel</h1><div class="header-actions"><div class="actions-menu"><button id="toggle-actions" class="ghost" type="button" aria-label="Wheel menu" aria-expanded="false" aria-controls="wheel-actions"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button><div id="wheel-actions"><button id="edit-wheel" class="ghost" type="button" aria-haspopup="dialog" aria-controls="wheel-editor">Edit wheel</button><button id="share-wheel" class="ghost" type="button" aria-haspopup="dialog" aria-controls="share-dialog">Share</button><button id="show-history" class="ghost" type="button" aria-haspopup="dialog" aria-controls="history-dialog">Spin history</button></div></div><button id="show-info" class="ghost" type="button" aria-label="About Mechanical Wheel" title="About Mechanical Wheel" aria-haspopup="dialog" aria-controls="info-dialog"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><circle cx="12" cy="7" r="1" fill="currentColor" stroke="none"/></svg></button><button id="mute" class="ghost" type="button" aria-pressed="${this.audio.muted}" aria-label="${this.audio.muted ? "Unmute" : "Mute"}" title="${this.audio.muted ? "Unmute" : "Mute"}"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4Z"/><path class="sound-on" d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/><path class="sound-off" d="m16 9 6 6m0-6-6 6"/></svg></button></div></header>
       <main>
         <section id="stage" class="stage" aria-label="Spinning wheel">
           <div class="wheel-glow"></div><canvas id="wheel-canvas" aria-hidden="true"></canvas>
