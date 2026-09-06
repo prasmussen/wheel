@@ -44,12 +44,11 @@ export function encodeShare(wheel: WheelConfig, replay?: SpinRecord): string {
   const encoded = btoa(Array.from(bytes, byte => String.fromCharCode(byte)).join(""))
     .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
   if (encoded.length > MAX_PAYLOAD_LENGTH) throw new Error("This wheel is too large to share in a link.");
-  return `#wheel=${encoded}`;
+  return encoded;
 }
 
-export function decodeShare(hash: string): SharedWheel | undefined {
-  if (!hash.startsWith("#wheel=")) return;
-  const encoded = hash.slice(7);
+export function decodeShare(encoded: string | null): SharedWheel | undefined {
+  if (encoded === null) return;
   if (!encoded || encoded.length > MAX_PAYLOAD_LENGTH || !/^[\w-]+$/.test(encoded)) {
     throw new Error("Invalid wheel link");
   }

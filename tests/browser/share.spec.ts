@@ -22,7 +22,8 @@ test('shares edited choices and the latest replay into a fresh browser context',
   await expect(page.locator('#share-status')).toContainText('Copy the selected link');
   await expect(page.locator('#notice')).toHaveCount(0);
   const url = await page.locator('#share-link').inputValue();
-  expect(new URL(url).hash).toMatch(/^#wheel=/);
+  expect(new URL(url).searchParams.has('wheel')).toBe(true);
+  expect(new URL(url).hash).toBe('');
   const context = await browser.newContext();
   try {
     const recipient = await context.newPage();
@@ -63,14 +64,14 @@ test('copies a wheel without a replay and recovers from a malformed link', async
   await page.goto(link);
   await expect(page.locator('#editor-list input').first()).toHaveValue('SHARED CHOICE');
   await expect(page.locator('#replay-spin')).toBeHidden();
-  await page.goto('/#wheel=broken');
+  await page.goto('/?wheel=broken');
   await expect(page.locator('#notice')).toHaveCount(0);
   await expect(page.locator('#editor-list input').first()).toHaveValue('SHARED CHOICE');
 });
 
 test('confirmed reset updates the URL with defaults; cancelling keeps the link', async ({ page }) => {
   const payload = btoa(JSON.stringify({ v: 1, choices: ['One', 'Two'] })).replace(/=+$/, '');
-  await page.goto('/?source=test#wheel=' + payload);
+  await page.goto('/?source=test&wheel=' + payload);
   await openEditor(page);
   await expect(page.locator('#editor-list input')).toHaveCount(2);
   const sharedUrl = page.url();
@@ -80,9 +81,10 @@ test('confirmed reset updates the URL with defaults; cancelling keeps the link',
   await expect(page.locator('#editor-list input')).toHaveCount(2);
   page.once('dialog', dialog => dialog.accept());
   await page.locator('#reset-wheel').click();
-  expect(new URL(page.url()).hash).toMatch(/^#wheel=/);
+  expect(new URL(page.url()).searchParams.has('wheel')).toBe(true);
+  expect(new URL(page.url()).hash).toBe('');
   expect(page.url()).not.toBe(sharedUrl);
-  expect(new URL(page.url()).search).toBe('?source=test');
+  expect(new URL(page.url()).searchParams.get('source')).toBe('test');
   await expect(page.locator('#wheel-editor')).toBeVisible();
   await expect(page.locator('#editor-list input')).toHaveCount(8);
   await page.reload();
@@ -96,7 +98,7 @@ test('updates a shared URL as choices are typed and reloads without local storag
     Storage.prototype.setItem = () => { throw new DOMException('Full', 'QuotaExceededError'); };
   });
   const payload = btoa(JSON.stringify({ v: 1, choices: ['ONE', 'TWO', 'THREE'] })).replace(/=+$/, '');
-  await page.goto('/?source=test#wheel=' + payload);
+  await page.goto('/?source=test&wheel=' + payload);
   await expect(page.locator('#spin-button')).toBeEnabled();
   const historyLength = await page.evaluate(() => history.length);
   await openEditor(page);
@@ -104,8 +106,9 @@ test('updates a shared URL as choices are typed and reloads without local storag
   await first.fill('café 🍕');
   await expect(first).toHaveValue('CAFÉ 🍕');
   const editedUrl = page.url();
-  expect(new URL(editedUrl).search).toBe('?source=test');
-  expect(new URL(editedUrl).hash).not.toBe('#wheel=' + payload);
+  expect(new URL(editedUrl).searchParams.get('source')).toBe('test');
+  expect(new URL(editedUrl).searchParams.get('wheel')).not.toBe(payload);
+  expect(new URL(editedUrl).hash).toBe('');
   await expect(page.locator('#wheel-editor')).toBeVisible();
   await expect(first).toBeFocused();
   await page.keyboard.type('x');
@@ -123,7 +126,7 @@ test('keeps the URL current after batch edits, additions, reordering, and blank 
   await page.locator('#bulk-choices').fill('first\nsecond\nthird');
   await page.locator('#apply-bulk').click();
   const urlChoices = () => page.evaluate(() => {
-    const encoded = location.hash.slice(7).replace(/-/g, '+').replace(/_/g, '/');
+    const encoded = new URL(location.href).searchParams.get('wheel')!.replace(/-/g, '+').replace(/_/g, '/');
     return JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(encoded), c => c.charCodeAt(0)))).choices;
   });
   expect(await urlChoices()).toEqual(['FIRST', 'SECOND', 'THIRD']);

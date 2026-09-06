@@ -36,7 +36,7 @@ Choice changes automatically update the current URL without navigating or adding
 
 If choices changed after the latest spin, the link preserves both sets: replay restores the original choices. Links take precedence over locally stored choices on load. Invalid links fall back to the local wheel with a message; replays from a different simulation version are unavailable, but their shared choices still load.
 
-Data is encoded as compact UTF-8 JSON in a URL-safe Base64 fragment (`#wheel=…`), with matching choice lists stored only once. No sharing service is needed. Anyone with the link can read its choices and replay. Large wheels produce longer links. Physics values come from the fixed simulation version, never from link-supplied settings.
+Data is encoded as compact UTF-8 JSON in a URL-safe Base64 query parameter (`?wheel=…`), with matching choice lists stored only once. No sharing service is needed. Anyone with the link can read its choices and replay. Large wheels produce longer links. Physics values come from the fixed simulation version, never from link-supplied settings.
 
 ## Physics and replay
 

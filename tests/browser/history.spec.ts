@@ -31,7 +31,7 @@ test('automatically stores 30 JSON snapshots and replays directly from history a
   await page.locator('#share-wheel').click();
   const url = await page.locator('#share-link').inputValue();
   const shared = await page.evaluate(url => {
-    const text = new URL(url).hash.slice(7).replace(/-/g, '+').replace(/_/g, '/');
+    const text = new URL(url).searchParams.get('wheel')!.replace(/-/g, '+').replace(/_/g, '/');
     return JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(text), c => c.charCodeAt(0))));
   }, url);
   expect(history[0].state).toEqual(shared);

@@ -38,7 +38,8 @@ export class App {
     this.root = root;
     let shared: ReturnType<typeof decodeShare>;
     try {
-      shared = decodeShare(location.hash);
+      const url = new URL(location.href);
+      shared = decodeShare(url.searchParams.get("wheel"));
       if (shared) this.shareNotice = shared.replayUnavailable
         ? "Shared wheel loaded. Its replay uses a different physics version and is unavailable."
         : shared.lastSpin ? "" : "Shared wheel loaded.";
@@ -63,9 +64,7 @@ export class App {
     this.renderEditor();
     this.loadHistory();
     if (this.shareNotice) this.notice(this.shareNotice);
-    window.addEventListener("hashchange", () => {
-      if (location.hash.startsWith("#wheel=")) location.reload();
-    });
+    window.addEventListener("popstate", () => location.reload());
     this.loop = new FixedStepLoop(FIXED_DT, dt => this.step(dt), alpha => this.render(alpha));
     this.resizeObserver.observe(this.required("#stage"));
     document.addEventListener("visibilitychange", () => {
@@ -356,7 +355,8 @@ export class App {
     const saved = this.store("momentum-wheel", this.state.wheelConfig);
     try {
       const url = new URL(location.href);
-      url.hash = encodeShare(this.state.wheelConfig, this.state.lastSpin);
+      url.searchParams.set("wheel", encodeShare(this.state.wheelConfig, this.state.lastSpin));
+      url.hash = "";
       // Replacing the URL avoids navigation and one Back entry per keystroke.
       history.replaceState(history.state, "", url);
     } catch {
@@ -444,7 +444,8 @@ export class App {
     status.textContent = "";
     try {
       const url = new URL(location.href);
-      url.hash = encodeShare(this.state.wheelConfig, this.state.lastSpin);
+      url.searchParams.set("wheel", encodeShare(this.state.wheelConfig, this.state.lastSpin));
+      url.hash = "";
       input.value = url.href;
     } catch (error) {
       button.disabled = true;

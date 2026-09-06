@@ -11,7 +11,7 @@ const replay: SpinRecord = {
   seed: [42, 0, 0xffffffff, 7], charge: 0.42, startingAngle: 1.234,
   simulationVersion: SIMULATION_VERSION, wheelConfig: wheel, physicsConfig: { ...DEFAULT_PHYSICS },
 };
-const raw = (payload: unknown) => '#wheel=' + btoa(JSON.stringify(payload)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const raw = (payload: unknown) => btoa(JSON.stringify(payload)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const payload = { v: 1, choices: ['A', 'B'], replay: { version: SIMULATION_VERSION, seed: replay.seed, charge: 0.4, angle: 1 } };
 const labels = (config: typeof wheel) => config.items.map(item => item.label);
 
@@ -43,8 +43,8 @@ describe('share links', () => {
   });
 
   it('deduplicates matching replay choices and restores fixed physics', () => {
-    const hash = encodeShare(wheel, replay);
-    const data = JSON.parse(atob(hash.slice(7).replace(/-/g, '+').replace(/_/g, '/')));
+    const encoded = encodeShare(wheel, replay);
+    const data = JSON.parse(atob(encoded.replace(/-/g, '+').replace(/_/g, '/')));
     expect(data.replay.choices).toBeUndefined();
     data.replay.physicsConfig = { ...DEFAULT_PHYSICS, wheelInertia: 0 };
     const shared = decodeShare(raw(data))!;
@@ -60,7 +60,7 @@ describe('share links', () => {
   });
 
   it.each([
-    '#wheel=', '#wheel=!!!', '#wheel=' + 'a'.repeat(24001), raw(null), raw({ v: 2, choices: ['A', 'B'] }),
+    '', '!!!', 'a'.repeat(24001), raw(null), raw({ v: 2, choices: ['A', 'B'] }),
     raw({ v: 1, choices: ['A'] }), raw({ v: 1, choices: Array(51).fill('A') }),
     raw({ v: 1, choices: ['A', 1] }), raw({ v: 1, choices: ['A', 'x'.repeat(31)] }),
     ...[{ seed: [1] }, { seed: [1, 2, 3, -1] }, { seed: [1, 2, 3, 0.5] },
