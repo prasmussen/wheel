@@ -44,7 +44,7 @@ test("cancels keyboard and pointer charging without launching", async ({ page })
   await spin.dispatchEvent("pointercancel", { pointerId: 1 });
   await page.mouse.up();
   await expect(spin).not.toHaveClass(/charging/);
-  await expect(page.locator("#charge-label")).toHaveText("PRESS & HOLD");
+  await expect(page.locator("#charge-label")).toHaveText("Spin");
   await expect(page.locator("#editor-list input").first()).toBeEnabled();
 });
 

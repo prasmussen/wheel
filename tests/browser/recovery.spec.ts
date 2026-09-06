@@ -99,7 +99,7 @@ for (const interruption of ['device loss', 'hidden page'] as const) {
     } else await page.evaluate(() => window.recovery.setHidden(true));
     await expect(page.locator('#spin-button')).not.toHaveClass(/charging/);
     await page.keyboard.up('Space');
-    await expect(page.locator('#charge-label')).toHaveText('PRESS & HOLD');
+    await expect(page.locator('#charge-label')).toHaveText('Spin');
     await expect(page.locator('#result')).toHaveText('READY');
     expect(await history(page)).toEqual([]);
     expect(await page.evaluate(() => window.recovery.launches)).toBe(0);

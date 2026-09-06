@@ -44,6 +44,16 @@ test('opens a responsive editor modal with keyboard and backdrop dismissal', asy
     await page.locator('#show-history').click();
     await page.mouse.click(2, 2);
     await expect(history).toBeHidden();
+    await page.locator('#show-info').click();
+    const info = page.getByRole('dialog', { name: 'About Mechanical Wheel' });
+    await expect(info).toBeVisible();
+    await expect(info.locator('.site-info')).toContainText('A free custom picker');
+    await expect(info.getByText('How to use the wheel', { exact: true })).toBeVisible();
+    await expect(info.locator('h3')).toHaveText('How randomness works');
+    await expect(page.locator('body > .site-info')).toHaveCount(0);
+    await page.screenshot({ path: testInfo.outputPath(`wheel-info-${width}.png`), fullPage: true });
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#show-info')).toBeFocused();
   }
 });
 

@@ -30,7 +30,7 @@ test('assistive activation spins with a stable name and reduced motion keeps the
   const before = await canvas.screenshot();
   await spin.evaluate((button: HTMLButtonElement) => button.click());
   await expect(page.locator('#result')).toHaveText('IN MOTION');
-  await expect(spin).toHaveAccessibleName('Press & Hold to spin');
+  await expect(spin).toHaveAccessibleName('Spin');
   await page.waitForTimeout(300);
   expect((await canvas.screenshot()).equals(before)).toBe(true);
   await expect(page.locator('#result')).toHaveClass('winner', { timeout: 45_000 });
