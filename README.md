@@ -30,7 +30,7 @@ History is stored under `momentum-spin-history` as a JSON array. Each entry has 
 
 ## Sharing
 
-Choice changes automatically update the current URL without navigating or adding browser history entries. Reloading restores those choices, including edits to a shared wheel; reset also updates the URL to the defaults. Unapplied batch edits and temporarily blank fields are drafts until applied or removed on close.
+Choice changes automatically update the current URL without navigating or adding browser history entries. Reloading restores those choices, including edits to a shared wheel; reset restores the defaults and clears the URL query and fragment. Unapplied batch edits and temporarily blank fields are drafts until applied or removed on close.
 
 **Share** opens a modal with a link containing the current choices and the latest replay, if one exists. **Copy to clipboard** copies it; if clipboard access fails, the link is selected for manual copying. Open it to load the wheel, then open **Spin history** and choose **Replay shared spin** to watch the recorded spin. Opening a link does not start a spin automatically.
 

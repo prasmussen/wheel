@@ -73,8 +73,8 @@ test('copies a wheel without a replay and recovers from a malformed link', async
   await expect(page.locator('#editor-list input').first()).toHaveValue('PIZZA');
 });
 
-test('confirmed reset updates the URL with defaults; cancelling keeps the link', async ({ page }) => {
-  await page.goto('/?source=test&choices=One,Two');
+test('confirmed reset clears the URL; cancelling keeps the link', async ({ page }) => {
+  await page.goto('/?source=test&choices=One,Two#old');
   await openEditor(page);
   await expect(page.locator('#editor-list input')).toHaveCount(2);
   const sharedUrl = page.url();
@@ -84,10 +84,7 @@ test('confirmed reset updates the URL with defaults; cancelling keeps the link',
   await expect(page.locator('#editor-list input')).toHaveCount(2);
   page.once('dialog', dialog => dialog.accept());
   await page.locator('#reset-wheel').click();
-  expect(new URL(page.url()).searchParams.has('choices')).toBe(true);
-  expect(new URL(page.url()).hash).toBe('');
-  expect(page.url()).not.toBe(sharedUrl);
-  expect(new URL(page.url()).searchParams.get('source')).toBe('test');
+  await expect(page).toHaveURL('http://127.0.0.1:4174/');
   await expect(page.locator('#wheel-editor')).toBeVisible();
   await expect(page.locator('#editor-list input')).toHaveCount(8);
   await page.reload();

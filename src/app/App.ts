@@ -246,7 +246,7 @@ export class App {
     this.required("#reset-wheel").addEventListener("click", () => {
       if (this.busy) return;
       if (window.confirm("Reset the wheel to its default choices? Your current choices will be replaced.")) {
-        this.updateItems(createDefaultConfig().items);
+        this.updateItems(createDefaultConfig().items, true);
       }
     });
     const editOption = (event: Event) => {
@@ -339,23 +339,28 @@ export class App {
     }
   }
 
-  private updateItems(items: WheelItem[]): boolean {
+  private updateItems(items: WheelItem[], clearUrl = false): boolean {
     if (this.busy) return false;
     this.state.wheelConfig = { items, version: crypto.randomUUID() };
     this.clearResult();
-    const saved = this.commitConfig();
+    const saved = this.commitConfig(clearUrl);
     this.renderEditor();
     return saved;
   }
 
-  private commitConfig(): boolean {
+  private commitConfig(clearUrl = false): boolean {
     this.state.wheelConfig.version = crypto.randomUUID();
     this.physics.setSegmentCount(this.state.wheelConfig.items.length);
     if (this.gpuReady) this.renderer?.updateConfig(this.state.wheelConfig);
     const saved = this.store("momentum-wheel", this.state.wheelConfig);
     try {
       const url = new URL(location.href);
-      writeShareUrl(url, this.state.wheelConfig, this.state.lastSpin);
+      if (clearUrl) {
+        url.search = "";
+        url.hash = "";
+      } else {
+        writeShareUrl(url, this.state.wheelConfig, this.state.lastSpin);
+      }
       // Replacing the URL avoids navigation and one Back entry per keystroke.
       history.replaceState(history.state, "", url);
     } catch {
