@@ -32,7 +32,6 @@ export class App {
   private readonly resizeObserver = new ResizeObserver(() => this.wake());
   private gpuReady = false;
   private recovering = false;
-  private shareNotice = "";
 
   constructor(root: HTMLElement) {
     this.root = root;
@@ -40,11 +39,12 @@ export class App {
     try {
       const url = new URL(location.href);
       shared = decodeShare(url.searchParams.get("wheel"));
-      if (shared) this.shareNotice = shared.replayUnavailable
-        ? "Shared wheel loaded. Its replay uses a different physics version and is unavailable."
-        : shared.lastSpin ? "" : "Shared wheel loaded.";
     } catch {
-      this.shareNotice = "This wheel link is invalid or incomplete. Your local wheel has been loaded instead.";
+      shared = { wheelConfig: createDefaultConfig() };
+      history.replaceState(history.state, "", location.pathname);
+      try {
+        localStorage.setItem("momentum-wheel", JSON.stringify(shared.wheelConfig));
+      } catch { /* The default wheel remains usable when storage is unavailable. */ }
     }
     const wheelConfig = shared?.wheelConfig ?? this.loadConfig();
     this.physics = new PhysicsEngine(this.physicsConfig, wheelConfig.items.length);
@@ -63,7 +63,6 @@ export class App {
     this.attachUI();
     this.renderEditor();
     this.loadHistory();
-    if (this.shareNotice) this.notice(this.shareNotice);
     window.addEventListener("popstate", () => location.reload());
     this.loop = new FixedStepLoop(FIXED_DT, dt => this.step(dt), alpha => this.render(alpha));
     this.resizeObserver.observe(this.required("#stage"));
@@ -255,8 +254,8 @@ export class App {
       if (!input || this.busy || (event as InputEvent).isComposing) return;
       this.capitalizeInput(input);
       const label = input.value.trim().normalize("NFC");
-      const valid = label.length > 0 && label.length <= 30;
-      input.setCustomValidity(valid ? "" : "Enter an option with 1–30 characters.");
+      const valid = label.length > 0 && label.length <= 12;
+      input.setCustomValidity(valid ? "" : "Enter an option with 1–12 characters.");
       input.toggleAttribute("aria-invalid", !valid);
       if (!valid) { input.setAttribute("aria-invalid", "true"); return; }
       const item = this.state.wheelConfig.items.find(entry => entry.id === input.dataset.id);
@@ -316,6 +315,7 @@ export class App {
 
   private setBatchEditing(active: boolean): void {
     this.batchEditing = active;
+    this.required("#close-editor").hidden = active;
     this.required("#individual-editor").hidden = active;
     this.required("#batch-editor").hidden = !active;
     const textarea = this.required<HTMLTextAreaElement>("#bulk-choices");
@@ -373,7 +373,7 @@ export class App {
       const row = document.createElement("div"); row.className = "editor-row";
       const input = document.createElement("input"); input.value = item.label.toUpperCase(); input.dataset.id = item.id;
       input.required = true; input.autocapitalize = "characters";
-      input.maxLength = 30; input.setAttribute("aria-label", `Wheel item ${index + 1}`);
+      input.maxLength = 12; input.setAttribute("aria-label", `Wheel item ${index + 1}`);
       const actions = [["up","↑","Move up"],["down","↓","Move down"],["delete","×","Delete"]] as const;
       row.append(input, ...actions.map(([action,text,label]) => {
         const button=document.createElement("button"); button.type="button"; button.textContent=text;
@@ -382,7 +382,6 @@ export class App {
         return button;
       })); return row;
     }));
-    this.required("#item-count").textContent = `${this.state.wheelConfig.items.length} segments`;
     this.updateLocks();
   }
 
@@ -552,16 +551,16 @@ export class App {
         <div class="panel-heading"><h2 id="share-title">Share wheel</h2><button id="close-share" class="ghost" type="button">Done</button></div>
         <div class="share-link-panel"><label for="share-link">Wheel link</label><input id="share-link" type="text" readonly spellcheck="false"></div>
         <div class="editor-actions"><button id="copy-share-link" type="button" autofocus>Copy to clipboard</button></div>
-        <p id="share-status" class="hint" role="status"></p>
+        <p id="share-status" class="sr-only" role="status"></p>
       </dialog>
       <dialog id="wheel-editor" class="editor" aria-labelledby="editor-title">
-        <div class="panel-heading"><div><h2 id="editor-title">Edit wheel</h2><span id="item-count"></span></div><button id="close-editor" class="ghost" type="button" autofocus>Done</button></div>
+        <div class="panel-heading"><h2 id="editor-title">Edit wheel</h2><button id="close-editor" class="ghost" type="button" autofocus>Done</button></div>
         <fieldset id="choice-controls"><legend class="sr-only">Wheel choices</legend>
           <div id="individual-editor"><div id="editor-list" class="editor-list"></div>
           <div class="editor-actions"><button id="add-item" type="button">+ Add choice</button><button id="batch-edit" type="button">Batch edit</button></div>
           <div class="reset-actions"><button id="reset-wheel" type="button">Reset</button></div></div>
           <div id="batch-editor" hidden><label for="bulk-choices">One choice per line</label><textarea id="bulk-choices" rows="12" maxlength="2000" aria-describedby="batch-error"></textarea><p id="batch-error" class="hint" role="alert"></p><div class="editor-actions"><button id="apply-bulk" type="button">Apply choices</button><button id="cancel-batch" type="button">Cancel</button></div></div>
-        </fieldset><p id="editor-notice" role="status" class="hint"></p>
+        </fieldset><p id="editor-notice" role="status" class="sr-only"></p>
       </dialog>
       <dialog id="history-dialog" class="editor" aria-labelledby="history-title">
         <div class="panel-heading"><h2 id="history-title">Spin history</h2><button id="close-history" class="ghost" type="button" autofocus>Done</button></div>

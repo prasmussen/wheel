@@ -15,7 +15,7 @@ export function readSpinHistory(value: unknown): SpinHistoryEntry[] {
   for (const entry of value) {
     try {
       if (!entry || !Number.isSafeInteger(entry.completedAt) || entry.completedAt < 0
-        || entry.completedAt > 8.64e15 || typeof entry.result !== "string" || entry.result.length > 30) continue;
+        || entry.completedAt > 8.64e15 || typeof entry.result !== "string" || entry.result.length > 12) continue;
       const shared = readSharePayload(entry.state);
       if (!shared.lastSpin || !shared.lastSpin.wheelConfig.items.some(item => item.label === entry.result)) continue;
       entries.push({ completedAt: entry.completedAt, result: entry.result,

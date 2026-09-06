@@ -12,7 +12,7 @@ interface SharedWheel {
 
 function readChoices(value: unknown): WheelConfig {
   if (!Array.isArray(value) || value.length < 2 || value.length > 50
-    || value.some(label => typeof label !== "string" || label.length > 30)) {
+    || value.some(label => typeof label !== "string" || label.length > 12)) {
     throw new Error("Invalid shared choices");
   }
   return {

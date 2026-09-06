@@ -19,10 +19,10 @@ Choices stay locked while charging or spinning. Once the wheel settles, its sele
 
 Choose **Edit wheel** to edit choices, or **Spin history** to open previous spins in a separate dialog. Close either dialog with **Done**, Escape, or a click outside it. Choosing Replay closes the history dialog and immediately replays that spin. The main screen gives the wheel the full available width.
 
-- Edit 2–50 choices, with up to 30 characters each. Blank choices must be named before spinning.
-- **Batch edit** switches the individual fields to a multiline editor prefilled with the current choices. **Apply choices** returns to individual editing; **Done** applies and closes the dialog. **Cancel**, Escape, or clicking outside discards unapplied batch edits. Keep 2–50 choices, one per nonblank line, with up to 30 characters each.
+- Edit 2–50 choices, with up to 12 characters each. Blank choices must be named before spinning.
+- **Batch edit** switches the individual fields to a multiline editor prefilled with the current choices. **Apply choices** returns to individual editing, where **Done** closes the dialog. **Cancel**, Escape, or clicking outside discards unapplied batch edits. Keep 2–50 choices, one per nonblank line, with up to 12 characters each.
 - **Spin history** automatically keeps the last 30 completed spins on this device, newest first. Each entry shows its result and completion time. **Replay** restores its choices and immediately plays that spin again. Replays do not add history entries or change the order of existing spins.
-- Storage failures leave the wheel usable for the session and display a message. Invalid stored configurations fall back to the default wheel.
+- Storage failures leave the wheel usable for the session and announce a status to screen readers. Invalid stored configurations fall back to the default wheel.
 
 Wheel labels use smooth semibold Manrope text with system font fallbacks, displaying uppercase text while preserving accents, non-Latin scripts, and emoji. Character coverage depends on available fonts. Labels fit the available width with modest size reduction followed by an ellipsis at a complete grapheme boundary. Option inputs automatically uppercase text, including pasted batches. Blank lines in batches are ignored; blank individual choices are removed when the modal closes, provided at least two choices remain. Full labels are retained in the editor and result.
 
@@ -34,7 +34,7 @@ Choice changes automatically update the current URL without navigating or adding
 
 **Share** opens a modal with a link containing the current choices and the latest replay, if one exists. **Copy to clipboard** copies it; if clipboard access fails, the link is selected for manual copying. Open it to load the wheel, then open **Spin history** and choose **Replay shared spin** to watch the recorded spin. Opening a link does not start a spin automatically.
 
-If choices changed after the latest spin, the link preserves both sets: replay restores the original choices. Links take precedence over locally stored choices on load. Invalid links fall back to the local wheel with a message; replays from a different simulation version are unavailable, but their shared choices still load.
+If choices changed after the latest spin, the link preserves both sets: replay restores the original choices. Links take precedence over locally stored choices on load. Invalid links silently clear the URL query and fragment and reset the saved wheel to the defaults; replays from a different simulation version are unavailable, but their shared choices still load.
 
 Data is encoded as compact UTF-8 JSON in a URL-safe Base64 query parameter (`?wheel=…`), with matching choice lists stored only once. No sharing service is needed. Anyone with the link can read its choices and replay. Large wheels produce longer links. Physics values come from the fixed simulation version, never from link-supplied settings.
 

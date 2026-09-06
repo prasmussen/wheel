@@ -53,7 +53,7 @@ test('copies a wheel without a replay and recovers from a malformed link', async
   });
   await page.goto('/');
   await openEditor(page);
-  await page.locator('#editor-list input').first().fill('Shared choice');
+  await page.locator('#editor-list input').first().fill('Shared item');
   await closeEditor(page);
   await page.locator('#share-wheel').click();
   await expect(page.locator('#notice')).toHaveCount(0);
@@ -62,11 +62,15 @@ test('copies a wheel without a replay and recovers from a malformed link', async
   await expect(page.locator('#copy-share-link')).toHaveText('Copied!');
   const link = await page.evaluate(() => (window as unknown as { copiedLink: string }).copiedLink);
   await page.goto(link);
-  await expect(page.locator('#editor-list input').first()).toHaveValue('SHARED CHOICE');
+  await expect(page.locator('#editor-list input').first()).toHaveValue('SHARED ITEM');
   await expect(page.locator('#replay-spin')).toBeHidden();
-  await page.goto('/?wheel=broken');
-  await expect(page.locator('#notice')).toHaveCount(0);
-  await expect(page.locator('#editor-list input').first()).toHaveValue('SHARED CHOICE');
+  await page.goto('/?wheel=broken#old');
+  await expect(page).toHaveURL('http://127.0.0.1:4174/');
+  await expect(page.locator('#editor-notice')).toBeEmpty();
+  await expect(page.locator('#editor-list input')).toHaveCount(8);
+  await expect(page.locator('#editor-list input').first()).toHaveValue('PIZZA');
+  await page.reload();
+  await expect(page.locator('#editor-list input').first()).toHaveValue('PIZZA');
 });
 
 test('confirmed reset updates the URL with defaults; cancelling keeps the link', async ({ page }) => {

@@ -18,7 +18,7 @@ const labels = (config: typeof wheel) => config.items.map(item => item.label);
 describe('share links', () => {
   it('round-trips Unicode and duplicate choices without a replay', () => {
     const config = structuredClone(wheel);
-    config.items[0].label = 'ÆØÅ 🍕 /?# & café';
+    config.items[0].label = 'Æø 🍕 /?#&';
     config.items[1].label = config.items[0].label;
     const shared = decodeShare(encodeShare(config))!;
     expect(labels(shared.wheelConfig)).toEqual(labels(config));
@@ -62,16 +62,16 @@ describe('share links', () => {
   it.each([
     '', '!!!', 'a'.repeat(24001), raw(null), raw({ v: 2, choices: ['A', 'B'] }),
     raw({ v: 1, choices: ['A'] }), raw({ v: 1, choices: Array(51).fill('A') }),
-    raw({ v: 1, choices: ['A', 1] }), raw({ v: 1, choices: ['A', 'x'.repeat(31)] }),
+    raw({ v: 1, choices: ['A', 1] }), raw({ v: 1, choices: ['A', 'x'.repeat(13)] }),
     ...[{ seed: [1] }, { seed: [1, 2, 3, -1] }, { seed: [1, 2, 3, 0.5] },
       { charge: 2 }, { charge: '0.4' }, { angle: -1 }, { angle: 7 }, { choices: [' ', 'B'] }]
       .map(change => raw({ ...payload, replay: { ...payload.replay, ...change } })),
   ])('rejects malformed or oversized input %#', hash => expect(() => decodeShare(hash)).toThrow());
 
   it('supports maximum-size wheels with distinct replay choices', () => {
-    const large = { version: 'test', items: Array.from({ length: 50 }, (_, i) => ({ id: String(i), label: '界'.repeat(30), weight: 1 })) };
+    const large = { version: 'test', items: Array.from({ length: 50 }, (_, i) => ({ id: String(i), label: '界'.repeat(12), weight: 1 })) };
     const original = structuredClone(large);
-    original.items[0].label = '語'.repeat(30);
+    original.items[0].label = '語'.repeat(12);
     expect(decodeShare(encodeShare(large, { ...replay, wheelConfig: original }))!.lastSpin).toBeDefined();
   });
 });

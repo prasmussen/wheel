@@ -54,7 +54,10 @@ test('keeps the editor open when text selection ends outside the modal', async (
   await page.locator('#edit-wheel').click();
   const dialog = page.locator('#wheel-editor');
   const input = page.locator('#editor-list input').first();
-  await input.fill('Select this whole choice');
+  await expect(input).toHaveAttribute('maxlength', '12');
+  await input.fill('ABCDEFGHIJKLM');
+  await expect(input).toHaveValue('ABCDEFGHIJKL');
+  await input.fill('Select this');
   {
     const bounds = (await input.boundingBox())!;
     await page.mouse.move(bounds.x + bounds.width - 8, bounds.y + bounds.height / 2);

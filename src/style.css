@@ -22,7 +22,6 @@ main { width:100%; }
 body:has(.editor[open]) { overflow:hidden; }
 .hint:empty { display:none; }
 .panel-heading { display:flex; justify-content:space-between; align-items:end; margin-bottom:18px; }
-#item-count { color:#778197; font:11px DM Mono,monospace; }
 .editor-list { max-height:390px; overflow:auto; padding:3px; scrollbar-width:thin; }
 .editor-row { display:grid; grid-template-columns:1fr repeat(3,30px); gap:5px; margin-bottom:7px; }
 .editor-row input { min-width:0; height:38px; border:1px solid #293143; border-radius:8px; padding:0 11px; color:#e7ebf4; background:#121824; }
@@ -85,6 +84,8 @@ details > button { margin-top:8px; }
 
 #batch-editor label { display:block; margin-bottom:8px; color:#a5aec0; font-size:12px; }
 #bulk-choices { max-height:50svh; line-height:1.6; }
+#batch-error { display:block; min-height:3.1em; margin-top:4px; color:#ff808b; }
+#batch-editor .editor-actions { margin-top:6px; }
 #bulk-choices[aria-invalid="true"] { border-color:#ec9f32; }
 
 #mute { display:grid; place-items:center; }

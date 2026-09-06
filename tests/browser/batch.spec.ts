@@ -8,6 +8,7 @@ test('batch editing retains current choices, applies changes, and persists them'
   const labels = await page.locator('#editor-list input').evaluateAll(inputs => inputs.map(input => (input as HTMLInputElement).value));
   await page.getByRole('button', { name: 'Batch edit', exact: true }).click();
   await expect(page.locator('#individual-editor')).toBeHidden();
+  await expect(page.locator('#close-editor')).toBeHidden();
   await expect(page.locator('#bulk-choices')).toHaveValue(labels.join('\n'));
   await expect(page.locator('#bulk-choices')).toBeFocused();
   await page.locator('#bulk-choices').fill('ÆØÅ\nCafé\nÆØÅ');
@@ -20,6 +21,7 @@ test('batch editing retains current choices, applies changes, and persists them'
   await page.locator('#batch-edit').click();
   await expect(page.locator('#bulk-choices')).toHaveValue('ÆØÅ\nCAFÉ\nÆØÅ');
   await page.locator('#bulk-choices').fill('Lunch\nDinner');
+  await page.locator('#apply-bulk').click();
   await page.locator('#close-editor').click();
   await expect(page.locator('#wheel-editor')).toBeHidden();
   await page.reload();
@@ -29,16 +31,36 @@ test('batch editing retains current choices, applies changes, and persists them'
 });
 
 test('invalid batches remain editable and cancel or dismissal preserves the original choices', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 844 });
   await page.goto('/');
   await openEditor(page);
   await page.locator('#batch-edit').click();
+  const geometry = () => page.locator('#wheel-editor, #apply-bulk, #cancel-batch').evaluateAll(elements =>
+    elements.map(element => {
+      const { x, y, width, height } = element.getBoundingClientRect();
+      return { x, y, width, height };
+    }));
+  const beforeError = await geometry();
   await page.locator('#bulk-choices').fill('Only one');
-  await page.locator('#close-editor').click();
+  await page.locator('#apply-bulk').click();
   await expect(page.locator('#wheel-editor')).toBeVisible();
   await expect(page.locator('#batch-error')).toContainText('between 2 and 50');
+  expect(await geometry()).toEqual(beforeError);
   await expect(page.locator('#bulk-choices')).toHaveAttribute('aria-invalid', 'true');
   await expect(page.locator('#editor-list input')).toHaveCount(8);
+  await page.locator('#bulk-choices').fill(Array(51).fill('Pizza').join('\n\n'));
+  await page.locator('#apply-bulk').click();
+  await expect(page.locator('#batch-error')).toHaveText('Keep at most 50 choices.');
+  expect(await geometry()).toEqual(beforeError);
+  await expect(page.locator('#editor-list input')).toHaveCount(8);
+  await page.locator('#bulk-choices').fill('ABCDEFGHIJKLM\nPizza');
+  await page.locator('#apply-bulk').click();
+  await expect(page.locator('#batch-error')).toContainText('12 characters or fewer');
+  await expect(page.locator('#batch-error')).toHaveCSS('color', 'rgb(255, 128, 139)');
+  expect(await geometry()).toEqual(beforeError);
+  await expect(page.locator('#editor-list input')).toHaveCount(8);
   await page.locator('#cancel-batch').click();
+  await expect(page.locator('#close-editor')).toBeVisible();
   await expect(page.locator('#editor-list input').first()).toHaveValue('PIZZA');
   await page.locator('#batch-edit').click();
   await expect(page.locator('#bulk-choices')).toHaveValue(/PIZZA\nSUSHI/);
