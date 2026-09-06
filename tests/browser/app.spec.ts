@@ -41,25 +41,18 @@ test("cancels keyboard and pointer charging without launching", async ({ page })
   await expect(page.locator("#editor-list input").first()).toBeEnabled();
 });
 
-test("bulk edit, undo, saved wheels, and mute", async ({ page }) => {
+test("bulk edit, undo, persistence, and mute", async ({ page }) => {
   await page.goto("/");
   await page.getByText("Paste choices", { exact: true }).click();
   await page.locator("#bulk-choices").fill("ÆØÅ\nCafé\nLunch");
   await page.locator("#apply-bulk").click();
   await expect(page.locator("#editor-list input")).toHaveCount(3);
-  await page.getByText("Saved wheels", { exact: true }).click();
-  await page.locator("#wheel-name").fill("Lunch wheel");
-  await page.locator("#save-wheel").click();
   await page.locator("#reset-wheel").click();
   await expect(page.locator("#editor-list input")).toHaveCount(8);
   await page.locator("#undo").click();
   await expect(page.locator("#editor-list input").first()).toHaveValue("ÆØÅ");
   await page.reload();
   await expect(page.locator("#editor-list input")).toHaveCount(3);
-  await page.getByText("Saved wheels", { exact: true }).click();
-  await expect(page.locator("#saved-wheels option")).toHaveText("Lunch wheel");
-  await page.locator("#reset-wheel").click();
-  await page.locator("#load-wheel").click();
   await expect(page.locator("#editor-list input").first()).toHaveValue("ÆØÅ");
   await page.locator("#mute").click();
   await expect(page.locator("#mute")).toHaveAttribute("aria-pressed", "true");

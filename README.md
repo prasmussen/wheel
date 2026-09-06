@@ -19,11 +19,21 @@ Choices stay locked while charging or spinning. Once the wheel settles, its sele
 
 - Edit 2–50 choices, with up to 30 characters each. Blank choices must be named before spinning.
 - **Paste choices** replaces the wheel with one choice per nonblank line.
-- **Undo** restores the choices before the last add, delete, reorder, reset, bulk replacement, load, or replay. This is one level of undo; individual text edits use the input's native undo.
-- **Saved wheels** stores up to 20 named choice lists on this device. Load or delete them from the same panel.
+- **Undo** restores the choices before the last add, delete, reorder, reset, bulk replacement, history load, or replay. This is one level of undo; individual text edits use the input's native undo.
+- **Spin history** automatically keeps the last 10 completed spins on this device, newest first. Each entry shows its result and completion time. **Load** restores its choices and replay; **Replay last spin** plays it again. Replayed spins are also logged when they finish.
 - Storage failures leave the wheel usable for the session and display a message. Invalid stored configurations fall back to the default wheel.
 
 Wheel labels support A–Z, digits, Nordic letters Æ/Ø/Å/Ä/Ö/Ü, É, and basic punctuation. Other accented Latin letters use their base letter; unsupported glyphs use `?`. Labels longer than 14 characters (8 above 20 choices) end in an ellipsis on the wheel. The editor and result retain the original full text.
+
+History is stored under `momentum-spin-history` as a JSON array. Each entry has `completedAt`, `result`, and `state`; `state` is the same plain object encoded in a share link, without Base64. Invalid or incompatible entries are skipped. If storage fails, history remains available for the session.
+
+## Sharing
+
+**Share wheel** copies a link containing the current choices and the latest replay, if one exists. A selectable link is also shown for manual copying. Open it to load the wheel, then choose **Replay last spin** to watch the recorded spin. Opening a link does not start a spin automatically.
+
+If choices changed after the latest spin, the link preserves both sets: replay restores the original choices, and Undo returns to the shared choices. Links take precedence over locally stored choices on load. Invalid links fall back to the local wheel with a message; replays from a different simulation version are unavailable, but their shared choices still load.
+
+Data is encoded as compact UTF-8 JSON in a URL-safe Base64 fragment (`#wheel=…`), with matching choice lists stored only once. No sharing service is needed. Anyone with the link can read its choices and replay. Large wheels produce longer links. Physics values come from the fixed simulation version, never from link-supplied settings.
 
 ## Physics and replay
 
@@ -31,7 +41,7 @@ Every new launch uses a fresh seed from `crypto.getRandomValues`. The seed varie
 
 Longer holds increase launch energy for the same random preload, and even the weakest full-charge launch is stronger than the strongest zero-charge launch. The preload range grows with charge to keep travel varied under the stronger brake. The randomized launch speed remains below 38 rad/s across the full charge range. These changes alter seeded trajectories, so new records use simulation version 5. Each launch resets transient contact state and records its seed, charge, starting angle, complete choice list, physics settings, and simulation version.
 
-**Replay last spin** restores that configuration and reproduces the spin from the current session. It remains available after editing choices; Undo can restore the choices that preceded replay. Replay records are held in memory and disappear on reload. Replay is intended for the same simulation version and runtime; cross-engine floating-point equivalence is not guaranteed.
+**Replay last spin** restores that configuration and reproduces the spin from the current session or a shared link. It remains available after editing choices; Undo can restore the choices that preceded replay. Completed replay records persist in Spin history; share links can also carry them across reloads. Replay is intended for the same simulation version and runtime; cross-engine floating-point equivalence is not guaranteed.
 
 Physics settings are fixed and cannot be adjusted in the interface. The outer simulation ticks at 240 Hz. Fast peg travel and spring response use bounded adaptive substeps within each tick, including launch acceleration, so a pin cannot simply cross the contact area between samples. The lighter spring pointer has lower damping and returns quickly enough to show individual deflections on the default wheel. Dense wheels can keep the pointer deflected while it flutters against successive pins. Repeated contact visits within the substeps do not produce duplicate click notifications for the same pin traversal.
 
@@ -66,9 +76,9 @@ npm run analyze:distribution
 WHEEL_WRITE_DISTRIBUTION=1 npm run analyze:distribution
 ```
 
-The fast tests cover deterministic replay after previous spins, charge tension, launch extremes, high-speed contacts in both directions and across tick alignments, passive brake torque, spin duration, peg crossings, pointer rebound, low-speed reversal, settling at every segment count from 2 through 50, winner geometry, saved-data validation, bulk entry, and label handling.
+The fast tests cover deterministic replay after previous spins, charge tension, launch extremes, high-speed contacts in both directions and across tick alignments, passive brake torque, spin duration, peg crossings, pointer rebound, low-speed reversal, settling at every segment count from 2 through 50, winner geometry, history and stored-data validation, bulk entry, and label handling.
 
-Browser tests use locally installed Google Chrome with WebGPU enabled. They cover keyboard and pointer cancellation, locked controls, full-speed pointer motion reaching the GPU, replay, bulk editing, undo, persistence failures, unsupported WebGPU, desktop/mobile resizing, idle rendering, and injected device-loss recovery. The distribution diagnostic is separate from the fast suite and prints per-scenario histograms and concentration metrics. It also checks settling, guards against the old severe outcome concentration, and checks short-hold averages below 12.5 seconds, the 95th percentile below 16 seconds, and every sampled short-hold spin below 20 seconds. Full-charge spins instead target a 15–23-second average, a 95th percentile below 27 seconds, and all sampled spins below 30 seconds.
+Browser tests use locally installed Google Chrome with WebGPU enabled. They cover keyboard and pointer cancellation, locked controls, full-speed pointer motion reaching the GPU, replay, bulk editing, undo, ten-entry history retention and restoration, persistence failures, unsupported WebGPU, desktop/mobile resizing, idle rendering, and injected device-loss recovery. The distribution diagnostic is separate from the fast suite and prints per-scenario histograms and concentration metrics. It also checks settling, guards against the old severe outcome concentration, and checks short-hold averages below 12.5 seconds, the 95th percentile below 16 seconds, and every sampled short-hold spin below 20 seconds. Full-charge spins instead target a 15–23-second average, a 95th percentile below 27 seconds, and all sampled spins below 30 seconds.
 
 ## Rendering and recovery
 

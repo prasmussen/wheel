@@ -20,14 +20,3 @@ export function parseChoices(text: string): WheelItem[] {
   if (labels.some(label => label.length > 30)) throw new Error("Keep each choice to 30 characters or fewer.");
   return labels.map(label => ({ id: crypto.randomUUID(), label, weight: 1 }));
 }
-
-export interface SavedWheel { name: string; config: WheelConfig }
-
-export function readSavedWheels(value: unknown): SavedWheel[] {
-  if (!Array.isArray(value)) return [];
-  return value.slice(0, 20).flatMap(entry => {
-    if (!entry || typeof entry.name !== "string" || !entry.name.trim() || entry.name.length > 40) return [];
-    const config = validateConfig(entry.config);
-    return config ? [{ name: entry.name, config }] : [];
-  });
-}

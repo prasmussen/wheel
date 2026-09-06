@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseChoices, readSavedWheels, validateConfig } from "../src/wheel/Storage";
+import { parseChoices, validateConfig } from "../src/wheel/Storage";
 import { displayLabel } from "../src/renderer/Geometry";
 
 const valid = { version: "v1", items: [{ id: "1", label: "ÆØÅ", weight: 1 }, { id: "2", label: "Pizza", weight: 1 }] };
@@ -10,10 +10,9 @@ describe("saved choices", () => {
     { ...valid, items: [{ id: "1", label: 42, weight: 1 }, valid.items[1]] },
     { ...valid, items: [{ ...valid.items[0], weight: 2 }, valid.items[1]] },
   ])("rejects invalid configuration %j", value => expect(validateConfig(value)).toBeUndefined());
-  it("copies validated values and filters malformed saved wheels", () => {
+  it("copies validated values", () => {
     expect(validateConfig(valid)).toEqual(valid);
     expect(validateConfig(valid)).not.toBe(valid);
-    expect(readSavedWheels([null, { name: "Lunch", config: valid }, { name: "Broken", config: {} }])).toEqual([{ name: "Lunch", config: valid }]);
   });
   it("parses pasted lines without losing duplicate choices", () => {
     const items = parseChoices(" Pizza \r\n\nSushi\nPizza");

@@ -7,8 +7,10 @@ import { PhysicsEngine, type PhysicsSnapshot } from "../physics/PhysicsEngine";
 import { WebGPURenderer } from "../renderer/WebGPURenderer";
 import { lerp, signedAngle, wrapAngle } from "../utils/Math";
 import { secureSeed, SeededRandom } from "../utils/Random";
-import { parseChoices, readSavedWheels, validateConfig, type SavedWheel } from "../wheel/Storage";
+import { parseChoices, validateConfig } from "../wheel/Storage";
+import { appendSpinHistory, HISTORY_KEY, readSpinHistory, type SpinHistoryEntry } from "../wheel/History";
 import { selectedIndex } from "../wheel/SegmentLayout";
+import { createSharePayload, decodeShare, encodeShare, readSharePayload } from "../wheel/Share";
 import { createDefaultConfig, type WheelConfig, type WheelItem } from "../wheel/WheelConfig";
 
 export class App {
@@ -25,20 +27,31 @@ export class App {
   private spinActive = false;
   private resultAnnounced = false;
   private undoItems?: WheelItem[];
-  private savedWheels: SavedWheel[] = [];
+  private spinHistory: SpinHistoryEntry[] = [];
   private readonly resizeObserver = new ResizeObserver(() => this.wake());
   private gpuReady = false;
   private recovering = false;
+  private shareNotice = "";
 
   constructor(root: HTMLElement) {
     this.root = root;
-    const wheelConfig = this.loadConfig();
+    let shared: ReturnType<typeof decodeShare>;
+    try {
+      shared = decodeShare(location.hash);
+      if (shared) this.shareNotice = shared.replayUnavailable
+        ? "Shared wheel loaded. Its replay uses a different physics version and is unavailable."
+        : shared.lastSpin ? "Shared wheel loaded. Choose Replay last spin to watch its latest spin." : "Shared wheel loaded.";
+    } catch {
+      this.shareNotice = "This wheel link is invalid or incomplete. Your local wheel has been loaded instead.";
+    }
+    const wheelConfig = shared?.wheelConfig ?? this.loadConfig();
     this.physics = new PhysicsEngine(this.physicsConfig, wheelConfig.items.length);
     this.state = {
       wheelConfig,
       wheelState: this.physics.wheel,
       pointerState: this.physics.pointer,
       interaction: { charging: false, chargeStartedAt: 0 },
+      lastSpin: shared?.lastSpin,
     };
     this.previousSnapshot = this.currentSnapshot = this.physics.snapshot();
   }
@@ -47,7 +60,11 @@ export class App {
     this.renderShell();
     this.attachUI();
     this.renderEditor();
-    this.loadSavedWheels();
+    this.loadHistory();
+    if (this.shareNotice) this.notice(this.shareNotice);
+    window.addEventListener("hashchange", () => {
+      if (location.hash.startsWith("#wheel=")) location.reload();
+    });
     this.loop = new FixedStepLoop(FIXED_DT, dt => this.step(dt), alpha => this.render(alpha));
     this.resizeObserver.observe(this.required("#stage"));
     document.addEventListener("visibilitychange", () => {
@@ -126,6 +143,7 @@ export class App {
       this.renderEditor();
     }
     this.state.lastSpin = structuredClone(record);
+    this.required("#share-link-panel").hidden = true;
     this.physics.launch(record.charge, new SeededRandom(record.seed));
     this.previousSnapshot = this.currentSnapshot = this.physics.snapshot();
     this.spinActive = true; this.resultAnnounced = false; this.state.result = undefined;
@@ -141,10 +159,19 @@ export class App {
     this.state.result = result; this.resultAnnounced = true; this.spinActive = false;
     const element = this.required("#result"); element.textContent = result; element.classList.add("winner");
     this.audio.winner();
+    if (this.state.lastSpin) {
+      this.spinHistory = appendSpinHistory(this.spinHistory, {
+        completedAt: Date.now(), result,
+        state: createSharePayload(this.state.wheelConfig, this.state.lastSpin),
+      });
+      this.store(HISTORY_KEY, this.spinHistory);
+      this.renderHistory();
+    }
     this.updateLocks();
   }
 
   private attachUI(): void {
+    this.required("#share-wheel").addEventListener("click", () => { void this.shareWheel(); });
     this.required("#replay-spin").addEventListener("click", () => {
       if (this.state.lastSpin) this.launch(this.state.lastSpin.charge, this.state.lastSpin);
     });
@@ -168,23 +195,14 @@ export class App {
           this.notice("Choices replaced. Undo is available.");
       } catch (error) { this.notice((error as Error).message); }
     });
-    this.required("#save-wheel").addEventListener("click", () => {
-      const name = this.required<HTMLInputElement>("#wheel-name").value.trim();
-      if (!name) { this.notice("Enter a name for this wheel."); return; }
-      if (this.savedWheels.length >= 20) { this.notice("You can save up to 20 wheels. Delete one first."); return; }
-      if (this.savedWheels.some(wheel => wheel.name === name)) { this.notice("That name is already saved. Choose another name."); return; }
-      this.savedWheels.push({ name, config: structuredClone(this.state.wheelConfig) });
-      if (this.store("momentum-saved-wheels", this.savedWheels)) this.notice("Wheel saved.");
-      this.renderSavedWheels();
-    });
-    this.required("#load-wheel").addEventListener("click", () => {
-      const wheel = this.savedWheels[Number(this.required<HTMLSelectElement>("#saved-wheels").value)];
-      if (wheel) this.updateItems(structuredClone(wheel.config.items));
-    });
-    this.required("#delete-saved").addEventListener("click", () => {
-      this.savedWheels.splice(Number(this.required<HTMLSelectElement>("#saved-wheels").value), 1);
-      this.store("momentum-saved-wheels", this.savedWheels);
-      this.renderSavedWheels();
+    this.required("#spin-history").addEventListener("click", event => {
+      const button = (event.target as HTMLElement).closest<HTMLButtonElement>("button[data-history]");
+      if (!button || this.busy) return;
+      const entry = this.spinHistory[Number(button.dataset.history)];
+      if (!entry) return;
+      const shared = readSharePayload(entry.state);
+      this.state.lastSpin = shared.lastSpin;
+      if (this.updateItems(shared.wheelConfig.items)) this.notice("Spin loaded. Choose Replay last spin to watch it.");
     });
     this.required("#add-item").addEventListener("click", () => {
       if (this.state.wheelConfig.items.length >= 50) return;
@@ -264,20 +282,53 @@ export class App {
     catch { this.notice("Changes work for this session, but could not be saved on this device."); return false; }
   }
 
-  private loadSavedWheels(): void {
-    try { this.savedWheels = readSavedWheels(JSON.parse(localStorage.getItem("momentum-saved-wheels") ?? "[]")); }
-    catch { this.savedWheels = []; }
-    this.renderSavedWheels();
+  private loadHistory(): void {
+    try { this.spinHistory = readSpinHistory(JSON.parse(localStorage.getItem(HISTORY_KEY) ?? "[]")); }
+    catch { this.spinHistory = []; }
+    this.renderHistory();
   }
 
-  private renderSavedWheels(): void {
-    const select = this.required<HTMLSelectElement>("#saved-wheels");
-    select.replaceChildren(...this.savedWheels.map((wheel, index) => new Option(wheel.name, String(index))));
-    this.required<HTMLButtonElement>("#load-wheel").disabled = !this.savedWheels.length;
-    this.required<HTMLButtonElement>("#delete-saved").disabled = !this.savedWheels.length;
+  private renderHistory(): void {
+    const list = this.required("#spin-history");
+    this.required("#history-empty").hidden = this.spinHistory.length > 0;
+    list.replaceChildren(...this.spinHistory.map((entry, index) => {
+      const row = document.createElement("li");
+      const info = document.createElement("div");
+      const result = document.createElement("strong"); result.textContent = entry.result;
+      const time = document.createElement("time");
+      time.dateTime = new Date(entry.completedAt).toISOString();
+      time.textContent = new Date(entry.completedAt).toLocaleString();
+      const choices = document.createElement("span"); choices.textContent = entry.state.choices.join(" · ");
+      info.append(result, time, choices);
+      const button = document.createElement("button"); button.type = "button";
+      button.dataset.history = String(index); button.textContent = "Load";
+      button.setAttribute("aria-label", `Load spin ${index + 1}: ${entry.result}`);
+      row.append(info, button);
+      return row;
+    }));
   }
 
   private notice(message: string): void { this.required("#notice").textContent = message; }
+
+  private async shareWheel(): Promise<void> {
+    if (this.busy) return;
+    try {
+      const url = new URL(location.href);
+      url.hash = encodeShare(this.state.wheelConfig, this.state.lastSpin);
+      const input = this.required<HTMLInputElement>("#share-link");
+      input.value = url.href;
+      this.required("#share-link-panel").hidden = false;
+      input.focus(); input.select();
+      try {
+        await navigator.clipboard.writeText(url.href);
+        this.notice(this.state.lastSpin ? "Link copied, including the latest replay." : "Wheel link copied.");
+      } catch {
+        this.notice("Copy the selected link to share this wheel.");
+      }
+    } catch (error) {
+      this.notice(error instanceof Error ? error.message : "Could not create a share link.");
+    }
+  }
   private get busy(): boolean { return this.spinActive || !!this.input?.charging; }
   private wake(): void { if (this.gpuReady && !document.hidden) this.loop?.start(); }
   private resumeAudio(): void {
@@ -285,14 +336,17 @@ export class App {
   }
 
   private clearResult(): void {
+    this.required("#share-link-panel").hidden = true;
     this.state.result = undefined;
     this.required("#result").textContent = "READY";
     this.required("#result").classList.remove("winner");
   }
 
   private updateLocks(): void {
+    this.required<HTMLButtonElement>("#share-wheel").disabled = this.busy;
     this.required<HTMLFieldSetElement>("#choice-controls").disabled = this.busy;
     this.required<HTMLButtonElement>("#spin-button").disabled = !this.gpuReady || this.spinActive;
+    this.required("#replay-controls").hidden = !this.state.lastSpin;
     this.required<HTMLButtonElement>("#replay-spin").disabled = !this.gpuReady || this.busy || !this.state.lastSpin;
     this.required<HTMLButtonElement>("#undo").disabled = !this.undoItems;
     this.required<HTMLButtonElement>("#add-item").disabled = this.state.wheelConfig.items.length >= 50;
@@ -337,22 +391,20 @@ export class App {
 
   private renderShell(): void {
     this.root.innerHTML = `
-      <header><div><span class="eyebrow">A PHYSICAL RANDOMIZER</span><h1>Momentum</h1></div><div class="header-actions"><button id="mute" class="ghost" aria-pressed="false">Mute</button></div></header>
+      <header><div><span class="eyebrow">A PHYSICAL RANDOMIZER</span><h1>Momentum</h1></div><div class="header-actions"><button id="share-wheel" class="ghost" type="button">Share wheel</button><button id="mute" class="ghost" aria-pressed="false">Mute</button></div></header>
       <main>
         <section id="stage" class="stage" aria-label="Spinning wheel">
           <div class="wheel-glow"></div><canvas id="wheel-canvas" aria-hidden="true"></canvas>
           <div id="gpu-error" class="unsupported" hidden><strong>WebGPU unavailable</strong><p id="gpu-message"></p><button id="retry-gpu" type="button">Retry</button></div>
           <div class="result-wrap"><span class="eyebrow">RESULT</span><div id="result" role="status" aria-live="polite">READY</div></div>
-          <div class="spin-controls"><button id="spin-button" class="spin-button" type="button"><span id="charge-label">PRESS & HOLD</span><i id="charge-fill"></i></button><div class="secondary-spin"><button id="replay-spin" type="button" disabled>Replay last spin</button></div></div>
+          <div class="spin-controls"><button id="spin-button" class="spin-button" type="button"><span id="charge-label">PRESS & HOLD</span><i id="charge-fill"></i></button><div id="replay-controls" class="secondary-spin" hidden><button id="replay-spin" type="button" disabled>Replay last spin</button></div></div>
         </section>
         <aside class="editor"><fieldset id="choice-controls"><legend class="sr-only">Wheel choices</legend><div class="panel-heading"><div><span class="eyebrow">YOUR WHEEL</span><h2>Choices</h2></div><span id="item-count"></span></div>
           <div id="editor-list" class="editor-list"></div>
           <div class="editor-actions"><button id="add-item" type="button">+ Add choice</button><button id="reset-wheel" class="ghost" type="button">Reset</button><button id="undo" type="button" disabled>Undo</button></div>
           <details><summary>Paste choices</summary><label for="bulk-choices">One choice per line · 2–50 choices</label><textarea id="bulk-choices" rows="5" maxlength="2000"></textarea><button id="apply-bulk" type="button">Replace choices</button></details>
-          <details><summary>Saved wheels</summary><label for="wheel-name">Wheel name</label><input id="wheel-name" maxlength="40"><button id="save-wheel" type="button">Save current wheel</button><label for="saved-wheels">Your saved wheels</label><select id="saved-wheels"></select><div class="editor-actions"><button id="load-wheel" type="button">Load</button><button id="delete-saved" type="button">Delete saved</button></div></details>
-          </fieldset><p id="notice" role="status" class="hint"></p>
-          <p class="hint">Hold longer for a longer spin. Choices stay fixed during a spin. Long labels use … on the wheel; full names appear here and in the result.</p>
-          <p class="hint">Outcomes depend on charge and starting position. Equal odds are not guaranteed.</p>
+          <details><summary>Spin history</summary><p id="history-empty">No spins yet.</p><ol id="spin-history" class="spin-history"></ol></details>
+          </fieldset><div id="share-link-panel" class="share-link-panel" hidden><label for="share-link">Share link</label><input id="share-link" type="text" readonly spellcheck="false"></div><p id="notice" role="status" class="hint"></p>
         </aside>
       </main>`;
   }
