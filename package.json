@@ -9,7 +9,8 @@
     "test": "vitest run",
     "test:browser": "playwright test",
     "analyze:distribution": "vitest run --config vitest.distribution.config.ts",
-    "test:determinism": "playwright test --config playwright.determinism.config.ts"
+    "test:determinism": "playwright test --config playwright.determinism.config.ts",
+    "generate:site-assets": "node scripts/generate-site-assets.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",

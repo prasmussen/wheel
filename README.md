@@ -1,4 +1,4 @@
-# Momentum
+# Mechanical Wheel
 
 A WebGPU-only spinning wheel whose result emerges from a fixed-timestep mechanical simulation. The wheel, spring pointer, peg impacts, audio, and final selection share the same physical state—there is no scripted destination animation.
 
@@ -20,7 +20,7 @@ Choices stay locked while charging or spinning. Once the wheel settles, its sele
 Choose **Edit wheel** to edit choices, or **Spin history** to open previous spins in a separate dialog. Close either dialog with **Done**, Escape, or a click outside it. Choosing Replay closes the history dialog and immediately replays that spin. The main screen gives the wheel the full available width.
 
 - Edit 2–50 choices, with up to 12 characters each. Blank choices must be named before spinning.
-- **Batch edit** switches the individual fields to a multiline editor prefilled with the current choices. **Apply choices** returns to individual editing, where **Done** closes the dialog. **Cancel**, Escape, or clicking outside discards unapplied batch edits. Keep 2–50 choices, one per nonblank line, with up to 12 characters each. Applying valid choices closes the editor; validation errors keep it open.
+- **Batch edit** switches the individual fields to a multiline editor prefilled with the current choices. **Apply choices** saves valid changes and closes the dialog. **Cancel**, Escape, or clicking outside discards unapplied batch edits. Keep 2–50 choices, one per nonblank line, with up to 12 characters each. Applying valid choices closes the editor; validation errors keep it open.
 - **Spin history** automatically keeps the last 30 completed spins on this device, newest first. Each entry shows its result and completion time. **Replay** restores its choices and immediately plays that spin again. Replays do not add history entries or change the order of existing spins.
 - Storage failures leave the wheel usable for the session and announce a status to screen readers. Invalid stored configurations fall back to the default wheel.
 
@@ -93,3 +93,13 @@ Browser tests use locally installed Google Chrome with WebGPU enabled. They cove
 All wheel visuals are composited with WebGPU/WGSL. Pegs are instanced. Complete labels are rasterized with Canvas 2D into an oversampled transparent texture so the browser handles font fallback and script shaping. This texture is cached during spins and refreshed after label edits or display-size changes. The label font is resolved before the first frame, with a one-second limit; if loading fails or takes longer, the renderer keeps its system fallback to avoid a later text-size change. There is no WebGL or Canvas 2D rendering fallback.
 
 Rendering and physics pause when the wheel is resting, and while the page is hidden. Resizing or interacting wakes the renderer. After GPU device loss, **Retry** recreates graphics resources and resumes the preserved simulation. Choice editing remains available when WebGPU cannot initialize.
+
+## Search and social metadata
+
+The production URL is `https://wheel.glotlabs.com/` and the official name is **Mechanical Wheel**. `build/seo.ts` emits the page title, description, canonical URL, Open Graph and Twitter card metadata, and WebSite/WebApplication JSON-LD into the initial HTML. Choice and replay query parameters all canonicalize to the homepage. The page also contains a visible description and instructions that do not require JavaScript.
+
+Production builds emit `robots.txt` and a one-page `sitemap.xml`. Serve these files and `public/` assets from the domain root, with the correct content types. The hosting service should redirect HTTP and alternate hostnames to the HTTPS production URL and return real 404 responses for unknown paths. Submit `https://wheel.glotlabs.com/sitemap.xml` in Google Search Console after deployment. Search rankings and rich results are not guaranteed by metadata.
+
+For a different production origin, set `SITE_URL` during the build (or in `.env.production.local`). Only a root HTTPS URL without a query or fragment is accepted. Preview deployments should be restricted from indexing by the hosting service; production metadata intentionally stays canonical to the public site.
+
+The social preview is a 1200×630 PNG. Favicons and home-screen icons use the wheel palette. Regenerate the checked-in assets with `npm run generate:site-assets` (requires installed Chrome). Artwork is rendered from SVG/HTML/CSS without external fonts or image services. Storage key names remain unchanged to preserve locally saved wheels and history.
