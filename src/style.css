@@ -65,7 +65,6 @@ details > button { margin-top:8px; }
 .spin-history li { display:flex; align-items:center; gap:12px; padding:10px 0; border-top:1px solid #293143; }
 .spin-history li:first-child { border-top:0; }
 .spin-history li > div { flex:1; min-width:0; }
-.spin-history strong,.spin-history time,.spin-history span { display:block; overflow-wrap:anywhere; }
-.spin-history time,.spin-history span { color:#8792a8; font-size:11px; margin-top:4px; }
-.spin-history span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.spin-history strong,.spin-history time { display:block; overflow-wrap:anywhere; }
+.spin-history time { color:#8792a8; font-size:11px; margin-top:4px; }
 .spin-history button { flex-shrink:0; }

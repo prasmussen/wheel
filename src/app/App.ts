@@ -287,9 +287,10 @@ export class App {
       const result = document.createElement("strong"); result.textContent = entry.result;
       const time = document.createElement("time");
       time.dateTime = new Date(entry.completedAt).toISOString();
-      time.textContent = new Date(entry.completedAt).toLocaleString();
-      const choices = document.createElement("span"); choices.textContent = entry.state.choices.join(" · ");
-      info.append(result, time, choices);
+      time.textContent = new Date(entry.completedAt).toLocaleString(undefined, {
+        day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
+      });
+      info.append(result, time);
       const button = document.createElement("button"); button.type = "button";
       button.dataset.history = String(index); button.textContent = "Load";
       button.setAttribute("aria-label", `Load spin ${index + 1}: ${entry.result}`);
