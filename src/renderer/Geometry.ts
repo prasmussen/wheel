@@ -1,9 +1,9 @@
 import { TAU } from "../utils/Math";
 import type { WheelConfig } from "../wheel/WheelConfig";
 
-const PALETTE = [
+export const PALETTE = [
   [0.96, 0.30, 0.25], [0.98, 0.62, 0.15], [0.17, 0.73, 0.60], [0.17, 0.55, 0.92],
-  [0.48, 0.34, 0.91], [0.88, 0.27, 0.58], [0.34, 0.76, 0.32], [0.10, 0.68, 0.79],
+  [0.56, 0.46, 0.94], [0.90, 0.30, 0.60], [0.34, 0.76, 0.32], [0.10, 0.68, 0.79],
 ];
 
 function vertex(out: number[], x: number, y: number, color: readonly number[], alpha = 1): void {

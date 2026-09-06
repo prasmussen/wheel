@@ -62,10 +62,8 @@ export function labelTexture(config: WheelConfig, size: number, font: string): H
     context.textBaseline = "alphabetic";
     const metrics = context.measureText(label);
     const baseline = (metrics.actualBoundingBoxAscent - metrics.actualBoundingBoxDescent) / 2;
-    context.fillStyle = "#f8fafc";
-    context.shadowColor = "rgba(6, 12, 22, .45)";
-    context.shadowBlur = .004 * scale;
-    context.shadowOffsetY = .002 * scale;
+    // The shader uses the glyph coverage to apply the matte ink finish.
+    context.fillStyle = "#ffffff";
     context.fillText(label, 0, baseline);
     context.restore();
   }

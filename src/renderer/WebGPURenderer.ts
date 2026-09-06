@@ -1,7 +1,6 @@
-import wheelShader from "../shaders/wheel.wgsl?raw";
+import { wheelShader, textShader } from "./Shaders";
 import pegShader from "../shaders/peg.wgsl?raw";
 import pointerShader from "../shaders/pointer.wgsl?raw";
-import textShader from "../shaders/text.wgsl?raw";
 import type { PhysicsSnapshot } from "../physics/PhysicsEngine";
 import type { WheelConfig } from "../wheel/WheelConfig";
 import { circleVertices, pointerVertices, wheelVertices } from "./Geometry";
@@ -9,7 +8,7 @@ import { TAU } from "../utils/Math";
 
 import { labelTexture, resolveLabelFont } from "./TextLabels";
 
-const UNIFORM_SIZE = 16;
+const UNIFORM_SIZE = 32;
 
 export class WebGPURenderer {
   private constructor(
@@ -40,7 +39,7 @@ export class WebGPURenderer {
     this.fail(event.error.message);
   };
 
-  private readonly wheelUniformData = new Float32Array(4);
+  private readonly wheelUniformData = new Float32Array(8);
   private readonly pointerUniformData = new Float32Array(4);
   private uniform!: GPUBuffer;
   private pointerUniform!: GPUBuffer;
@@ -144,6 +143,7 @@ export class WebGPURenderer {
     this.wheelUniformData[1]=this.pointerUniformData[1]=aspect;
     this.wheelUniformData[2]=this.pointerUniformData[2]=charge;
     this.wheelUniformData[3]=this.pointerUniformData[3]=state.lastImpact;
+    this.wheelUniformData[4]=this.config.items.length;
     this.device.queue.writeBuffer(this.uniform,0,this.wheelUniformData);
     this.device.queue.writeBuffer(this.pointerUniform,0,this.pointerUniformData);
     const encoder=this.device.createCommandEncoder();

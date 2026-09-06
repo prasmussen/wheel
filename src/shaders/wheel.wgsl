@@ -32,8 +32,7 @@ struct VertexOutput {
 
 @fragment fn fragment(input: VertexOutput) -> @location(0) vec4f {
   let radius=length(input.local_position);
-  let light = dot(input.local_position, normalize(vec2f(-.55, .84)));
-  let enamel = .96 + light * .055;
+  let enamel = enamel_finish(input.local_position);
   let direction = normalize(input.local_position + vec2f(.0001));
   let metal = .73 + .34 * dot(direction, normalize(vec2f(-.55, .84)));
   let is_hardware = radius > .821 || radius < .129;

@@ -34,6 +34,7 @@ export class App {
   private readonly resizeObserver = new ResizeObserver(() => this.wake());
   private gpuReady = false;
   private recovering = false;
+  private readonly reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
 
   constructor(root: HTMLElement) {
     this.root = root;
@@ -66,6 +67,7 @@ export class App {
   async start(): Promise<void> {
     this.renderShell();
     this.attachUI();
+    this.reducedMotion.addEventListener("change", () => this.wake());
     this.renderEditor();
     this.loadHistory();
     window.addEventListener("popstate", () => location.reload());
@@ -114,7 +116,9 @@ export class App {
     state.lastImpact = lerp(a.lastImpact, b.lastImpact, alpha);
     state.stableTime = b.stableTime;
     try {
-      if (this.gpuReady) this.renderer?.render(state, this.input?.charge ?? 0);
+      if (this.gpuReady && !(this.reducedMotion.matches && this.spinActive)) {
+        this.renderer?.render(state, this.reducedMotion.matches ? 0 : this.input?.charge ?? 0);
+      }
     } catch {
       this.handleDeviceLoss();
     }
@@ -218,7 +222,6 @@ export class App {
     this.required("#mute").addEventListener("click", () => {
       this.effect(() => this.audio.setMuted(!this.audio.muted));
       this.required("#mute").setAttribute("aria-pressed", String(this.audio.muted));
-      this.required("#mute").setAttribute("aria-label", this.audio.muted ? "Unmute" : "Mute");
       this.required("#mute").title = this.audio.muted ? "Unmute" : "Mute";
     });
     this.required("#retry-gpu").addEventListener("click", () => { void this.initializeRenderer(); });
@@ -248,6 +251,7 @@ export class App {
     this.required("#add-item").addEventListener("click", () => {
       if (this.state.wheelConfig.items.length >= 50) return;
       this.updateItems([...this.state.wheelConfig.items, { id: crypto.randomUUID(), label: `OPTION ${this.state.wheelConfig.items.length + 1}`, weight: 1 }]);
+      this.root.querySelector<HTMLInputElement>("#editor-list .editor-row:last-child input")?.focus();
     });
     this.required("#reset-wheel").addEventListener("click", () => {
       if (this.busy) return;
@@ -286,7 +290,17 @@ export class App {
       if (button.dataset.action === "delete" && items.length > 2) items.splice(index, 1);
       if (button.dataset.action === "up" && index > 0) [items[index - 1], items[index]] = [items[index], items[index - 1]];
       if (button.dataset.action === "down" && index < items.length - 1) [items[index + 1], items[index]] = [items[index], items[index + 1]];
+      const action = button.dataset.action;
+      const id = button.dataset.id;
       this.updateItems(items);
+      const rows = [...this.root.querySelectorAll<HTMLElement>("#editor-list .editor-row")];
+      const row = action === "delete" ? rows[Math.min(index, rows.length - 1)]
+        : rows.find(row => row.querySelector<HTMLInputElement>("input")?.dataset.id === id);
+      const target = row?.querySelector<HTMLButtonElement>(`button[data-action="${action}"]:not(:disabled)`);
+      (target ?? row?.querySelector<HTMLInputElement>("input"))?.focus();
+      this.required("#choice-status").textContent = action === "delete"
+        ? `Choice deleted. ${items.length} choices remaining.`
+        : `Choice moved to position ${items.findIndex(item => item.id === id) + 1} of ${items.length}.`;
     });
   }
 
@@ -385,6 +399,7 @@ export class App {
       const row = document.createElement("div"); row.className = "editor-row";
       const input = document.createElement("input"); input.value = item.label.toUpperCase(); input.dataset.id = item.id;
       input.required = true; input.autocapitalize = "characters";
+      input.setAttribute("aria-describedby", "choice-hint");
       input.maxLength = 12; input.setAttribute("aria-label", `Wheel item ${index + 1}`);
       const actions = [["up","↑","Move up"],["down","↓","Move down"],["delete","×","Delete"]] as const;
       row.append(input, ...actions.map(([action,text,label]) => {
@@ -443,6 +458,7 @@ export class App {
 
   private notice(message: string): void {
     this.required("#editor-notice").textContent = message;
+    this.required("#app-notice").textContent = this.required<HTMLDialogElement>("#wheel-editor").open ? "" : message;
   }
 
   private shareWheel(): void {
@@ -566,10 +582,10 @@ export class App {
       <main>
         <section id="stage" class="stage" aria-label="Spinning wheel">
           <div class="wheel-glow"></div><canvas id="wheel-canvas" aria-hidden="true"></canvas>
-          <div id="gpu-error" class="unsupported" hidden><strong>WebGPU unavailable</strong><p id="gpu-message"></p><button id="retry-gpu" type="button">Retry</button></div>
-          <div class="sr-only"><div id="result" role="status" aria-live="polite">READY</div></div>
-          <div class="spin-controls"><button id="spin-button" class="spin-button" type="button"><span id="charge-label">PRESS & HOLD</span><i id="charge-fill"></i></button></div>
+          <div id="gpu-error" class="unsupported" hidden><strong>WebGPU unavailable</strong><p id="gpu-message" role="alert"></p><button id="retry-gpu" type="button">Retry</button></div>
+          <div class="spin-controls"><div id="result" role="status" aria-live="polite" aria-atomic="true">READY</div><button id="spin-button" class="spin-button" type="button" aria-label="Press & Hold to spin" aria-describedby="spin-help"><span id="charge-label" aria-hidden="true">PRESS & HOLD</span><i id="charge-fill" aria-hidden="true"></i></button><p id="spin-help">Hold Space or Enter, then release to spin. Screen reader users can activate once.</p></div>
         </section>
+        <p id="app-notice" class="hint" role="status"></p>
       </main>
       <dialog id="randomness-dialog" class="editor randomness-info" aria-labelledby="randomness-title">
         <div class="panel-heading"><h2 id="randomness-title">How randomness works</h2><button id="close-randomness" class="ghost" type="button" autofocus>Done</button></div>
@@ -585,16 +601,17 @@ export class App {
         <div class="panel-heading"><h2 id="share-title">Share wheel</h2><button id="close-share" class="ghost" type="button">Done</button></div>
         <div class="share-link-panel"><label for="share-link">Wheel link</label><input id="share-link" type="text" readonly spellcheck="false"></div>
         <div class="editor-actions"><button id="copy-share-link" type="button" autofocus>Copy to clipboard</button></div>
-        <p id="share-status" class="sr-only" role="status"></p>
+        <p id="share-status" class="hint" role="status"></p>
       </dialog>
       <dialog id="wheel-editor" class="editor" aria-labelledby="editor-title">
         <div class="panel-heading"><h2 id="editor-title">Edit wheel</h2><button id="close-editor" class="ghost" type="button" autofocus>Done</button></div>
         <fieldset id="choice-controls"><legend class="sr-only">Wheel choices</legend>
+          <p id="choice-hint" class="hint">Add 2–50 choices, with 1–12 characters each.</p><p id="choice-status" class="sr-only" role="status"></p>
           <div id="individual-editor"><div id="editor-list" class="editor-list"></div>
           <div class="editor-actions"><button id="add-item" type="button">+ Add choice</button><button id="batch-edit" type="button">Batch edit</button></div>
           <div class="reset-actions"><button id="reset-wheel" type="button">Reset</button></div></div>
-          <div id="batch-editor" hidden><label for="bulk-choices">One choice per line</label><textarea id="bulk-choices" rows="12" maxlength="2000" aria-describedby="batch-error"></textarea><p id="batch-error" class="hint" role="alert"></p><div class="editor-actions"><button id="apply-bulk" type="button">Apply choices</button><button id="cancel-batch" type="button">Cancel</button></div></div>
-        </fieldset><p id="editor-notice" role="status" class="sr-only"></p>
+          <div id="batch-editor" hidden><label for="bulk-choices">One choice per line</label><textarea id="bulk-choices" rows="12" maxlength="2000" aria-describedby="choice-hint batch-error"></textarea><p id="batch-error" class="hint" role="alert"></p><div class="editor-actions"><button id="apply-bulk" type="button">Apply choices</button><button id="cancel-batch" type="button">Cancel</button></div></div>
+        </fieldset><p id="editor-notice" role="status" class="hint"></p>
       </dialog>
       <dialog id="history-dialog" class="editor" aria-labelledby="history-title">
         <div class="panel-heading"><h2 id="history-title">Spin history</h2><button id="close-history" class="ghost" type="button" autofocus>Done</button></div>

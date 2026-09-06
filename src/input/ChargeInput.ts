@@ -16,6 +16,7 @@ export class ChargeInput {
     private readonly allowed: () => boolean = () => true,
   ) {
     const options = { signal: this.controller.signal };
+    element.addEventListener("click", this.onClick, options);
     element.addEventListener("pointerdown", this.onDown, options);
     element.addEventListener("pointerup", this.onUp, options);
     element.addEventListener("pointercancel", this.cancel, options);
@@ -60,6 +61,11 @@ export class ChargeInput {
     this.cancel();
     this.release(charge);
   }
+
+  // Assistive technologies activate buttons with a click and no preceding key/pointer events.
+  private onClick = (event: MouseEvent): void => {
+    if (event.detail === 0 && !this.charging && this.allowed()) this.release(0.5);
+  };
 
   private onDown = (event: PointerEvent): void => {
     if (event.button !== 0 || !event.isPrimary || !this.start()) return;
