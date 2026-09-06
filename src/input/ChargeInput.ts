@@ -12,7 +12,7 @@ export class ChargeInput {
     private readonly element: HTMLElement,
     private readonly release: (charge: number) => void,
     private readonly change: (charge: number) => void,
-    private readonly begin?: () => void,
+    private readonly begin?: (event: PointerEvent | KeyboardEvent) => void,
     private readonly allowed: () => boolean = () => true,
   ) {
     const options = { signal: this.controller.signal };
@@ -46,12 +46,12 @@ export class ChargeInput {
     this.change(0);
   };
 
-  private start(): boolean {
+  private start(event: PointerEvent | KeyboardEvent): boolean {
     if (this.charging || !this.allowed()) return false;
     this.charging = true;
     this.startedAt = performance.now();
     this.element.classList.add("charging");
-    this.begin?.();
+    this.begin?.(event);
     this.change(0);
     return true;
   }
@@ -71,7 +71,7 @@ export class ChargeInput {
   private onContextMenu = (event: MouseEvent): void => { event.preventDefault(); };
 
   private onDown = (event: PointerEvent): void => {
-    if (event.button !== 0 || !event.isPrimary || !this.start()) return;
+    if (event.button !== 0 || !event.isPrimary || !this.start(event)) return;
     this.pointerId = event.pointerId;
     this.element.setPointerCapture(event.pointerId);
   };
@@ -82,7 +82,7 @@ export class ChargeInput {
   private onKeyDown = (event: KeyboardEvent): void => {
     if (event.code === "Space" || event.code === "Enter") {
       event.preventDefault();
-      if (!event.repeat && this.start()) this.key = event.code;
+      if (!event.repeat && this.start(event)) this.key = event.code;
     }
   };
   private onKeyUp = (event: KeyboardEvent): void => {

@@ -93,7 +93,10 @@ export class App {
       this.updateChargeUI(charge);
       this.updateLocks();
       this.wake();
-    }, () => { this.resumeAudio(); }, () => this.gpuReady && !this.spinActive && !this.root.querySelector("dialog[open]"));
+    }, event => {
+      // Touch and pen activate audio on release; mouse and keyboard can start on press.
+      if (!(event instanceof PointerEvent) || event.pointerType === "mouse") this.resumeAudio();
+    }, () => this.gpuReady && !this.spinActive && !this.root.querySelector("dialog[open]"));
     this.physics.onImpact(event => {
       this.effect(() => this.audio.impact(event, this.state.wheelConfig.items.length));
       this.effect(() => { if (navigator.vibrate && event.strength > 0.7) navigator.vibrate(8); });

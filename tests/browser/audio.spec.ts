@@ -7,8 +7,10 @@ for (const sessionSupport of ['supported', 'missing', 'rejects', 'touchend-only'
         wheelAudio?: AudioContext;
         audioLevel: () => number;
         sessionType: string;
+        createdWithoutActivation: boolean;
       };
       probe.sessionType = 'auto';
+      probe.createdWithoutActivation = false;
       Object.defineProperty(navigator, 'audioSession', {
         configurable: true,
         value: support === 'missing' ? undefined : {
@@ -25,6 +27,7 @@ for (const sessionSupport of ['supported', 'missing', 'rejects', 'touchend-only'
         private unlocked = support !== 'touchend-only';
         constructor() {
           super();
+          probe.createdWithoutActivation ||= !navigator.userActivation.isActive;
           probe.wheelAudio = this;
         }
         override get state(): AudioContextState {
@@ -62,6 +65,8 @@ for (const sessionSupport of ['supported', 'missing', 'rejects', 'touchend-only'
         type: 'touchStart', touchPoints: [{ x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 }],
       });
       await expect(spin).toHaveClass(/charging/);
+      expect(await page.evaluate(() =>
+        !!(window as unknown as { wheelAudio?: AudioContext }).wheelAudio)).toBe(false);
       await page.waitForTimeout(250);
       await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
       await expect(spin).toBeDisabled();
@@ -71,6 +76,8 @@ for (const sessionSupport of ['supported', 'missing', 'rejects', 'touchend-only'
       await expect.poll(() => page.evaluate(() =>
         (window as unknown as { audioLevel: () => number }).audioLevel()), { intervals: [50], timeout: 5000 }).toBeGreaterThan(0.0001);
       await expect(mute).toHaveAttribute('aria-pressed', 'false');
+      expect(await page.evaluate(() =>
+        (window as unknown as { createdWithoutActivation: boolean }).createdWithoutActivation)).toBe(false);
       await touch.detach();
       return;
     }

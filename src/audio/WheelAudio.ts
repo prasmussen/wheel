@@ -26,6 +26,9 @@ export class WheelAudio {
 
   async resume(): Promise<void> {
     if (this.muted) return;
+    // Touch pointerdown precedes browser user activation. Creating the context
+    // there can leave iOS silent; create it on release, just as Unmute does on tap.
+    if (!this.context && navigator.userActivation && !navigator.userActivation.isActive) return;
     this.configureSession();
     this.context ??= new AudioContext();
     if (!this.output) {
