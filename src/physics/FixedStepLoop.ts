@@ -18,6 +18,7 @@ export class FixedStepLoop {
   start(): void {
     if (this.running) return;
     this.running = true;
+    this.accumulator = 0;
     this.previousTime = performance.now();
     this.sampleTime = this.previousTime;
     this.frameHandle = requestAnimationFrame(this.tick);
@@ -46,6 +47,6 @@ export class FixedStepLoop {
       this.sampledFrames = this.sampledSteps = 0;
     }
     this.render(this.accumulator / this.fixedDt, now);
-    this.frameHandle = requestAnimationFrame(this.tick);
+    if (this.running) this.frameHandle = requestAnimationFrame(this.tick);
   };
 }

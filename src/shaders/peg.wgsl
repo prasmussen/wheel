@@ -11,6 +11,7 @@ struct Output { @builtin(position) position: vec4f, @location(0) shade: f32 }
   let p = center + radial * input.local.y + tangent * input.local.x;
   var output: Output;
   output.position = vec4f(p.x / u.aspect, p.y, 0.0, 1.0);
+  output.position = vec4f(output.position.xy * min(u.aspect, 1.0), 0.0, 1.0);
   output.shade = 0.78 + input.local.y * 4.0 + u.impact * 0.18;
   return output;
 }

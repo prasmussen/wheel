@@ -4,18 +4,27 @@ export class ChargeInput {
   readonly maxHoldMs = 1800;
   charging = false;
   private startedAt = 0;
+  private pointerId?: number;
+  private key?: string;
+  private readonly controller = new AbortController();
 
   constructor(
     private readonly element: HTMLElement,
     private readonly release: (charge: number) => void,
     private readonly change: (charge: number) => void,
     private readonly begin?: () => void,
+    private readonly allowed: () => boolean = () => true,
   ) {
-    element.addEventListener("pointerdown", this.onDown);
-    element.addEventListener("pointerup", this.onUp);
-    element.addEventListener("pointercancel", this.onCancel);
-    element.addEventListener("keydown", this.onKeyDown);
-    element.addEventListener("keyup", this.onKeyUp);
+    const options = { signal: this.controller.signal };
+    element.addEventListener("pointerdown", this.onDown, options);
+    element.addEventListener("pointerup", this.onUp, options);
+    element.addEventListener("pointercancel", this.cancel, options);
+    element.addEventListener("lostpointercapture", this.cancel, options);
+    element.addEventListener("keydown", this.onKeyDown, options);
+    element.addEventListener("keyup", this.onKeyUp, options);
+    element.addEventListener("blur", this.cancel, options);
+    window.addEventListener("blur", this.cancel, options);
+    document.addEventListener("visibilitychange", this.onVisibility, options);
   }
 
   get charge(): number {
@@ -23,38 +32,51 @@ export class ChargeInput {
   }
 
   update(): void { if (this.charging) this.change(this.charge); }
+  destroy(): void { this.cancel(); this.controller.abort(); }
 
-  private start(): void {
-    if (this.charging) return;
+  cancel = (): void => {
+    const pointerId = this.pointerId;
+    this.charging = false;
+    this.pointerId = undefined;
+    this.key = undefined;
+    this.element.classList.remove("charging");
+    if (pointerId !== undefined && this.element.hasPointerCapture(pointerId)) this.element.releasePointerCapture(pointerId);
+    this.change(0);
+  };
+
+  private start(): boolean {
+    if (this.charging || !this.allowed()) return false;
     this.charging = true;
     this.startedAt = performance.now();
     this.element.classList.add("charging");
     this.begin?.();
     this.change(0);
+    return true;
   }
 
   private finish(): void {
     if (!this.charging) return;
     const charge = this.charge;
-    this.charging = false;
-    this.element.classList.remove("charging");
-    this.change(0);
+    this.cancel();
     this.release(charge);
   }
 
   private onDown = (event: PointerEvent): void => {
-    if (event.button !== 0) return;
+    if (event.button !== 0 || !event.isPrimary || !this.start()) return;
+    this.pointerId = event.pointerId;
     this.element.setPointerCapture(event.pointerId);
-    this.start();
   };
-  private onUp = (): void => this.finish();
-  private onCancel = (): void => { this.charging = false; this.change(0); };
+  private onUp = (event: PointerEvent): void => {
+    if (event.pointerId === this.pointerId) this.finish();
+  };
+  private onVisibility = (): void => { if (document.hidden) this.cancel(); };
   private onKeyDown = (event: KeyboardEvent): void => {
-    if ((event.code === "Space" || event.code === "Enter") && !event.repeat) {
-      event.preventDefault(); this.start();
+    if (event.code === "Space" || event.code === "Enter") {
+      event.preventDefault();
+      if (!event.repeat && this.start()) this.key = event.code;
     }
   };
   private onKeyUp = (event: KeyboardEvent): void => {
-    if (event.code === "Space" || event.code === "Enter") { event.preventDefault(); this.finish(); }
+    if (event.code === this.key) { event.preventDefault(); this.finish(); }
   };
 }

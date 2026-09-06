@@ -27,7 +27,19 @@ const FONT: Glyphs = {
   "6":["01110","10000","10000","11110","10001","10001","01110"], "7":["11111","00001","00010","00100","01000","01000","01000"],
   "8":["01110","10001","10001","01110","10001","10001","01110"], "9":["01110","10001","10001","01111","00001","00001","01110"],
   "-":["00000","00000","00000","11111","00000","00000","00000"], " ":["00000","00000","00000","00000","00000","00000","00000"],
-  "?":["01110","10001","00010","00100","00100","00000","00100"],
+  "Æ":["01111","10100","10100","11110","10100","10100","10111"],
+  "Ø":["01111","10011","10101","10101","10101","11001","11110"],
+  "Å":["00100","01010","00100","01110","10001","11111","10001"],
+  "Ä":["01010","00000","01110","10001","11111","10001","10001"],
+  "Ö":["01010","00000","01110","10001","10001","10001","01110"],
+  "Ü":["01010","00000","10001","10001","10001","10001","01110"],
+  "É":["00010","00100","11111","10000","11110","10000","11111"],
+  "…":["00000","00000","00000","00000","00000","00000","10101"],
+  ".":["00000","00000","00000","00000","00000","00100","00100"],
+  "'":["00100","00100","00000","00000","00000","00000","00000"],
+  "&":["01100","10010","10100","01000","10101","10010","01101"],
+  "!":["00100","00100","00100","00100","00100","00000","00100"],
+  "?":[ "01110","10001","00010","00100","00100","00000","00100"],
 };
 
 function vertex(out: number[], x: number, y: number, color: readonly number[], alpha = 1): void {
@@ -71,11 +83,21 @@ export function wheelVertices(config: WheelConfig): Float32Array {
 
 export interface TextGeometry { instances: Uint8Array<ArrayBuffer>; count: number }
 
+export function displayLabel(label: string, count: number): string {
+  const characters = [...label.normalize("NFC").toUpperCase()].map(character => {
+    if (FONT[character]) return character;
+    const base = character.normalize("NFD").replace(/\p{M}/gu, "");
+    return FONT[base] ? base : "?";
+  });
+  const limit = count > 20 ? 8 : 14;
+  return characters.length > limit ? characters.slice(0, limit - 1).join("") + "…" : characters.join("");
+}
+
 export function textGeometry(config: WheelConfig): TextGeometry {
   const records: Array<{x:number;y:number;angle:number;size:number;low:number;high:number}>=[];
   const count = config.items.length;
   config.items.forEach((item, index) => {
-    const label = item.label.toUpperCase().slice(0, count > 20 ? 8 : 14);
+    const label = displayLabel(item.label, count);
     const mid = (index + 0.5) / count * TAU;
     // Keep every label on the same radial convention: read from hub to rim.
     const orientation = mid;

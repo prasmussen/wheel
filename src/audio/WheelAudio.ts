@@ -6,11 +6,20 @@ export class WheelAudio {
   private chargeOscillator?: OscillatorNode;
   private chargeGain?: GainNode;
 
+  muted = false;
+
+  setMuted(muted: boolean): void {
+    this.muted = muted;
+    if (this.output) this.output.gain.value = muted ? 0 : 0.3;
+  }
+
   async resume(): Promise<void> {
     this.context ??= new AudioContext();
-    this.output ??= this.context.createGain();
-    this.output.gain.value = 0.3;
-    this.output.connect(this.context.destination);
+    if (!this.output) {
+      this.output = this.context.createGain();
+      this.output.connect(this.context.destination);
+    }
+    this.output.gain.value = this.muted ? 0 : 0.3;
     await this.context.resume();
   }
 

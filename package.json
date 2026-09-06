@@ -6,9 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:browser": "playwright test",
+    "analyze:distribution": "vitest run --config vitest.distribution.config.ts"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@webgpu/types": "^0.1.64",
     "typescript": "^5.9.2",
     "vite": "^7.1.3",

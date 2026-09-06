@@ -26,6 +26,7 @@ struct Output {
   let p=vec2f(glyph_position.x*c-glyph_position.y*s,glyph_position.x*s+glyph_position.y*c);
   var output: Output;
   output.position=vec4f(p.x/u.aspect,p.y,0.0,1.0);
+  output.position = vec4f(output.position.xy * min(u.aspect, 1.0), 0.0, 1.0);
   output.uv=(input.corner+vec2f(.5))*vec2f(5.0,7.0);
   output.bits_low=input.bits_low; output.bits_high=input.bits_high;
   return output;
