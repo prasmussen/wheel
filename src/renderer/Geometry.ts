@@ -44,7 +44,9 @@ export function wheelVertices(config: WheelConfig): Float32Array {
   disc(out, .846, [0.25, 0.29, 0.35]);
   disc(out, .84, [0.035, 0.044, 0.06]);
   for (let index = 0; index < count; index++) {
-    const color = PALETTE[index % PALETTE.length];
+    const paletteIndex = index % PALETTE.length;
+    // Close the ring without repeating the first segment's color.
+    const color = PALETTE[index === count - 1 && paletteIndex === 0 ? 1 : paletteIndex];
     const start = index / count * TAU;
     for (let part = 0; part < subdivisions; part++) {
       const a = start + part / subdivisions * TAU / count;
