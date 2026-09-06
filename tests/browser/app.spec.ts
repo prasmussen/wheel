@@ -41,7 +41,7 @@ test("cancels keyboard and pointer charging without launching", async ({ page })
   await expect(page.locator("#editor-list input").first()).toBeEnabled();
 });
 
-test("bulk edit, undo, persistence, and mute", async ({ page }) => {
+test("bulk edit, reset, persistence, and mute", async ({ page }) => {
   await page.goto("/");
   await page.getByText("Paste choices", { exact: true }).click();
   await page.locator("#bulk-choices").fill("ÆØÅ\nCafé\nLunch");
@@ -49,7 +49,7 @@ test("bulk edit, undo, persistence, and mute", async ({ page }) => {
   await expect(page.locator("#editor-list input")).toHaveCount(3);
   await page.locator("#reset-wheel").click();
   await expect(page.locator("#editor-list input")).toHaveCount(8);
-  await page.locator("#undo").click();
+  await page.locator("#apply-bulk").click();
   await expect(page.locator("#editor-list input").first()).toHaveValue("ÆØÅ");
   await page.reload();
   await expect(page.locator("#editor-list input")).toHaveCount(3);

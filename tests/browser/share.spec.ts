@@ -26,8 +26,6 @@ test('shares edited choices and the latest replay into a fresh browser context',
     await expect(recipient.locator('#editor-list input').first()).toHaveValue('PIZZA');
     await expect(recipient.locator('#result')).toHaveClass('winner', { timeout: 45_000 });
     await expect(recipient.locator('#result')).toHaveText(winner!);
-    await recipient.locator('#undo').click();
-    await expect(recipient.locator('#editor-list input').first()).toHaveValue('ÆØÅ 🍕');
   } finally {
     await context.close();
   }

@@ -26,7 +26,6 @@ export class App {
   private currentSnapshot: PhysicsSnapshot;
   private spinActive = false;
   private resultAnnounced = false;
-  private undoItems?: WheelItem[];
   private spinHistory: SpinHistoryEntry[] = [];
   private readonly resizeObserver = new ResizeObserver(() => this.wake());
   private gpuReady = false;
@@ -135,7 +134,6 @@ export class App {
       physicsConfig: { ...this.physicsConfig },
     };
     if (replay) {
-      this.undoItems = structuredClone(this.state.wheelConfig.items);
       this.state.wheelConfig = structuredClone(record.wheelConfig);
       Object.assign(this.physicsConfig, record.physicsConfig);
       this.physics.wheel.angle = record.startingAngle;
@@ -181,18 +179,11 @@ export class App {
       this.required("#mute").textContent = this.audio.muted ? "Unmute" : "Mute";
     });
     this.required("#retry-gpu").addEventListener("click", () => { void this.initializeRenderer(); });
-    this.required("#undo").addEventListener("click", () => {
-      if (!this.undoItems || this.busy) return;
-      const items = this.undoItems;
-      this.updateItems(items);
-      this.undoItems = undefined;
-      this.updateLocks();
-    });
     this.required("#apply-bulk").addEventListener("click", () => {
       if (this.busy) return;
       try {
         if (this.updateItems(parseChoices(this.required<HTMLTextAreaElement>("#bulk-choices").value)))
-          this.notice("Choices replaced. Undo is available.");
+          this.notice("Choices replaced.");
       } catch (error) { this.notice((error as Error).message); }
     });
     this.required("#spin-history").addEventListener("click", event => {
@@ -230,7 +221,6 @@ export class App {
 
   private updateItems(items: WheelItem[]): boolean {
     if (this.busy) return false;
-    this.undoItems = structuredClone(this.state.wheelConfig.items);
     this.state.wheelConfig = { items, version: crypto.randomUUID() };
     this.clearResult();
     const saved = this.commitConfig();
@@ -348,7 +338,6 @@ export class App {
     this.required<HTMLButtonElement>("#spin-button").disabled = !this.gpuReady || this.spinActive;
     this.required("#replay-controls").hidden = !this.state.lastSpin;
     this.required<HTMLButtonElement>("#replay-spin").disabled = !this.gpuReady || this.busy || !this.state.lastSpin;
-    this.required<HTMLButtonElement>("#undo").disabled = !this.undoItems;
     this.required<HTMLButtonElement>("#add-item").disabled = this.state.wheelConfig.items.length >= 50;
   }
 
@@ -401,7 +390,7 @@ export class App {
         </section>
         <aside class="editor"><fieldset id="choice-controls"><legend class="sr-only">Wheel choices</legend><div class="panel-heading"><div><span class="eyebrow">YOUR WHEEL</span><h2>Choices</h2></div><span id="item-count"></span></div>
           <div id="editor-list" class="editor-list"></div>
-          <div class="editor-actions"><button id="add-item" type="button">+ Add choice</button><button id="reset-wheel" class="ghost" type="button">Reset</button><button id="undo" type="button" disabled>Undo</button></div>
+          <div class="editor-actions"><button id="add-item" type="button">+ Add choice</button><button id="reset-wheel" class="ghost" type="button">Reset</button></div>
           <details><summary>Paste choices</summary><label for="bulk-choices">One choice per line · 2–50 choices</label><textarea id="bulk-choices" rows="5" maxlength="2000"></textarea><button id="apply-bulk" type="button">Replace choices</button></details>
           <details><summary>Spin history</summary><p id="history-empty">No spins yet.</p><ol id="spin-history" class="spin-history"></ol></details>
           </fieldset><div id="share-link-panel" class="share-link-panel" hidden><label for="share-link">Share link</label><input id="share-link" type="text" readonly spellcheck="false"></div><p id="notice" role="status" class="hint"></p>
