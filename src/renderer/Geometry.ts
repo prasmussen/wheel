@@ -54,15 +54,31 @@ function quad(out:number[],a:number[],b:number[],c:number[],d:number[],color:rea
   triangle(out,a,b,c,color); triangle(out,a,c,d,color);
 }
 
+// Shared machined finishes keep the housing, bearing, and pointer in one family.
+const GRAPHITE = [0.105, 0.125, 0.16];
+const EDGE = [0.48, 0.53, 0.60];
+const SILVER = [0.73, 0.77, 0.82];
+
+function disc(out: number[], radius: number, color: readonly number[], x = 0, y = 0, alpha = 1): void {
+  const sides = 256;
+  for (let i = 0; i < sides; i++) {
+    const a = i / sides * TAU, b = (i + 1) / sides * TAU;
+    triangle(out, [x, y], [x + Math.cos(a) * radius, y + Math.sin(a) * radius],
+      [x + Math.cos(b) * radius, y + Math.sin(b) * radius], color, alpha);
+  }
+}
+
 export function wheelVertices(config: WheelConfig): Float32Array {
   const out: number[] = [];
   const count = config.items.length;
-  const subdivisions = Math.max(5, Math.ceil(28 / count));
-  const dark = [0.055, 0.065, 0.09];
-  for (let i = 0; i < 96; i++) {
-    const a = i / 96 * TAU, b = (i + 1) / 96 * TAU;
-    triangle(out, [0,0], [Math.cos(a)*0.9, Math.sin(a)*0.9], [Math.cos(b)*0.9, Math.sin(b)*0.9], dark);
-  }
+  const subdivisions = Math.max(8, Math.ceil(256 / count));
+  // A restrained case: rolled outer edge, recessed graphite track, inner lip.
+  disc(out, .908, [0.025, 0.032, 0.045]);
+  disc(out, .901, EDGE);
+  disc(out, .895, GRAPHITE);
+  disc(out, .855, [0.075, 0.09, 0.12]);
+  disc(out, .846, [0.25, 0.29, 0.35]);
+  disc(out, .84, [0.035, 0.044, 0.06]);
   for (let index = 0; index < count; index++) {
     const color = PALETTE[index % PALETTE.length];
     const start = index / count * TAU;
@@ -71,13 +87,21 @@ export function wheelVertices(config: WheelConfig): Float32Array {
       const b = start + (part + 1) / subdivisions * TAU / count;
       triangle(out, [0,0], [Math.cos(a)*0.82, Math.sin(a)*0.82], [Math.cos(b)*0.82, Math.sin(b)*0.82], color);
     }
+    // Fine seams give the enamel sectors a crisp, deliberate meeting point.
+    const seam = .0013;
+    triangle(out, [0, 0], [Math.cos(start - seam) * .82, Math.sin(start - seam) * .82],
+      [Math.cos(start + seam) * .82, Math.sin(start + seam) * .82], [0.035, 0.044, 0.06], .28);
   }
-  // Hub rings are layered last.
-  for (let i = 0; i < 48; i++) {
-    const a=i/48*TAU,b=(i+1)/48*TAU;
-    triangle(out,[0,0],[Math.cos(a)*.13,Math.sin(a)*.13],[Math.cos(b)*.13,Math.sin(b)*.13],[.85,.88,.92]);
-    triangle(out,[0,0],[Math.cos(a)*.085,Math.sin(a)*.085],[Math.cos(b)*.085,Math.sin(b)*.085],[.12,.14,.18]);
-  }
+  // The bearing repeats the case's thin edge and inset dark face.
+  for (let i = 8; i > 0; i--) disc(out, .126 + i * .0025, [0.015, 0.02, 0.03], 0, 0, .035);
+  disc(out, .128, [0.035, 0.044, 0.06]);
+  disc(out, .12, SILVER);
+  disc(out, .113, EDGE);
+  disc(out, .105, GRAPHITE);
+  disc(out, .086, [0.16, 0.185, 0.225]);
+  disc(out, .082, [0.095, 0.115, 0.15]);
+  disc(out, .018, [0.045, 0.06, 0.08]);
+  disc(out, .012, EDGE);
   return new Float32Array(out);
 }
 
@@ -125,21 +149,18 @@ export function circleVertices(radius: number, sides = 14): Float32Array {
   return new Float32Array(out);
 }
 
-/** Minimal spring pointer geometry, centered on its hinge at (0, 0). */
+/** Tapered satin-metal spring, centered on the physical hinge. */
 export function pointerVertices(): Float32Array {
-  const out:number[]=[];
-  // One quiet, flat spring leaf. Its silhouette does the work without trim.
-  quad(out,[-.023,.004],[.023,.004],[.007,-.145],[-.007,-.145],[.57,.25,.23]);
-  // A small matte contact bead sits directly on the peg circle.
-  for(let i=0;i<18;i++){
-    const a=i/18*TAU,b=(i+1)/18*TAU;
-    triangle(out,[0,-.145],[Math.cos(a)*.014,Math.sin(a)*.014-.145],[Math.cos(b)*.014,Math.sin(b)*.014-.145],[.53,.56,.61]);
-  }
-  // A single compact hinge with an understated center fastener.
-  for(let i=0;i<24;i++){
-    const a=i/24*TAU,b=(i+1)/24*TAU;
-    triangle(out,[0,.004],[Math.cos(a)*.032,Math.sin(a)*.032+.004],[Math.cos(b)*.032,Math.sin(b)*.032+.004],[.31,.34,.39]);
-    triangle(out,[0,.004],[Math.cos(a)*.009,Math.sin(a)*.009+.004],[Math.cos(b)*.009,Math.sin(b)*.009+.004],[.12,.14,.18]);
-  }
+  const out: number[] = [];
+  // Dark edge, silver bevel, inset graphite spine, and rounded contact tip.
+  quad(out, [-.025,.004], [.025,.004], [.010,-.145], [-.010,-.145], GRAPHITE);
+  quad(out, [-.021,.004], [.021,.004], [.007,-.145], [-.007,-.145], SILVER);
+  quad(out, [-.011,-.015], [.011,-.015], [.003,-.122], [-.003,-.122], GRAPHITE);
+  disc(out, .011, SILVER, 0, -.145);
+  disc(out, .036, [0.035, 0.044, 0.06], 0, .004);
+  disc(out, .031, EDGE, 0, .004);
+  disc(out, .026, GRAPHITE, 0, .004);
+  disc(out, .012, [0.045, 0.06, 0.08], 0, .004);
+  disc(out, .008, SILVER, 0, .004);
   return new Float32Array(out);
 }

@@ -32,8 +32,11 @@ struct VertexOutput {
 
 @fragment fn fragment(input: VertexOutput) -> @location(0) vec4f {
   let radius=length(input.local_position);
-  let direction=normalize(input.local_position+vec2f(.0001));
-  let soft_light=.91+dot(direction,normalize(vec2f(-.55,.84)))*.07;
-  let rim_sheen=smoothstep(.72,.9,radius)*pow(max(dot(direction,normalize(vec2f(-.75,.66))),0.0),8.0)*.22;
-  return vec4f(input.color.rgb*soft_light+vec3f(rim_sheen),input.color.a);
+  let light = dot(input.local_position, normalize(vec2f(-.55, .84)));
+  let enamel = .96 + light * .055;
+  let direction = normalize(input.local_position + vec2f(.0001));
+  let metal = .73 + .34 * dot(direction, normalize(vec2f(-.55, .84)));
+  let is_hardware = radius > .821 || radius < .129;
+  let finish = select(enamel, metal, is_hardware);
+  return vec4f(input.color.rgb * finish, input.color.a);
 }

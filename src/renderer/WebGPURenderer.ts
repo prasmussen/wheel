@@ -83,7 +83,7 @@ export class WebGPURenderer {
     this.textBindGroup=this.device.createBindGroup({layout:this.textPipeline.getBindGroupLayout(0),entries:[{binding:0,resource:{buffer:this.uniform}}]});
     this.pointerBindGroup=this.device.createBindGroup({layout:this.pointerPipeline.getBindGroupLayout(0),entries:[{binding:0,resource:{buffer:this.pointerUniform}}]});
     this.textQuad=this.buffer(new Float32Array([-.5,-.5,.5,-.5,.5,.5,-.5,-.5,.5,.5,-.5,.5]),GPUBufferUsage.VERTEX);
-    const pegGeometry=circleVertices(.027);
+    const pegGeometry=circleVertices(.027, 32);
     this.pegVertex=this.buffer(pegGeometry,GPUBufferUsage.VERTEX);
     const pointer=pointerVertices();
     this.pointerBuffer=this.buffer(pointer,GPUBufferUsage.VERTEX); this.pointerCount=pointer.length/6;
@@ -108,7 +108,7 @@ export class WebGPURenderer {
     const pass=encoder.beginRenderPass({colorAttachments:[{view:this.multisampleTexture!.createView(),resolveTarget:this.context.getCurrentTexture().createView(),clearValue:{r:0,g:0,b:0,a:0},loadOp:"clear",storeOp:"discard"}]});
     pass.setPipeline(this.wheelPipeline); pass.setBindGroup(0,this.wheelBindGroup); pass.setVertexBuffer(0,this.wheelBuffer); pass.draw(this.wheelCount);
     pass.setPipeline(this.textPipeline); pass.setBindGroup(0,this.textBindGroup); pass.setVertexBuffer(0,this.textQuad); pass.setVertexBuffer(1,this.textInstances); pass.draw(6,this.textCount);
-    pass.setPipeline(this.pegPipeline); pass.setBindGroup(0,this.pegBindGroup); pass.setVertexBuffer(0,this.pegVertex); pass.setVertexBuffer(1,this.pegInstances); pass.draw(42,this.pegCount);
+    pass.setPipeline(this.pegPipeline); pass.setBindGroup(0,this.pegBindGroup); pass.setVertexBuffer(0,this.pegVertex); pass.setVertexBuffer(1,this.pegInstances); pass.draw(96,this.pegCount);
     pass.setPipeline(this.pointerPipeline); pass.setBindGroup(0,this.pointerBindGroup); pass.setVertexBuffer(0,this.pointerBuffer); pass.draw(this.pointerCount);
     pass.end(); this.device.queue.submit([encoder.finish()]);
   }
