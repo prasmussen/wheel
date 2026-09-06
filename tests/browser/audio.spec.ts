@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-for (const sessionSupport of ['supported', 'missing', 'rejects', 'touchend-only'] as const) {
+for (const sessionSupport of ['supported', 'missing', 'rejects', 'touchstart-only', 'touchend-only'] as const) {
   test(`sound starts and unmute recreates audio when Audio Session is ${sessionSupport}`, async ({ page }) => {
     await page.addInitScript(support => {
       const probe = window as unknown as {
@@ -24,18 +24,19 @@ for (const sessionSupport of ['supported', 'missing', 'rejects', 'touchend-only'
       const NativeAudioContext = window.AudioContext;
       window.AudioContext = class extends NativeAudioContext {
         private meter?: AnalyserNode;
-        private unlocked = support !== 'touchend-only';
+        private unlocked = support !== 'touchend-only' && support !== 'touchstart-only';
         constructor() {
           super();
-          probe.createdWithoutActivation ||= !navigator.userActivation.isActive;
+          probe.createdWithoutActivation ||= !navigator.userActivation.isActive && window.event?.type !== 'touchstart';
           probe.wheelAudio = this;
         }
         override get state(): AudioContextState {
           return this.unlocked ? super.state : 'suspended';
         }
         override resume(): Promise<void> {
-          // Model iOS rejecting the pointer events and accepting native touchend.
-          if (!this.unlocked && window.event?.type !== 'touchend') return new Promise(() => {});
+          // Model browsers accepting only the corresponding native touch event.
+          const unlockEvent = support === 'touchstart-only' ? 'touchstart' : 'touchend';
+          if (!this.unlocked && window.event?.type !== unlockEvent) return new Promise(() => {});
           this.unlocked = true;
           return super.resume();
         }
@@ -67,16 +68,24 @@ for (const sessionSupport of ['supported', 'missing', 'rejects', 'touchend-only'
     await setHidden(false);
     expect(await page.evaluate(() =>
       !!(window as unknown as { wheelAudio?: AudioContext }).wheelAudio)).toBe(false);
-    if (sessionSupport === 'touchend-only') {
+    if (sessionSupport === 'touchend-only' || sessionSupport === 'touchstart-only') {
       const touch = await page.context().newCDPSession(page);
       const bounds = (await spin.boundingBox())!;
       await touch.send('Input.dispatchTouchEvent', {
         type: 'touchStart', touchPoints: [{ x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 }],
       });
       await expect(spin).toHaveClass(/charging/);
-      expect(await page.evaluate(() =>
-        !!(window as unknown as { wheelAudio?: AudioContext }).wheelAudio)).toBe(false);
-      await page.waitForTimeout(250);
+      if (sessionSupport === 'touchstart-only') {
+        // Sound must start on a fresh page while the first touch is still held.
+        await expect.poll(() => page.evaluate(() =>
+          (window as unknown as { audioLevel?: () => number }).audioLevel?.() ?? 0),
+        { intervals: [50], timeout: 5000 }).toBeGreaterThan(0.0001);
+        await expect(spin).toHaveClass(/charging/);
+      } else {
+        await expect.poll(() => page.evaluate(() =>
+          (window as unknown as { wheelAudio: AudioContext }).wheelAudio.state)).toBe('suspended');
+      }
+      await page.waitForTimeout(1800);
       await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
       await expect(spin).toBeDisabled();
       await expect(page.locator('#result')).toHaveText('IN MOTION');

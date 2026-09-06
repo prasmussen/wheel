@@ -83,6 +83,9 @@ export class App {
     await this.initializeRenderer();
 
     const spinButton = this.required<HTMLButtonElement>("#spin-button");
+    spinButton.addEventListener("touchstart", event => {
+      if (event.isTrusted && !spinButton.disabled) this.resumeAudio(event);
+    }, { passive: true });
     // iOS may reject pointerdown/pointerup for audio. Capture touchend even after
     // pointerup starts the spin and disables its button (suppressing the click).
     this.root.addEventListener("touchend", event => {
@@ -95,7 +98,7 @@ export class App {
       this.updateLocks();
       this.wake();
     }, event => {
-      // Touch and pen activate audio on release; mouse and keyboard can start on press.
+      // Touch uses its native touchstart handler; pen retries on release.
       if (!(event instanceof PointerEvent) || event.pointerType === "mouse") this.resumeAudio();
     }, () => this.gpuReady && !this.spinActive && !this.root.querySelector("dialog[open]"));
     this.physics.onImpact(event => {
@@ -555,8 +558,8 @@ export class App {
     catch { this.notice("Sound or vibration is unavailable. You can still spin the wheel."); }
   }
 
-  private resumeAudio(): void {
-    void this.audio.resume().catch(() => this.notice("Audio is unavailable. You can still spin the wheel."));
+  private resumeAudio(event?: Event): void {
+    void this.audio.resume(event).catch(() => this.notice("Audio is unavailable. You can still spin the wheel."));
   }
 
   private clearResult(): void {
