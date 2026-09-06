@@ -22,7 +22,7 @@ test('opens a responsive editor modal with keyboard and backdrop dismissal', asy
     await expect(dialog).toBeHidden();
     await expect(page.locator('#edit-wheel')).toBeFocused();
     await page.locator('#edit-wheel').click();
-    await expect(page.locator('#editor-list input').first()).toHaveValue('Dinner');
+    await expect(page.locator('#editor-list input').first()).toHaveValue('DINNER');
     await page.locator('#close-editor').click();
     await expect(dialog).toBeHidden();
     await page.locator('#edit-wheel').click();
@@ -45,4 +45,88 @@ test('opens a responsive editor modal with keyboard and backdrop dismissal', asy
     await page.mouse.click(2, 2);
     await expect(history).toBeHidden();
   }
+});
+
+
+test('keeps the editor open when text selection ends outside the modal', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('#spin-button')).toBeEnabled();
+  await page.locator('#edit-wheel').click();
+  const dialog = page.locator('#wheel-editor');
+  const input = page.locator('#editor-list input').first();
+  await input.fill('Select this whole choice');
+  {
+    const bounds = (await input.boundingBox())!;
+    await page.mouse.move(bounds.x + bounds.width - 8, bounds.y + bounds.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(2, bounds.y + bounds.height / 2, { steps: 10 });
+    await page.mouse.up();
+    await expect(dialog).toBeVisible();
+    expect(await input.evaluate(element => {
+      const field = element as HTMLInputElement;
+      return field.selectionEnd! - field.selectionStart!;
+    })).toBeGreaterThan(0);
+  }
+  await page.locator('#batch-edit').click();
+  const textarea = page.locator('#bulk-choices');
+  await textarea.fill('First choice\nSecond choice');
+  const bounds = (await textarea.boundingBox())!;
+  await page.mouse.move(bounds.x + 12, bounds.y + 12);
+  await page.mouse.down();
+  await page.mouse.move(2, 2, { steps: 10 });
+  await page.mouse.up();
+  await expect(dialog).toBeVisible();
+  await expect(textarea).toHaveValue('FIRST CHOICE\nSECOND CHOICE');
+  await page.mouse.down();
+  await expect(dialog).toBeHidden();
+  await page.mouse.up();
+});
+
+
+test('capitalizes input without moving the caret and removes blank choices on dismissal', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('#spin-button')).toBeEnabled();
+  for (const dismiss of ['done', 'escape', 'backdrop']) {
+    await page.locator('#edit-wheel').click();
+    const inputs = page.locator('#editor-list input');
+    const count = await inputs.count();
+    const first = inputs.first();
+    await first.fill('café');
+    await expect(first).toHaveValue('CAFÉ');
+    await first.evaluate(element => (element as HTMLInputElement).setSelectionRange(2, 2));
+    await page.keyboard.type('x');
+    await expect(first).toHaveValue('CAXFÉ');
+    expect(await first.evaluate(element => (element as HTMLInputElement).selectionStart)).toBe(3);
+    await first.fill('   ');
+    await inputs.nth(1).focus();
+    await expect(first).toHaveValue('   ');
+    if (dismiss === 'done') await page.locator('#close-editor').click();
+    if (dismiss === 'escape') await page.keyboard.press('Escape');
+    if (dismiss === 'backdrop') await page.mouse.click(2, 2);
+    await expect(page.locator('#wheel-editor')).toBeHidden();
+    await page.reload();
+    await expect(page.locator('#editor-list input')).toHaveCount(count - 1);
+  }
+});
+
+test('keeps the editor open if removing blanks would leave fewer than two choices', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('#spin-button')).toBeEnabled();
+  await page.locator('#edit-wheel').click();
+  await page.locator('#batch-edit').click();
+  await page.locator('#bulk-choices').fill('first\nsecond');
+  await page.locator('#apply-bulk').click();
+  const first = page.locator('#editor-list input').first();
+  await first.fill('');
+  await page.locator('#close-editor').click();
+  await expect(page.locator('#wheel-editor')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#wheel-editor')).toBeVisible();
+  await page.mouse.click(2, 2);
+  await expect(page.locator('#wheel-editor')).toBeVisible();
+  await first.fill('replacement');
+  await page.locator('#close-editor').click();
+  await expect(page.locator('#wheel-editor')).toBeHidden();
+  await page.reload();
+  await expect(page.locator('#editor-list input').first()).toHaveValue('REPLACEMENT');
 });

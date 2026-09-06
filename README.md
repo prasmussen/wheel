@@ -17,20 +17,22 @@ Choices stay locked while charging or spinning. Once the wheel settles, its sele
 
 ## Choices
 
-Choose **Edit wheel** to edit choices, or **Spin history** to open previous spins in a separate dialog. Close either dialog with **Done**, Escape, or a click outside it. Loading a history entry closes its dialog so the wheel is ready to replay. The main screen gives the wheel the full available width.
+Choose **Edit wheel** to edit choices, or **Spin history** to open previous spins in a separate dialog. Close either dialog with **Done**, Escape, or a click outside it. Choosing Replay closes the history dialog and immediately replays that spin. The main screen gives the wheel the full available width.
 
 - Edit 2–50 choices, with up to 30 characters each. Blank choices must be named before spinning.
 - **Batch edit** switches the individual fields to a multiline editor prefilled with the current choices. **Apply choices** returns to individual editing; **Done** applies and closes the dialog. **Cancel**, Escape, or clicking outside discards unapplied batch edits. Keep 2–50 choices, one per nonblank line, with up to 30 characters each.
-- **Spin history** automatically keeps the last 10 completed spins on this device, newest first. Each entry shows its result and completion time. **Load** restores its choices and replay; **Replay last spin** plays it again. Replayed spins are also logged when they finish.
+- **Spin history** automatically keeps the last 30 completed spins on this device, newest first. Each entry shows its result and completion time. **Replay** restores its choices and immediately plays that spin again. Replays do not add history entries or change the order of existing spins.
 - Storage failures leave the wheel usable for the session and display a message. Invalid stored configurations fall back to the default wheel.
 
-Wheel labels support A–Z, digits, Nordic letters Æ/Ø/Å/Ä/Ö/Ü, É, and basic punctuation. Other accented Latin letters use their base letter; unsupported glyphs use `?`. Labels longer than 14 characters (8 above 20 choices) end in an ellipsis on the wheel. The editor and result retain the original full text.
+Wheel labels use smooth semibold Manrope text with system font fallbacks, displaying uppercase text while preserving accents, non-Latin scripts, and emoji. Character coverage depends on available fonts. Labels fit the available width with modest size reduction followed by an ellipsis at a complete grapheme boundary. Option inputs automatically uppercase text, including pasted batches. Blank lines in batches are ignored; blank individual choices are removed when the modal closes, provided at least two choices remain. Full labels are retained in the editor and result.
 
 History is stored under `momentum-spin-history` as a JSON array. Each entry has `completedAt`, `result`, and `state`; `state` is the same plain object encoded in a share link, without Base64. Invalid or incompatible entries are skipped. If storage fails, history remains available for the session.
 
 ## Sharing
 
-**Share wheel** copies a link containing the current choices and the latest replay, if one exists. A selectable link is also shown for manual copying. Open it to load the wheel, then choose **Replay last spin** to watch the recorded spin. Opening a link does not start a spin automatically.
+Choice changes automatically update the current URL without navigating or adding browser history entries. Reloading restores those choices, including edits to a shared wheel; reset also updates the URL to the defaults. Unapplied batch edits and temporarily blank fields are drafts until applied or removed on close.
+
+**Share** opens a modal with a link containing the current choices and the latest replay, if one exists. **Copy to clipboard** copies it; if clipboard access fails, the link is selected for manual copying. Open it to load the wheel, then open **Spin history** and choose **Replay shared spin** to watch the recorded spin. Opening a link does not start a spin automatically.
 
 If choices changed after the latest spin, the link preserves both sets: replay restores the original choices. Links take precedence over locally stored choices on load. Invalid links fall back to the local wheel with a message; replays from a different simulation version are unavailable, but their shared choices still load.
 
@@ -42,7 +44,7 @@ Every new launch uses a fresh seed from `crypto.getRandomValues`. The seed varie
 
 Longer holds increase launch energy for the same random preload, and even the weakest full-charge launch is stronger than the strongest zero-charge launch. The preload range grows with charge to keep travel varied under the stronger brake. The randomized launch speed remains below 38 rad/s across the full charge range. These changes alter seeded trajectories, so new records use simulation version 5. Each launch resets transient contact state and records its seed, charge, starting angle, complete choice list, physics settings, and simulation version.
 
-**Replay last spin** restores that configuration and reproduces the spin from the current session or a shared link. It remains available after editing choices. Completed replay records persist in Spin history; share links can also carry them across reloads. Replay is intended for the same simulation version and runtime; cross-engine floating-point equivalence is not guaranteed.
+**Replay** in Spin history restores that configuration and reproduces a saved spin. A shared replay that is not already saved appears there as **Replay shared spin**. It remains available after editing choices. Completed replay records persist in Spin history; share links can also carry them across reloads. Replay is intended for the same simulation version and runtime; cross-engine floating-point equivalence is not guaranteed.
 
 Physics settings are fixed and cannot be adjusted in the interface. The outer simulation ticks at 240 Hz. Fast peg travel and spring response use bounded adaptive substeps within each tick, including launch acceleration, so a pin cannot simply cross the contact area between samples. The lighter spring pointer has lower damping and returns quickly enough to show individual deflections on the default wheel. Dense wheels can keep the pointer deflected while it flutters against successive pins. Repeated contact visits within the substeps do not produce duplicate click notifications for the same pin traversal.
 
@@ -79,10 +81,10 @@ WHEEL_WRITE_DISTRIBUTION=1 npm run analyze:distribution
 
 The fast tests cover deterministic replay after previous spins, charge tension, launch extremes, high-speed contacts in both directions and across tick alignments, passive brake torque, spin duration, peg crossings, pointer rebound, low-speed reversal, settling at every segment count from 2 through 50, winner geometry, history and stored-data validation, bulk entry, and label handling.
 
-Browser tests use locally installed Google Chrome with WebGPU enabled. They cover keyboard and pointer cancellation, locked controls, full-speed pointer motion reaching the GPU, replay, bulk editing, ten-entry history retention and restoration, persistence failures, unsupported WebGPU, desktop/mobile resizing, idle rendering, and injected device-loss recovery. The distribution diagnostic is separate from the fast suite and prints per-scenario histograms and concentration metrics. It also checks settling, guards against the old severe outcome concentration, and checks short-hold averages below 12.5 seconds, the 95th percentile below 16 seconds, and every sampled short-hold spin below 20 seconds. Full-charge spins instead target a 15–23-second average, a 95th percentile below 27 seconds, and all sampled spins below 30 seconds.
+Browser tests use locally installed Google Chrome with WebGPU enabled. They cover keyboard and pointer cancellation, locked controls, full-speed pointer motion reaching the GPU, replay, bulk editing, 30-entry history retention and restoration, persistence failures, unsupported WebGPU, desktop/mobile resizing, idle rendering, and injected device-loss recovery. The distribution diagnostic is separate from the fast suite and prints per-scenario histograms and concentration metrics. It also checks settling, guards against the old severe outcome concentration, and checks short-hold averages below 12.5 seconds, the 95th percentile below 16 seconds, and every sampled short-hold spin below 20 seconds. Full-charge spins instead target a 15–23-second average, a 95th percentile below 27 seconds, and all sampled spins below 30 seconds.
 
 ## Rendering and recovery
 
-All wheel visuals use WebGPU/WGSL. Pegs and procedural signed-distance glyphs are instanced. There is deliberately no WebGL or Canvas 2D fallback.
+All wheel visuals are composited with WebGPU/WGSL. Pegs are instanced. Complete labels are rasterized with Canvas 2D into an oversampled transparent texture so the browser handles font fallback and script shaping. This texture is cached during spins and refreshed after label edits or display-size changes. The label font is resolved before the first frame, with a one-second limit; if loading fails or takes longer, the renderer keeps its system fallback to avoid a later text-size change. There is no WebGL or Canvas 2D rendering fallback.
 
 Rendering and physics pause when the wheel is resting, and while the page is hidden. Resizing or interacting wakes the renderer. After GPU device loss, **Retry** recreates graphics resources and resumes the preserved simulation. Choice editing remains available when WebGPU cannot initialize.

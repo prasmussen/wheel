@@ -14,10 +14,10 @@ const entry: SpinHistoryEntry = {
 };
 
 describe('spin history', () => {
-  it('keeps the ten latest spins in newest-first order, including repeated replays', () => {
+  it('keeps the 30 latest spins in newest-first order, including repeated results', () => {
     let history: SpinHistoryEntry[] = [];
-    for (let i = 0; i < 12; i++) history = appendSpinHistory(history, { ...entry, completedAt: i });
-    expect(history.map(item => item.completedAt)).toEqual([11, 10, 9, 8, 7, 6, 5, 4, 3, 2]);
+    for (let i = 0; i < 32; i++) history = appendSpinHistory(history, { ...entry, completedAt: i });
+    expect(history.map(item => item.completedAt)).toEqual(Array.from({ length: 30 }, (_, i) => 31 - i));
     expect(readSpinHistory(JSON.parse(JSON.stringify(history)))).toEqual(history);
   });
   it('snapshots the same plain JSON state used for sharing', () => {
@@ -35,7 +35,7 @@ describe('spin history', () => {
     expect(readSpinHistory({})).toEqual([]);
   });
   it('sorts and caps stored records on read', () => {
-    const entries = Array.from({ length: 15 }, (_, completedAt) => ({ ...entry, completedAt }));
-    expect(readSpinHistory(entries).map(item => item.completedAt)).toEqual([14, 13, 12, 11, 10, 9, 8, 7, 6, 5]);
+    const entries = Array.from({ length: 35 }, (_, completedAt) => ({ ...entry, completedAt }));
+    expect(readSpinHistory(entries).map(item => item.completedAt)).toEqual(Array.from({ length: 30 }, (_, i) => 34 - i));
   });
 });

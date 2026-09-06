@@ -25,6 +25,7 @@ export class App {
   private previousSnapshot: PhysicsSnapshot;
   private currentSnapshot: PhysicsSnapshot;
   private spinActive = false;
+  private replayActive = false;
   private batchEditing = false;
   private resultAnnounced = false;
   private spinHistory: SpinHistoryEntry[] = [];
@@ -141,8 +142,9 @@ export class App {
       this.commitConfig();
       this.renderEditor();
     }
+    this.replayActive = replay !== undefined;
     this.state.lastSpin = structuredClone(record);
-    this.required("#share-link-panel").hidden = true;
+    this.required<HTMLDialogElement>("#share-dialog").close();
     this.physics.launch(record.charge, new SeededRandom(record.seed));
     this.previousSnapshot = this.currentSnapshot = this.physics.snapshot();
     this.spinActive = true; this.resultAnnounced = false; this.state.result = undefined;
@@ -158,7 +160,7 @@ export class App {
     this.state.result = result; this.resultAnnounced = true; this.spinActive = false;
     const element = this.required("#result"); element.textContent = result; element.classList.add("winner");
     this.audio.winner();
-    if (this.state.lastSpin) {
+    if (this.state.lastSpin && !this.replayActive) {
       this.spinHistory = appendSpinHistory(this.spinHistory, {
         completedAt: Date.now(), result,
         state: createSharePayload(this.state.wheelConfig, this.state.lastSpin),
@@ -173,25 +175,42 @@ export class App {
     for (const [dialogId, openId, closeId] of [
       ["wheel-editor", "edit-wheel", "close-editor"],
       ["history-dialog", "show-history", "close-history"],
+      ["share-dialog", "share-wheel", "close-share"],
     ]) {
       const dialog = this.required<HTMLDialogElement>(`#${dialogId}`);
       this.required(`#${openId}`).addEventListener("click", () => {
-        if (!this.busy) dialog.showModal();
+        if (this.busy) return;
+        if (dialogId === "share-dialog") this.shareWheel();
+        dialog.showModal();
       });
       this.required(`#${closeId}`).addEventListener("click", () => {
-        if (dialogId === "wheel-editor" && this.batchEditing && !this.applyBatch()) return;
+        if (dialogId === "wheel-editor") {
+          if (this.batchEditing ? !this.applyBatch() : !this.finishOptionEditing()) return;
+        }
         dialog.close();
       });
-      if (dialogId === "wheel-editor") dialog.addEventListener("close", () => this.setBatchEditing(false));
-      dialog.addEventListener("click", event => {
+      if (dialogId === "wheel-editor") {
+        dialog.addEventListener("close", () => this.setBatchEditing(false));
+        dialog.addEventListener("cancel", event => {
+          if (!this.batchEditing && !this.finishOptionEditing()) event.preventDefault();
+        });
+      }
+      // Dismiss at the start of a backdrop press, never at the end of a text-selection drag.
+      dialog.addEventListener("pointerdown", event => {
+        if (!event.isPrimary || event.button !== 0) return;
         const bounds = dialog.getBoundingClientRect();
         if (event.target === dialog && (event.clientX < bounds.left || event.clientX > bounds.right
-          || event.clientY < bounds.top || event.clientY > bounds.bottom)) dialog.close();
+          || event.clientY < bounds.top || event.clientY > bounds.bottom)) {
+          if (dialogId === "wheel-editor" && !this.batchEditing && !this.finishOptionEditing()) return;
+          dialog.close();
+        }
       });
     }
-    this.required("#share-wheel").addEventListener("click", () => { void this.shareWheel(); });
+    this.required("#copy-share-link").addEventListener("click", () => { void this.copyShareLink(); });
     this.required("#replay-spin").addEventListener("click", () => {
-      if (this.state.lastSpin) this.launch(this.state.lastSpin.charge, this.state.lastSpin);
+      if (!this.state.lastSpin || !this.gpuReady || this.busy) return;
+      this.required<HTMLDialogElement>("#history-dialog").close();
+      this.launch(this.state.lastSpin.charge, this.state.lastSpin);
     });
     this.required("#mute").addEventListener("click", () => {
       this.audio.setMuted(!this.audio.muted);
@@ -214,13 +233,14 @@ export class App {
     });
     this.required("#spin-history").addEventListener("click", event => {
       const button = (event.target as HTMLElement).closest<HTMLButtonElement>("button[data-history]");
-      if (!button || this.busy) return;
+      if (!button || this.busy || !this.gpuReady) return;
       const entry = this.spinHistory[Number(button.dataset.history)];
       if (!entry) return;
       const shared = readSharePayload(entry.state);
+      if (!shared.lastSpin) return;
       this.state.lastSpin = shared.lastSpin;
-      if (this.updateItems(shared.wheelConfig.items)) this.notice("Spin loaded. Choose Replay last spin to watch it.");
       this.required<HTMLDialogElement>("#history-dialog").close();
+      this.launch(shared.lastSpin.charge, shared.lastSpin);
     });
     this.required("#add-item").addEventListener("click", () => {
       if (this.state.wheelConfig.items.length >= 50) return;
@@ -230,17 +250,30 @@ export class App {
       if (this.busy) return;
       if (window.confirm("Reset the wheel to its default choices? Your current choices will be replaced.")) {
         this.updateItems(createDefaultConfig().items);
-        const url = new URL(location.href);
-        url.hash = "";
-        history.replaceState(history.state, "", url);
       }
     });
-    this.required("#editor-list").addEventListener("input", event => {
+    const editOption = (event: Event) => {
       const input = (event.target as HTMLElement).closest<HTMLInputElement>("input[data-id]");
-      if (!input || this.busy) return;
+      if (!input || this.busy || (event as InputEvent).isComposing) return;
+      this.capitalizeInput(input);
+      const label = input.value.trim().normalize("NFC");
+      const valid = label.length > 0 && label.length <= 30;
+      input.setCustomValidity(valid ? "" : "Enter an option with 1–30 characters.");
+      input.toggleAttribute("aria-invalid", !valid);
+      if (!valid) { input.setAttribute("aria-invalid", "true"); return; }
       const item = this.state.wheelConfig.items.find(entry => entry.id === input.dataset.id);
-      if (item) { item.label = input.value; this.commitConfig(); this.clearResult(); }
-    });
+      if (item && item.label !== label) { item.label = label; this.commitConfig(); this.clearResult(); }
+    };
+    const editorList = this.required("#editor-list");
+    editorList.addEventListener("input", editOption);
+    editorList.addEventListener("compositionend", editOption);
+    const bulkInput = this.required<HTMLTextAreaElement>("#bulk-choices");
+    bulkInput.autocapitalize = "characters";
+    const capitalizeBulk = (event: Event) => {
+      if (!(event as InputEvent).isComposing) this.capitalizeInput(bulkInput);
+    };
+    bulkInput.addEventListener("input", capitalizeBulk);
+    bulkInput.addEventListener("compositionend", capitalizeBulk);
     this.required("#editor-list").addEventListener("click", event => {
       const button = (event.target as HTMLElement).closest<HTMLButtonElement>("button[data-action]");
       if (!button) return;
@@ -254,6 +287,35 @@ export class App {
     });
   }
 
+  private finishOptionEditing(): boolean {
+    const inputs = [...this.root.querySelectorAll<HTMLInputElement>("#editor-list input")];
+    const populated = inputs.filter(input => input.value.trim());
+    if (populated.length < 2) {
+      const input = inputs.find(input => !input.value.trim())!;
+      input.setCustomValidity("Keep at least two non-empty options.");
+      input.reportValidity();
+      return false;
+    }
+    for (const input of populated) {
+      if (!input.reportValidity()) return false;
+    }
+    const ids = new Set(populated.map(input => input.dataset.id));
+    const items = this.state.wheelConfig.items.filter(item => ids.has(item.id));
+    if (items.length !== this.state.wheelConfig.items.length) this.updateItems(items);
+    return true;
+  }
+
+  private capitalizeInput(input: HTMLInputElement | HTMLTextAreaElement): void {
+    const value = input.value;
+    const uppercase = value.toUpperCase();
+    if (uppercase === value) return;
+    const start = value.slice(0, input.selectionStart ?? value.length).toUpperCase().length;
+    const end = value.slice(0, input.selectionEnd ?? value.length).toUpperCase().length;
+    const direction = input.selectionDirection;
+    input.value = uppercase;
+    input.setSelectionRange(start, end, direction ?? undefined);
+  }
+
   private setBatchEditing(active: boolean): void {
     this.batchEditing = active;
     this.required("#individual-editor").hidden = active;
@@ -261,7 +323,7 @@ export class App {
     const textarea = this.required<HTMLTextAreaElement>("#bulk-choices");
     textarea.removeAttribute("aria-invalid");
     this.required("#batch-error").textContent = "";
-    if (active) textarea.value = this.state.wheelConfig.items.map(item => item.label).join("\n");
+    if (active) textarea.value = this.state.wheelConfig.items.map(item => item.label.toUpperCase()).join("\n");
   }
 
   private applyBatch(): boolean {
@@ -269,7 +331,7 @@ export class App {
     const textarea = this.required<HTMLTextAreaElement>("#bulk-choices");
     try {
       const items = parseChoices(textarea.value);
-      if (this.updateItems(items)) this.notice("Choices updated.");
+      this.updateItems(items);
       return true;
     } catch (error) {
       this.required("#batch-error").textContent = (error as Error).message;
@@ -293,6 +355,14 @@ export class App {
     this.physics.setSegmentCount(this.state.wheelConfig.items.length);
     if (this.gpuReady) this.renderer?.updateConfig(this.state.wheelConfig);
     const saved = this.store("momentum-wheel", this.state.wheelConfig);
+    try {
+      const url = new URL(location.href);
+      url.hash = encodeShare(this.state.wheelConfig, this.state.lastSpin);
+      // Replacing the URL avoids navigation and one Back entry per keystroke.
+      history.replaceState(history.state, "", url);
+    } catch {
+      this.notice("The URL could not be updated. Use Share to copy the current wheel.");
+    }
     this.wake();
     return saved;
   }
@@ -302,7 +372,8 @@ export class App {
     const list = this.required("#editor-list");
     list.replaceChildren(...this.state.wheelConfig.items.map((item, index) => {
       const row = document.createElement("div"); row.className = "editor-row";
-      const input = document.createElement("input"); input.value = item.label; input.dataset.id = item.id;
+      const input = document.createElement("input"); input.value = item.label.toUpperCase(); input.dataset.id = item.id;
+      input.required = true; input.autocapitalize = "characters";
       input.maxLength = 30; input.setAttribute("aria-label", `Wheel item ${index + 1}`);
       const actions = [["up","↑","Move up"],["down","↓","Move down"],["delete","×","Delete"]] as const;
       row.append(input, ...actions.map(([action,text,label]) => {
@@ -353,35 +424,51 @@ export class App {
       });
       info.append(result, time);
       const button = document.createElement("button"); button.type = "button";
-      button.dataset.history = String(index); button.textContent = "Load";
-      button.setAttribute("aria-label", `Load spin ${index + 1}: ${entry.result}`);
+      button.dataset.history = String(index); button.textContent = "Replay";
+      button.setAttribute("aria-label", `Replay spin ${index + 1}: ${entry.result}`);
       row.append(info, button);
       return row;
     }));
   }
 
   private notice(message: string): void {
-    this.required("#notice").textContent = message;
     this.required("#editor-notice").textContent = message;
   }
 
-  private async shareWheel(): Promise<void> {
-    if (this.busy) return;
+  private shareWheel(): void {
+    const input = this.required<HTMLInputElement>("#share-link");
+    const button = this.required<HTMLButtonElement>("#copy-share-link");
+    const status = this.required("#share-status");
+    input.value = "";
+    button.textContent = "Copy to clipboard";
+    button.disabled = false;
+    status.textContent = "";
     try {
       const url = new URL(location.href);
       url.hash = encodeShare(this.state.wheelConfig, this.state.lastSpin);
-      const input = this.required<HTMLInputElement>("#share-link");
       input.value = url.href;
-      this.required("#share-link-panel").hidden = false;
-      input.focus(); input.select();
-      try {
-        await navigator.clipboard.writeText(url.href);
-        this.notice(this.state.lastSpin ? "Link copied, including the latest replay." : "Wheel link copied.");
-      } catch {
-        this.notice("Copy the selected link to share this wheel.");
-      }
     } catch (error) {
-      this.notice(error instanceof Error ? error.message : "Could not create a share link.");
+      button.disabled = true;
+      status.textContent = error instanceof Error ? error.message : "Could not create a share link.";
+    }
+  }
+
+  private async copyShareLink(): Promise<void> {
+    const input = this.required<HTMLInputElement>("#share-link");
+    const button = this.required<HTMLButtonElement>("#copy-share-link");
+    const status = this.required("#share-status");
+    button.disabled = true;
+    status.textContent = "";
+    try {
+      await navigator.clipboard.writeText(input.value);
+      button.textContent = "Copied!";
+      status.textContent = "Link copied to clipboard.";
+    } catch {
+      input.focus();
+      input.select();
+      status.textContent = "Could not copy automatically. Copy the selected link instead.";
+    } finally {
+      button.disabled = false;
     }
   }
   private get busy(): boolean { return this.spinActive || !!this.input?.charging; }
@@ -391,7 +478,7 @@ export class App {
   }
 
   private clearResult(): void {
-    this.required("#share-link-panel").hidden = true;
+    this.required<HTMLDialogElement>("#share-dialog").close();
     this.state.result = undefined;
     this.required("#result").textContent = "READY";
     this.required("#result").classList.remove("winner");
@@ -400,11 +487,15 @@ export class App {
   private updateLocks(): void {
     this.required<HTMLButtonElement>("#edit-wheel").disabled = this.busy;
     this.required<HTMLButtonElement>("#show-history").disabled = this.busy;
-    this.required<HTMLFieldSetElement>("#history-controls").disabled = this.busy;
+    this.required<HTMLFieldSetElement>("#history-controls").disabled = this.busy || !this.gpuReady;
     this.required<HTMLButtonElement>("#share-wheel").disabled = this.busy;
     this.required<HTMLFieldSetElement>("#choice-controls").disabled = this.busy;
     this.required<HTMLButtonElement>("#spin-button").disabled = !this.gpuReady || this.spinActive;
-    this.required("#replay-controls").hidden = !this.state.lastSpin;
+    const replay = this.state.lastSpin;
+    const savedReplay = replay && this.spinHistory.some(entry =>
+      JSON.stringify(entry.state) === JSON.stringify(createSharePayload(replay.wheelConfig, replay)));
+    this.required("#replay-controls").hidden = !replay || !!savedReplay;
+    this.required("#history-empty").hidden = this.spinHistory.length > 0 || !!replay;
     this.required<HTMLButtonElement>("#replay-spin").disabled = !this.gpuReady || this.busy || !this.state.lastSpin;
     this.required<HTMLButtonElement>("#add-item").disabled = this.state.wheelConfig.items.length >= 50;
   }
@@ -448,16 +539,21 @@ export class App {
 
   private renderShell(): void {
     this.root.innerHTML = `
-      <header><div class="header-actions"><button id="edit-wheel" class="ghost" type="button" aria-haspopup="dialog" aria-controls="wheel-editor">Edit wheel</button><button id="show-history" class="ghost" type="button" aria-haspopup="dialog" aria-controls="history-dialog">Spin history</button><button id="share-wheel" class="ghost" type="button">Share wheel</button><button id="mute" class="ghost" type="button" aria-pressed="false" aria-label="Mute" title="Mute"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4Z"/><path class="sound-on" d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/><path class="sound-off" d="m16 9 6 6m0-6-6 6"/></svg></button></div></header>
+      <header><div class="header-actions"><button id="edit-wheel" class="ghost" type="button" aria-haspopup="dialog" aria-controls="wheel-editor">Edit wheel</button><button id="share-wheel" class="ghost" type="button" aria-haspopup="dialog" aria-controls="share-dialog">Share</button><button id="show-history" class="ghost" type="button" aria-haspopup="dialog" aria-controls="history-dialog">Spin history</button><button id="mute" class="ghost" type="button" aria-pressed="false" aria-label="Mute" title="Mute"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4Z"/><path class="sound-on" d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/><path class="sound-off" d="m16 9 6 6m0-6-6 6"/></svg></button></div></header>
       <main>
         <section id="stage" class="stage" aria-label="Spinning wheel">
           <div class="wheel-glow"></div><canvas id="wheel-canvas" aria-hidden="true"></canvas>
           <div id="gpu-error" class="unsupported" hidden><strong>WebGPU unavailable</strong><p id="gpu-message"></p><button id="retry-gpu" type="button">Retry</button></div>
           <div class="sr-only"><div id="result" role="status" aria-live="polite">READY</div></div>
-          <div class="spin-controls"><button id="spin-button" class="spin-button" type="button"><span id="charge-label">PRESS & HOLD</span><i id="charge-fill"></i></button><div id="replay-controls" class="secondary-spin" hidden><button id="replay-spin" type="button" disabled>Replay last spin</button></div></div>
+          <div class="spin-controls"><button id="spin-button" class="spin-button" type="button"><span id="charge-label">PRESS & HOLD</span><i id="charge-fill"></i></button></div>
         </section>
       </main>
-      <div class="page-feedback"><div id="share-link-panel" class="share-link-panel" hidden><label for="share-link">Share link</label><input id="share-link" type="text" readonly spellcheck="false"></div><p id="notice" role="status" class="hint"></p></div>
+      <dialog id="share-dialog" class="editor" aria-labelledby="share-title">
+        <div class="panel-heading"><h2 id="share-title">Share wheel</h2><button id="close-share" class="ghost" type="button">Done</button></div>
+        <div class="share-link-panel"><label for="share-link">Wheel link</label><input id="share-link" type="text" readonly spellcheck="false"></div>
+        <div class="editor-actions"><button id="copy-share-link" type="button" autofocus>Copy to clipboard</button></div>
+        <p id="share-status" class="hint" role="status"></p>
+      </dialog>
       <dialog id="wheel-editor" class="editor" aria-labelledby="editor-title">
         <div class="panel-heading"><div><h2 id="editor-title">Edit wheel</h2><span id="item-count"></span></div><button id="close-editor" class="ghost" type="button" autofocus>Done</button></div>
         <fieldset id="choice-controls"><legend class="sr-only">Wheel choices</legend>
@@ -469,7 +565,7 @@ export class App {
       </dialog>
       <dialog id="history-dialog" class="editor" aria-labelledby="history-title">
         <div class="panel-heading"><h2 id="history-title">Spin history</h2><button id="close-history" class="ghost" type="button" autofocus>Done</button></div>
-        <fieldset id="history-controls"><legend class="sr-only">Previous spins</legend><p id="history-empty">No spins yet.</p><ol id="spin-history" class="spin-history"></ol></fieldset>
+        <fieldset id="history-controls"><legend class="sr-only">Previous spins</legend><div id="replay-controls" class="secondary-spin" hidden><button id="replay-spin" type="button" disabled>Replay shared spin</button></div><p id="history-empty">No spins yet.</p><ol id="spin-history" class="spin-history"></ol></fieldset>
       </dialog>`;
   }
 }

@@ -1,7 +1,7 @@
 import { createSharePayload, readSharePayload, type SharePayload } from "./Share";
 
 export const HISTORY_KEY = "momentum-spin-history";
-export const HISTORY_LIMIT = 10;
+export const HISTORY_LIMIT = 30;
 
 export interface SpinHistoryEntry {
   completedAt: number;

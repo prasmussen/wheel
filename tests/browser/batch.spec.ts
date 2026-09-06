@@ -16,16 +16,16 @@ test('batch editing retains current choices, applies changes, and persists them'
   await page.locator('#apply-bulk').click();
   await expect(page.locator('#batch-editor')).toBeHidden();
   await expect(page.locator('#editor-list input')).toHaveCount(3);
-  await expect(page.locator('#editor-list input').nth(1)).toHaveValue('Café');
+  await expect(page.locator('#editor-list input').nth(1)).toHaveValue('CAFÉ');
   await page.locator('#batch-edit').click();
-  await expect(page.locator('#bulk-choices')).toHaveValue('ÆØÅ\nCafé\nÆØÅ');
+  await expect(page.locator('#bulk-choices')).toHaveValue('ÆØÅ\nCAFÉ\nÆØÅ');
   await page.locator('#bulk-choices').fill('Lunch\nDinner');
   await page.locator('#close-editor').click();
   await expect(page.locator('#wheel-editor')).toBeHidden();
   await page.reload();
   await openEditor(page);
   await expect(page.locator('#editor-list input')).toHaveCount(2);
-  await expect(page.locator('#editor-list input').first()).toHaveValue('Lunch');
+  await expect(page.locator('#editor-list input').first()).toHaveValue('LUNCH');
 });
 
 test('invalid batches remain editable and cancel or dismissal preserves the original choices', async ({ page }) => {

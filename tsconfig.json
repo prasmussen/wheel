@@ -3,7 +3,7 @@
     "target": "ES2022",
     "useDefineForClassFields": true,
     "module": "ESNext",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": ["ES2022", "ES2022.Intl", "DOM", "DOM.Iterable"],
     "types": ["@webgpu/types", "vitest/globals"],
     "skipLibCheck": true,
     "moduleResolution": "Bundler",

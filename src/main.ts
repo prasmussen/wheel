@@ -1,4 +1,3 @@
-import "./style.css";
 import { App } from "./app/App";
 
 const root = document.querySelector<HTMLElement>("#app");

@@ -18,7 +18,8 @@ test("locks a spin, replays its result, and clears results after editing", async
   await page.locator("#editor-list input").first().fill("Changed");
   await expect(page.locator("#result")).toHaveText("READY");
   await closeEditor(page);
-  await page.locator("#replay-spin").click();
+  await page.locator("#show-history").click();
+  await page.locator("#spin-history button").first().click();
   await expect(page.locator("#editor-list input").first()).toHaveValue("PIZZA");
   await expect(page.locator("#result")).toHaveClass("winner", { timeout: 45_000 });
   await expect(page.locator("#result")).toHaveText(result!);
@@ -88,7 +89,7 @@ test("recovers corrupt storage and reports failed writes", async ({ page }) => {
   await expect(page.locator("#editor-list input")).toHaveCount(8);
   await openEditor(page);
   await page.locator("#editor-list input").first().fill("Still works");
-  await expect(page.locator("#notice")).toContainText("could not be saved");
+  await expect(page.locator("#editor-notice")).toContainText("could not be saved");
   await expect(page.locator("#spin-button")).toBeEnabled();
 });
 
