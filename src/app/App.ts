@@ -261,8 +261,10 @@ export class App {
     });
     this.required("#mute").addEventListener("click", () => {
       this.effect(() => this.audio.setMuted(!this.audio.muted));
+      if (!this.audio.muted) this.resumeAudio();
       this.required("#mute").setAttribute("aria-pressed", String(this.audio.muted));
       this.required("#mute").title = this.audio.muted ? "Unmute" : "Mute";
+      this.required("#mute").setAttribute("aria-label", this.audio.muted ? "Unmute" : "Mute");
     });
     this.required("#retry-gpu").addEventListener("click", () => { void this.initializeRenderer(); });
     this.required("#batch-edit").addEventListener("click", () => {

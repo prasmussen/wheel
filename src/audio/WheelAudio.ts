@@ -11,9 +11,11 @@ export class WheelAudio {
   setMuted(muted: boolean): void {
     this.muted = muted;
     if (this.output) this.output.gain.value = muted ? 0 : 0.3;
+    if (this.context) this.configureSession();
   }
 
   async resume(): Promise<void> {
+    this.configureSession();
     this.context ??= new AudioContext();
     if (!this.output) {
       this.output = this.context.createGain();
@@ -21,6 +23,15 @@ export class WheelAudio {
     }
     this.output.gain.value = this.muted ? 0 : 0.3;
     await this.context.resume();
+  }
+
+  private configureSession(): void {
+    // iOS treats Web Audio as ambient sound by default, obeying the Silent switch.
+    // Request media playback when sound is enabled; unsupported browsers use their default.
+    try {
+      const session = (navigator as Navigator & { audioSession?: { type: string } }).audioSession;
+      if (session) session.type = this.muted ? "auto" : "playback";
+    } catch { /* An optional audio-session override must not prevent Web Audio playback. */ }
   }
 
   setCharge(charge: number): void {
