@@ -21,6 +21,8 @@ main { width:100%; flex:1; display:flex; flex-direction:column; }
 #wheel-canvas { width:100%; height:calc(100% - 170px); position:absolute; top:0; left:0; touch-action:pan-y pinch-zoom; }
 .wheel-glow { position:absolute; width:60%; aspect-ratio:1; border-radius:50%; background:#5a75c422; filter:blur(55px); }
 .spin-button { --charge:0; position:absolute; bottom:1%; width:min(280px,65%); height:60px; overflow:hidden; isolation:isolate; border:1px solid #68748d; border-radius:999px; background:#171d2b; cursor:pointer; font:500 12px DM Mono,monospace; letter-spacing:.16em; box-shadow:0 14px 34px #0008; touch-action:none; }
+/* Keep a long press charging instead of selecting text or opening the iOS callout. */
+.spin-button, .spin-button * { -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; }
 .spin-button i { --charge:0; position:absolute; z-index:-1; inset:0; transform-origin:left; transform:scaleX(var(--charge)); background:linear-gradient(90deg,#da6427,#ffbd3d); transition:transform .04s linear; }
 .spin-button.charging { border-color:#ffbf52; box-shadow:0 0 34px #ff9b2850; }
 .editor { width:min(560px,calc(100% - 24px)); max-height:calc(100svh - 32px); margin:auto; color:inherit; border:1px solid #364057; border-radius:20px; padding:24px; background:#0d121d; box-shadow:0 24px 90px #000a; overflow:auto; }
