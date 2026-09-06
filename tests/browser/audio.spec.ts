@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-for (const sessionSupport of ['supported', 'missing', 'rejects', 'touchstart-only', 'touchend-only'] as const) {
+for (const sessionSupport of ['supported', 'missing', 'rejects', 'touchstart-only', 'touchend-only', 'buffer-start-required'] as const) {
   test(`sound starts and unmute recreates audio when Audio Session is ${sessionSupport}`, async ({ page }) => {
     await page.addInitScript(support => {
       const probe = window as unknown as {
@@ -24,7 +24,7 @@ for (const sessionSupport of ['supported', 'missing', 'rejects', 'touchstart-onl
       const NativeAudioContext = window.AudioContext;
       window.AudioContext = class extends NativeAudioContext {
         private meter?: AnalyserNode;
-        private unlocked = support !== 'touchend-only' && support !== 'touchstart-only';
+        private unlocked = support !== 'touchend-only' && support !== 'touchstart-only' && support !== 'buffer-start-required';
         constructor() {
           super();
           probe.createdWithoutActivation ||= !navigator.userActivation.isActive && window.event?.type !== 'touchstart';
@@ -34,11 +34,25 @@ for (const sessionSupport of ['supported', 'missing', 'rejects', 'touchstart-onl
           return this.unlocked ? super.state : 'suspended';
         }
         override resume(): Promise<void> {
+          if (support === 'buffer-start-required' && !this.unlocked) return new Promise(() => {});
           // Model browsers accepting only the corresponding native touch event.
           const unlockEvent = support === 'touchstart-only' ? 'touchstart' : 'touchend';
           if (!this.unlocked && window.event?.type !== unlockEvent) return new Promise(() => {});
           this.unlocked = true;
           return super.resume();
+        }
+        override createBufferSource(): AudioBufferSourceNode {
+          const source = super.createBufferSource();
+          const start = source.start.bind(source);
+          source.start = (...args: Parameters<AudioBufferSourceNode['start']>) => {
+            // Model resume() alone being insufficient: a connected source must
+            // be started in the native gesture, not in a promise or frame callback.
+            if (support === 'buffer-start-required' && window.event?.type === 'touchstart' && window.event.isTrusted) {
+              this.unlocked = true;
+            }
+            start(...args);
+          };
+          return source;
         }
         override createGain(): GainNode {
           const gain = super.createGain();
@@ -68,14 +82,14 @@ for (const sessionSupport of ['supported', 'missing', 'rejects', 'touchstart-onl
     await setHidden(false);
     expect(await page.evaluate(() =>
       !!(window as unknown as { wheelAudio?: AudioContext }).wheelAudio)).toBe(false);
-    if (sessionSupport === 'touchend-only' || sessionSupport === 'touchstart-only') {
+    if (sessionSupport === 'touchend-only' || sessionSupport === 'touchstart-only' || sessionSupport === 'buffer-start-required') {
       const touch = await page.context().newCDPSession(page);
       const bounds = (await spin.boundingBox())!;
       await touch.send('Input.dispatchTouchEvent', {
         type: 'touchStart', touchPoints: [{ x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 }],
       });
       await expect(spin).toHaveClass(/charging/);
-      if (sessionSupport === 'touchstart-only') {
+      if (sessionSupport !== 'touchend-only') {
         // Sound must start on a fresh page while the first touch is still held.
         await expect.poll(() => page.evaluate(() =>
           (window as unknown as { audioLevel?: () => number }).audioLevel?.() ?? 0),

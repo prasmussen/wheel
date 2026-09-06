@@ -7,6 +7,7 @@ export class WheelAudio {
   private output?: GainNode;
   private chargeOscillator?: OscillatorNode;
   private chargeGain?: GainNode;
+  private unlockSource?: AudioBufferSourceNode;
   private suspension?: Promise<void>;
 
   muted = false;
@@ -23,6 +24,8 @@ export class WheelAudio {
       this.output = undefined;
       this.chargeOscillator = undefined;
       this.chargeGain = undefined;
+      this.unlockSource?.disconnect();
+      this.unlockSource = undefined;
       void context.close().catch(() => {});
     }
   }
@@ -40,6 +43,21 @@ export class WheelAudio {
       this.output.connect(this.context.destination);
     }
     this.output.gain.value = this.muted ? 0 : OUTPUT_GAIN;
+    // Start a source synchronously inside the gesture, before awaiting resume().
+    // Some iOS audio paths need this in addition to resuming the context; the
+    // charge oscillator is otherwise only started later by the animation loop.
+    // Replace any blocked attempt so repeated gestures cannot queue sources.
+    this.unlockSource?.stop();
+    this.unlockSource?.disconnect();
+    const source = this.context.createBufferSource();
+    source.buffer = this.context.createBuffer(1, 1, this.context.sampleRate);
+    source.connect(this.context.destination);
+    source.onended = () => {
+      source.disconnect();
+      if (this.unlockSource === source) this.unlockSource = undefined;
+    };
+    this.unlockSource = source;
+    source.start(0);
     await this.context.resume();
   }
 
