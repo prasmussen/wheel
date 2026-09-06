@@ -1,5 +1,7 @@
 import type { PegImpact } from "../physics/PhysicsEngine";
 
+const OUTPUT_GAIN = 1;
+
 export class WheelAudio {
   private context?: AudioContext;
   private output?: GainNode;
@@ -11,7 +13,7 @@ export class WheelAudio {
 
   setMuted(muted: boolean): void {
     this.muted = muted;
-    if (this.output) this.output.gain.value = muted ? 0 : 0.3;
+    if (this.output) this.output.gain.value = muted ? 0 : OUTPUT_GAIN;
     if (this.context) this.configureSession();
     if (muted && this.context) {
       // A running context can still be silent on iOS. Let Unmute create a fresh
@@ -36,7 +38,7 @@ export class WheelAudio {
       this.output = this.context.createGain();
       this.output.connect(this.context.destination);
     }
-    this.output.gain.value = this.muted ? 0 : 0.3;
+    this.output.gain.value = this.muted ? 0 : OUTPUT_GAIN;
     await this.context.resume();
   }
 
