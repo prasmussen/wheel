@@ -208,6 +208,7 @@ describe("mechanical outcome concentration", () => {
 
 describe("spin duration", () => {
   it.each([2, 8, 40, 50])("gives full-charge %i-choice spins a substantially longer coast", count => {
+    // Removing approach-zone drag modestly extends dense-wheel coast times.
     let quickMean = 0;
     for (const charge of [0, 0.55, 1]) {
       let elapsed = 0;
@@ -220,8 +221,8 @@ describe("spin duration", () => {
       if (charge === 0.55) quickMean = elapsed / 8;
       if (charge === 1) {
         expect(elapsed / 8).toBeGreaterThan(quickMean + 4);
-        expect(elapsed / 8).toBeLessThan(23);
-      } else expect(elapsed / 8).toBeLessThan(12.5);
+        expect(elapsed / 8).toBeLessThan(count === 50 ? 26 : 23);
+      } else expect(elapsed / 8).toBeLessThan(count === 50 ? 14 : 12.5);
     }
   });
 });

@@ -252,6 +252,11 @@
     (local.set $strength (call $clamp (f64.div (f64.abs (global.get $w)) (f64.const 17)) (f64.const 0.06) (f64.const 1)))
     (global.set $strength (local.get $strength)))
   (func $collide (param $peg i32) (local $relative f64) (local $strength f64) (local $direction f64) (local $impulse f64)
+    ;; A boundary crossing alone is not an impact when the pointer is clear.
+    (if (f64.gt (call $distance (global.get $p)
+      (f64.mul (call $cos (f64.add (global.get $a) (f64.mul (f64.convert_i32_s (local.get $peg)) (f64.div (global.get $tau) (f64.convert_i32_s (global.get $count)))))) (f64.const 0.83))
+      (f64.mul (call $sin (f64.add (global.get $a) (f64.mul (f64.convert_i32_s (local.get $peg)) (f64.div (global.get $tau) (f64.convert_i32_s (global.get $count)))))) (f64.const 0.83))) (f64.const 0.047))
+      (then (return)))
     (if (i32.eq (local.get $peg) (global.get $contactPeg)) (then (return)))
     (if (i32.and (i32.eq (local.get $peg) (global.get $lastPeg))
       (f64.lt (f64.sub (global.get $time) (global.get $lastImpactTime)) (f64.const 0.025))) (then (return)))
@@ -305,6 +310,12 @@
     (local.set $logical (call $round (f64.div (f64.sub (global.get $halfPi) (global.get $a)) (local.get $step))))
     (local.set $peg (call $pegIndex (local.get $logical)))
     (local.set $phase (call $signed (f64.sub (f64.add (global.get $a) (f64.mul (local.get $logical) (local.get $step))) (global.get $halfPi))))
+    ;; A peg cannot drive the pointer through empty space. The small margin
+    ;; retains contact after penetration projection (0.046 plus tip correction).
+    (if (f64.gt (call $distance (global.get $p)
+      (f64.mul (call $cos (f64.add (local.get $phase) (global.get $halfPi))) (f64.const 0.83))
+      (f64.mul (call $sin (f64.add (local.get $phase) (global.get $halfPi))) (f64.const 0.83))) (f64.const 0.047))
+      (then (global.set $contactPeg (i32.const -1)) (return (f64.const 0))))
     (local.set $maxDeflection (f64.min (f64.const 0.52) (f64.add (f64.const 0.28) (f64.mul (local.get $step) (f64.const 0.28)))))
     ;; At rest, resolve toward the nearest clear detent, including spring
     ;; reaction so a loaded pointer can gently reverse the wheel.

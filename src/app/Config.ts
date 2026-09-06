@@ -28,4 +28,4 @@ export const DEFAULT_PHYSICS: PhysicsConfig = {
 export const FIXED_DT = 1 / 240;
 
 // Increment when seeded trajectories change. Replay is scoped to this version.
-export const SIMULATION_VERSION = 7;
+export const SIMULATION_VERSION = 8;

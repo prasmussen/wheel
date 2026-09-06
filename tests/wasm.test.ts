@@ -35,7 +35,7 @@ describe("handwritten Wasm core", () => {
     }
     expect(impacts).toBeGreaterThan(30);
     expect(engine.wheel.angularVelocity).toBeGreaterThan(20);
-    expect(SIMULATION_VERSION).toBe(7);
+    expect(SIMULATION_VERSION).toBe(8);
   });
 
   it("consumes the seven launch draws internally and preserves subsequent RNG draws", () => {
