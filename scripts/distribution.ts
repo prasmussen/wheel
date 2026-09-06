@@ -65,7 +65,10 @@ for (const count of [2, 8, 40, 50]) {
         console.log(JSON.stringify(measurement));
         expect(unsettled, "Some spins did not settle within 45 seconds").toBe(0);
         expect(elapsed / samples, "Average spin is too short").toBeGreaterThan(7);
-        expect(elapsed / samples, "Average spin is too long").toBeLessThan(charge === 1 ? 23 : 12.5);
+        // Version 8 removes approach-zone drag. Match the existing dense-wheel
+        // mean limits in tests/physics.test.ts; tail and concentration limits stay fixed.
+        const meanLimit = charge === 1 ? (count === 50 ? 26 : 23) : (count === 50 ? 14 : 12.5);
+        expect(elapsed / samples, "Average spin is too long").toBeLessThan(meanLimit);
         if (charge === 1) expect(elapsed / samples, "Full-charge coast is too short").toBeGreaterThan(15);
         expect(p95, "Too many long spins").toBeLessThan(charge === 1 ? 27 : 16);
         expect(longest, "A spin lingered too long").toBeLessThan(charge === 1 ? 30 : 20);
@@ -79,6 +82,7 @@ for (const count of [2, 8, 40, 50]) {
 
 afterAll(async () => {
   if (process.env.WHEEL_WRITE_DISTRIBUTION === "1") {
+    expect(results).toHaveLength(24);
     const report = { simulationVersion: SIMULATION_VERSION, samplesTotal: samples * results.length,
       seedRecipe: "[sampleIndex, segmentCount, 0xb17d]", physicsConfig: DEFAULT_PHYSICS, results };
     await writeFile(new URL("../docs/distribution.json", import.meta.url), JSON.stringify(report, null, 2) + "\n");
