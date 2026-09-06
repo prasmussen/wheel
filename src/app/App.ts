@@ -82,6 +82,11 @@ export class App {
     await this.initializeRenderer();
 
     const spinButton = this.required<HTMLButtonElement>("#spin-button");
+    // iOS may reject pointerdown/pointerup for audio. Capture touchend even after
+    // pointerup starts the spin and disables its button (suppressing the click).
+    this.root.addEventListener("touchend", event => {
+      if (event.isTrusted && event.target instanceof Node && spinButton.contains(event.target)) this.resumeAudio();
+    }, { capture: true, passive: true });
     this.input = new ChargeInput(spinButton, charge => this.launch(charge), charge => {
       this.state.interaction.charging = charge > 0;
       this.effect(() => this.audio.setCharge(charge));

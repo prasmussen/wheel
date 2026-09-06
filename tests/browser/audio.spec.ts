@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-for (const sessionSupport of ['supported', 'missing', 'rejects'] as const) {
+for (const sessionSupport of ['supported', 'missing', 'rejects', 'touchend-only'] as const) {
   test(`sound starts and unmute resumes suspended audio when Audio Session is ${sessionSupport}`, async ({ page }) => {
     await page.addInitScript(support => {
       const probe = window as unknown as {
@@ -22,9 +22,19 @@ for (const sessionSupport of ['supported', 'missing', 'rejects'] as const) {
       const NativeAudioContext = window.AudioContext;
       window.AudioContext = class extends NativeAudioContext {
         private meter?: AnalyserNode;
+        private unlocked = support !== 'touchend-only';
         constructor() {
           super();
           probe.wheelAudio = this;
+        }
+        override get state(): AudioContextState {
+          return this.unlocked ? super.state : 'suspended';
+        }
+        override resume(): Promise<void> {
+          // Model iOS rejecting the pointer events and accepting native touchend.
+          if (!this.unlocked && window.event?.type !== 'touchend') return new Promise(() => {});
+          this.unlocked = true;
+          return super.resume();
         }
         override createGain(): GainNode {
           const gain = super.createGain();
@@ -45,6 +55,25 @@ for (const sessionSupport of ['supported', 'missing', 'rejects'] as const) {
     const spin = page.locator('#spin-button');
     const mute = page.locator('#mute');
     await expect(spin).toBeEnabled();
+    if (sessionSupport === 'touchend-only') {
+      const touch = await page.context().newCDPSession(page);
+      const bounds = (await spin.boundingBox())!;
+      await touch.send('Input.dispatchTouchEvent', {
+        type: 'touchStart', touchPoints: [{ x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 }],
+      });
+      await expect(spin).toHaveClass(/charging/);
+      await page.waitForTimeout(250);
+      await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      await expect(spin).toBeDisabled();
+      await expect(page.locator('#result')).toHaveText('IN MOTION');
+      await expect.poll(() => page.evaluate(() =>
+        (window as unknown as { wheelAudio: AudioContext }).wheelAudio.state)).toBe('running');
+      await expect.poll(() => page.evaluate(() =>
+        (window as unknown as { audioLevel: () => number }).audioLevel()), { intervals: [50], timeout: 5000 }).toBeGreaterThan(0.0001);
+      await expect(mute).toHaveAttribute('aria-pressed', 'false');
+      await touch.detach();
+      return;
+    }
     await spin.focus();
     await page.keyboard.down('Space');
     await expect.poll(() => page.evaluate(() =>

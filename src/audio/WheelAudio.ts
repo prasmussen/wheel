@@ -15,14 +15,23 @@ export class WheelAudio {
   }
 
   async resume(): Promise<void> {
-    this.configureSession();
     this.context ??= new AudioContext();
+    this.configureSession();
     if (!this.output) {
       this.output = this.context.createGain();
       this.output.connect(this.context.destination);
     }
     this.output.gain.value = this.muted ? 0 : 0.3;
-    await this.context.resume();
+    const resumed = this.context.resume();
+    // Start a source inside the gesture, rather than waiting for the animation loop.
+    if (this.context.state !== "running") {
+      const unlock = this.context.createBufferSource();
+      unlock.buffer = this.context.createBuffer(1, 1, this.context.sampleRate);
+      unlock.connect(this.output);
+      unlock.onended = () => unlock.disconnect();
+      unlock.start();
+    }
+    await resumed;
   }
 
   private configureSession(): void {
