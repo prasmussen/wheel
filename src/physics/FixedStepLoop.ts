@@ -1,3 +1,5 @@
+import { MAX_ADVANCE_TICKS } from "./WasmCore";
+
 export class FixedStepLoop {
   private accumulator = 0;
   private previousTime = 0;
@@ -11,7 +13,7 @@ export class FixedStepLoop {
 
   constructor(
     private readonly fixedDt: number,
-    private readonly step: (dt: number) => void,
+    private readonly advance: (tickCount: number) => void,
     private readonly render: (alpha: number, time: number) => void,
   ) {}
 
@@ -32,11 +34,11 @@ export class FixedStepLoop {
     this.previousTime = now;
     this.accumulator += elapsed;
     let steps = 0;
-    while (this.accumulator >= this.fixedDt && steps < 30) {
-      this.step(this.fixedDt);
+    while (this.accumulator >= this.fixedDt && steps < MAX_ADVANCE_TICKS) {
       this.accumulator -= this.fixedDt;
       steps++;
     }
+    if (steps > 0) this.advance(steps);
     this.sampledFrames++;
     this.sampledSteps += steps;
     if (now - this.sampleTime >= 500) {

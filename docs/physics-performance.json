@@ -1,0 +1,83 @@
+{
+  "node": "v26.7.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "spinsPerSample": 192,
+  "warmupSpinsPerMode": 24,
+  "config": [
+    2.8,
+    0.32,
+    1.4,
+    0,
+    0.32,
+    100,
+    0.55,
+    0.01,
+    0.16,
+    0.075
+  ],
+  "dt": 0.004166666666666667,
+  "maxTicks": 10800,
+  "seedRecipe": "[seed 0..15, count 2/8/40/50, 0xb17d]; charge 0/0.55/1",
+  "rounds": [
+    {
+      "baseline_step": {
+        "milliseconds": 1336.707667,
+        "ticks": 593028,
+        "angleChecksum": 591.3430079872817
+      },
+      "optimized_step": {
+        "milliseconds": 887.7038339999999,
+        "ticks": 593028,
+        "angleChecksum": 591.3430079872817
+      },
+      "optimized_run_until_settled": {
+        "milliseconds": 871.3094590000001,
+        "ticks": 593028,
+        "angleChecksum": 591.3430079872817
+      }
+    },
+    {
+      "optimized_step": {
+        "milliseconds": 893.3747919999996,
+        "ticks": 593028,
+        "angleChecksum": 591.3430079872817
+      },
+      "optimized_run_until_settled": {
+        "milliseconds": 869.3891659999999,
+        "ticks": 593028,
+        "angleChecksum": 591.3430079872817
+      },
+      "baseline_step": {
+        "milliseconds": 1344.6905420000003,
+        "ticks": 593028,
+        "angleChecksum": 591.3430079872817
+      }
+    },
+    {
+      "optimized_run_until_settled": {
+        "milliseconds": 870.3821670000007,
+        "ticks": 593028,
+        "angleChecksum": 591.3430079872817
+      },
+      "baseline_step": {
+        "milliseconds": 1342.0835829999996,
+        "ticks": 593028,
+        "angleChecksum": 591.3430079872817
+      },
+      "optimized_step": {
+        "milliseconds": 886.8438750000005,
+        "ticks": 593028,
+        "angleChecksum": 591.3430079872817
+      }
+    }
+  ],
+  "medianMilliseconds": {
+    "baseline_step": 1342.0835829999996,
+    "optimized_step": 887.7038339999999,
+    "optimized_run_until_settled": 870.3821670000007
+  },
+  "baselineCommit": "39711d4c5dd66367babb3abddefff91f1fdb1ec0",
+  "baselineSimulationVersion": 6,
+  "optimizedSimulationVersion": 7
+}

@@ -3,7 +3,6 @@ import { afterAll, expect, test } from "vitest";
 import { DEFAULT_PHYSICS, FIXED_DT, SIMULATION_VERSION } from "../src/app/Config";
 import { PhysicsEngine } from "../src/physics/PhysicsEngine";
 import { SeededRandom } from "../src/utils/Random";
-import { selectedIndex } from "../src/wheel/SegmentLayout";
 
 const samples = 1024;
 const seedSalt = 0xb17d;
@@ -40,14 +39,13 @@ for (const count of [2, 8, 40, 50]) {
           const engine = new PhysicsEngine({ ...DEFAULT_PHYSICS }, count);
           engine.wheel.angle += startOffset;
           engine.launch(charge, new SeededRandom([seed, count, seedSalt]));
-          let steps = 0;
-          while (steps < 45 / FIXED_DT && !engine.isSettled()) { engine.step(FIXED_DT); steps++; }
-          const seconds = steps * FIXED_DT;
+          const run = engine.runUntilSettled(45 / FIXED_DT);
+          const seconds = run.duration;
           longest = Math.max(longest, seconds);
           elapsed += seconds;
           durations.push(seconds);
-          if (!engine.isSettled()) unsettled++;
-          else histogram[selectedIndex(engine.wheel.angle, count)]++;
+          if (!run.settled) unsettled++;
+          else histogram[run.selectedIndex!]++;
         }
         const expected = samples / count;
         const chiSquared = histogram.reduce((sum, hits) => sum + (hits - expected) ** 2 / expected, 0);

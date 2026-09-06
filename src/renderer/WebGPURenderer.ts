@@ -22,6 +22,8 @@ export class WebGPURenderer {
 
   onDeviceLost?: () => void;
 
+  private readonly wheelUniformData = new Float32Array(4);
+  private readonly pointerUniformData = new Float32Array(4);
   private uniform!: GPUBuffer;
   private pointerUniform!: GPUBuffer;
   private wheelBuffer!: GPUBuffer;
@@ -113,8 +115,12 @@ export class WebGPURenderer {
     this.resize();
     this.updateLabels();
     const aspect=this.canvas.width/this.canvas.height;
-    this.device.queue.writeBuffer(this.uniform,0,new Float32Array([state.wheel.angle,aspect,charge,state.lastImpact]));
-    this.device.queue.writeBuffer(this.pointerUniform,0,new Float32Array([state.pointer.angle,aspect,charge,state.lastImpact]));
+    this.wheelUniformData[0]=state.wheel.angle; this.pointerUniformData[0]=state.pointer.angle;
+    this.wheelUniformData[1]=this.pointerUniformData[1]=aspect;
+    this.wheelUniformData[2]=this.pointerUniformData[2]=charge;
+    this.wheelUniformData[3]=this.pointerUniformData[3]=state.lastImpact;
+    this.device.queue.writeBuffer(this.uniform,0,this.wheelUniformData);
+    this.device.queue.writeBuffer(this.pointerUniform,0,this.pointerUniformData);
     const encoder=this.device.createCommandEncoder();
     const pass=encoder.beginRenderPass({colorAttachments:[{view:this.multisampleTexture!.createView(),resolveTarget:this.context.getCurrentTexture().createView(),clearValue:{r:0,g:0,b:0,a:0},loadOp:"clear",storeOp:"discard"}]});
     pass.setPipeline(this.wheelPipeline); pass.setBindGroup(0,this.wheelBindGroup); pass.setVertexBuffer(0,this.wheelBuffer); pass.draw(this.wheelCount);

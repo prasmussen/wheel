@@ -24,6 +24,7 @@ export class App {
   private input?: ChargeInput;
   private previousSnapshot: PhysicsSnapshot;
   private currentSnapshot: PhysicsSnapshot;
+  private readonly renderSnapshot: PhysicsSnapshot;
   private spinActive = false;
   private replayActive = false;
   private batchEditing = false;
@@ -55,7 +56,9 @@ export class App {
       interaction: { charging: false, chargeStartedAt: 0 },
       lastSpin: shared?.lastSpin,
     };
-    this.previousSnapshot = this.currentSnapshot = this.physics.snapshot();
+    this.previousSnapshot = this.physics.snapshot();
+    this.currentSnapshot = this.physics.snapshot();
+    this.renderSnapshot = this.physics.snapshot();
   }
 
   async start(): Promise<void> {
@@ -64,7 +67,7 @@ export class App {
     this.renderEditor();
     this.loadHistory();
     window.addEventListener("popstate", () => location.reload());
-    this.loop = new FixedStepLoop(FIXED_DT, dt => this.step(dt), alpha => this.render(alpha));
+    this.loop = new FixedStepLoop(FIXED_DT, ticks => this.advance(ticks), alpha => this.render(alpha));
     this.resizeObserver.observe(this.required("#stage"));
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) this.loop?.stop(); else this.wake();
@@ -87,29 +90,24 @@ export class App {
     this.wake();
   }
 
-  private step(dt: number): void {
-    this.previousSnapshot = this.currentSnapshot;
-    this.physics.step(dt);
-    this.currentSnapshot = this.physics.snapshot();
+  private advance(ticks: number): void {
+    this.physics.advance(ticks);
+    this.physics.previousSnapshot(this.previousSnapshot);
+    this.physics.snapshot(this.currentSnapshot);
     if (this.spinActive && this.physics.isSettled() && !this.resultAnnounced) this.announceResult();
   }
 
   private render(alpha: number): void {
     this.input?.update();
     const a = this.previousSnapshot, b = this.currentSnapshot;
-    const state: PhysicsSnapshot = {
-      wheel: {
-        angle: wrapAngle(a.wheel.angle + signedAngle(b.wheel.angle - a.wheel.angle) * alpha),
-        angularVelocity: lerp(a.wheel.angularVelocity, b.wheel.angularVelocity, alpha),
-      },
-      pointer: {
-        angle: lerp(a.pointer.angle, b.pointer.angle, alpha),
-        angularVelocity: lerp(a.pointer.angularVelocity, b.pointer.angularVelocity, alpha),
-      },
-      currentPeg: b.currentPeg,
-      lastImpact: lerp(a.lastImpact, b.lastImpact, alpha),
-      stableTime: b.stableTime,
-    };
+    const state = this.renderSnapshot;
+    state.wheel.angle = wrapAngle(a.wheel.angle + signedAngle(b.wheel.angle - a.wheel.angle) * alpha);
+    state.wheel.angularVelocity = lerp(a.wheel.angularVelocity, b.wheel.angularVelocity, alpha);
+    state.pointer.angle = lerp(a.pointer.angle, b.pointer.angle, alpha);
+    state.pointer.angularVelocity = lerp(a.pointer.angularVelocity, b.pointer.angularVelocity, alpha);
+    state.currentPeg = b.currentPeg;
+    state.lastImpact = lerp(a.lastImpact, b.lastImpact, alpha);
+    state.stableTime = b.stableTime;
     try {
       if (this.gpuReady) this.renderer?.render(state, this.input?.charge ?? 0);
     } catch {
@@ -135,6 +133,7 @@ export class App {
     if (replay) {
       this.state.wheelConfig = structuredClone(record.wheelConfig);
       Object.assign(this.physicsConfig, record.physicsConfig);
+      this.physics.setConfig(this.physicsConfig);
       this.physics.wheel.angle = record.startingAngle;
       this.commitConfig();
       this.renderEditor();
@@ -143,7 +142,8 @@ export class App {
     this.state.lastSpin = structuredClone(record);
     this.required<HTMLDialogElement>("#share-dialog").close();
     this.physics.launch(record.charge, new SeededRandom(record.seed));
-    this.previousSnapshot = this.currentSnapshot = this.physics.snapshot();
+    this.physics.snapshot(this.previousSnapshot);
+    this.physics.snapshot(this.currentSnapshot);
     this.spinActive = true; this.resultAnnounced = false; this.state.result = undefined;
     this.required("#result").textContent = "IN MOTION";
     this.required("#result").classList.remove("winner");

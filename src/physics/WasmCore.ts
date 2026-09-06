@@ -5,6 +5,9 @@ import type { PhysicsConfig } from "../app/Config";
 export interface PhysicsExports extends WebAssembly.Exports {
   memory: WebAssembly.Memory;
   init(count: number): void;
+  configure(): void;
+  advance(ticks: number): void;
+  run_until_settled(maxTicks: number): number;
   set_count(count: number): void;
   get_count(): number;
   launch(charge: number, seed: number): void;
@@ -44,6 +47,10 @@ export const CONFIG_FIELDS = [
 export const STATE_OFFSET = 0;
 export const CONFIG_OFFSET = 64;
 export const EVENT_OFFSET = 1024;
-export const EVENT_CAPACITY = 256;
+export const EVENT_CAPACITY = 512;
+export const PREVIOUS_STATE_OFFSET = 224;
+export const RUN_RESULT_OFFSET = 288;
+export const SIMULATION_TIME_OFFSET = 304;
+export const MAX_ADVANCE_TICKS = 30;
 export const SEED_OFFSET = 32768;
 export const SEED_CAPACITY = 8192;

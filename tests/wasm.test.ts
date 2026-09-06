@@ -35,7 +35,7 @@ describe("handwritten Wasm core", () => {
     }
     expect(impacts).toBeGreaterThan(30);
     expect(engine.wheel.angularVelocity).toBeGreaterThan(20);
-    expect(SIMULATION_VERSION).toBe(6);
+    expect(SIMULATION_VERSION).toBe(7);
   });
 
   it("consumes the seven launch draws internally and preserves subsequent RNG draws", () => {
@@ -54,6 +54,7 @@ describe("handwritten Wasm core", () => {
     engine.setSegmentCount(50);
     const fresh = new PhysicsEngine({ ...config, brakeDrag: 0 }, 50);
     config.brakeDrag = 0;
+    engine.setConfig(config);
     wheel.angle = fresh.wheel.angle;
     engine.launch(0.7, new SeededRandom([17]));
     fresh.launch(0.7, new SeededRandom([17]));

@@ -1,9 +1,13 @@
 ;; Handwritten simulation, f64 throughout. No imports or host math calls.
 ;; ABI: state f64[7] @ 0; config f64[10] @ 64; impact times f64[50] @ 512;
-;; impact records {peg,strength,velocity,time}: f64[4] @ 1024 (256 records);
+;; previous state @ 224; batch duration/result @ 288; simulation time @ 304;
+;; impact records {peg,strength,velocity,time}: f64[4] @ 1024 (512 records);
 ;; seed staging u32[8192] @ 32768. One fixed page per instance; no allocator.
 (module
   (memory (export "memory") 1 1)
+  (global $fixedDt f64 (f64.const 0.004166666666666667))
+  (global $captureEvents (mut i32) (i32.const 1))
+  (global $decay (mut f64) (f64.const 1))
   (global $tau f64 (f64.const 6.283185307179586))
   (global $pi f64 (f64.const 3.141592653589793))
   (global $halfPi f64 (f64.const 1.5707963267948966))
@@ -66,32 +70,34 @@
     (if (result f64) (f64.eq (local.get $x) (f64.neg (global.get $pi)))
       (then (global.get $pi)) (else (local.get $x))))
   ;; Sine: reduce to [-pi/2,pi/2], then a degree-21 Taylor polynomial
-  ;; evaluated by recurrence. The omitted term is < 1.3e-18 on this interval.
+  ;; evaluated in Horner form with constant coefficients, no loops/divisions. The omitted term is < 1.3e-18 on this interval.
   ;; This is a bounded simulation routine, not arbitrary-magnitude libm.
   (func $sin (export "math_sin") (param $x f64) (result f64)
-    (local $term f64) (local $sum f64) (local $square f64) (local $n i32)
+    (local $polynomial f64) (local $square f64)
     (local.set $x (call $signed (local.get $x)))
     (if (f64.gt (local.get $x) (global.get $halfPi))
       (then (local.set $x (f64.sub (global.get $pi) (local.get $x)))))
     (if (f64.lt (local.get $x) (f64.neg (global.get $halfPi)))
       (then (local.set $x (f64.sub (f64.neg (global.get $pi)) (local.get $x)))))
-    (local.set $square (f64.neg (f64.mul (local.get $x) (local.get $x))))
-    (local.set $term (local.get $x)) (local.set $sum (local.get $x))
-    (local.set $n (i32.const 2))
-    (loop $series
-      (local.set $term (f64.div (f64.mul (local.get $term) (local.get $square))
-        (f64.convert_i32_s (i32.mul (local.get $n) (i32.add (local.get $n) (i32.const 1))))))
-      (local.set $sum (f64.add (local.get $sum) (local.get $term)))
-      (local.set $n (i32.add (local.get $n) (i32.const 2)))
-      (br_if $series (i32.le_s (local.get $n) (i32.const 20))))
-    (local.get $sum))
+    (local.set $square (f64.mul (local.get $x) (local.get $x)))
+    (local.set $polynomial (f64.const 1.9572941063391263e-20))
+    (local.set $polynomial (f64.add (f64.const -8.2206352466243295e-18) (f64.mul (local.get $square) (local.get $polynomial))))
+    (local.set $polynomial (f64.add (f64.const 2.8114572543455206e-15) (f64.mul (local.get $square) (local.get $polynomial))))
+    (local.set $polynomial (f64.add (f64.const -7.6471637318198164e-13) (f64.mul (local.get $square) (local.get $polynomial))))
+    (local.set $polynomial (f64.add (f64.const 1.6059043836821613e-10) (f64.mul (local.get $square) (local.get $polynomial))))
+    (local.set $polynomial (f64.add (f64.const -2.505210838544172e-08) (f64.mul (local.get $square) (local.get $polynomial))))
+    (local.set $polynomial (f64.add (f64.const 2.7557319223985893e-06) (f64.mul (local.get $square) (local.get $polynomial))))
+    (local.set $polynomial (f64.add (f64.const -0.00019841269841269841) (f64.mul (local.get $square) (local.get $polynomial))))
+    (local.set $polynomial (f64.add (f64.const 0.0083333333333333332) (f64.mul (local.get $square) (local.get $polynomial))))
+    (local.set $polynomial (f64.add (f64.const -0.16666666666666666) (f64.mul (local.get $square) (local.get $polynomial))))
+    (f64.add (local.get $x) (f64.mul (f64.mul (local.get $x) (local.get $square)) (local.get $polynomial))))
   (func $cos (export "math_cos") (param $x f64) (result f64)
     (call $sin (f64.add (local.get $x) (global.get $halfPi))))
   ;; exp(-9*substepDt): range-reduced exponential, degree-16 series followed
-  ;; by exact power-of-two scaling. Supports the full finite normal range;
+  ;; by exact power-of-two scaling. Horner evaluation uses constant coefficients. Supports the full finite normal range;
   ;; underflow below the smallest normal is deliberately flushed to zero.
   (func $exp (export "math_exp") (param $x f64) (result f64)
-    (local $k i32) (local $r f64) (local $term f64) (local $sum f64) (local $n i32)
+    (local $k i32) (local $r f64) (local $sum f64)
     (if (f64.ne (local.get $x) (local.get $x)) (then (return (local.get $x))))
     (if (f64.gt (local.get $x) (f64.const 709.782712893384)) (then (return (f64.const inf))))
     (if (f64.lt (local.get $x) (f64.const -708.3964185322641)) (then (return (f64.const 0))))
@@ -100,12 +106,23 @@
     (local.set $r (f64.sub
       (f64.sub (local.get $x) (f64.mul (f64.convert_i32_s (local.get $k)) (f64.const 0.6931471803691238)))
       (f64.mul (f64.convert_i32_s (local.get $k)) (f64.const 1.9082149292705877e-10))))
-    (local.set $sum (f64.const 1)) (local.set $term (f64.const 1)) (local.set $n (i32.const 1))
-    (loop $series
-      (local.set $term (f64.div (f64.mul (local.get $term) (local.get $r)) (f64.convert_i32_s (local.get $n))))
-      (local.set $sum (f64.add (local.get $sum) (local.get $term)))
-      (local.set $n (i32.add (local.get $n) (i32.const 1)))
-      (br_if $series (i32.le_s (local.get $n) (i32.const 16))))
+    (local.set $sum (f64.const 4.7794773323873853e-14))
+    (local.set $sum (f64.add (f64.const 7.6471637318198164e-13) (f64.mul (local.get $r) (local.get $sum))))
+    (local.set $sum (f64.add (f64.const 1.1470745597729725e-11) (f64.mul (local.get $r) (local.get $sum))))
+    (local.set $sum (f64.add (f64.const 1.6059043836821613e-10) (f64.mul (local.get $r) (local.get $sum))))
+    (local.set $sum (f64.add (f64.const 2.08767569878681e-09) (f64.mul (local.get $r) (local.get $sum))))
+    (local.set $sum (f64.add (f64.const 2.505210838544172e-08) (f64.mul (local.get $r) (local.get $sum))))
+    (local.set $sum (f64.add (f64.const 2.7557319223985888e-07) (f64.mul (local.get $r) (local.get $sum))))
+    (local.set $sum (f64.add (f64.const 2.7557319223985893e-06) (f64.mul (local.get $r) (local.get $sum))))
+    (local.set $sum (f64.add (f64.const 2.4801587301587302e-05) (f64.mul (local.get $r) (local.get $sum))))
+    (local.set $sum (f64.add (f64.const 0.00019841269841269841) (f64.mul (local.get $r) (local.get $sum))))
+    (local.set $sum (f64.add (f64.const 0.0013888888888888889) (f64.mul (local.get $r) (local.get $sum))))
+    (local.set $sum (f64.add (f64.const 0.0083333333333333332) (f64.mul (local.get $r) (local.get $sum))))
+    (local.set $sum (f64.add (f64.const 0.041666666666666664) (f64.mul (local.get $r) (local.get $sum))))
+    (local.set $sum (f64.add (f64.const 0.16666666666666666) (f64.mul (local.get $r) (local.get $sum))))
+    (local.set $sum (f64.add (f64.const 0.5) (f64.mul (local.get $r) (local.get $sum))))
+    (local.set $sum (f64.add (f64.const 1) (f64.mul (local.get $r) (local.get $sum))))
+    (local.set $sum (f64.add (f64.const 1) (f64.mul (local.get $r) (local.get $sum))))
     (if (i32.eq (local.get $k) (i32.const 1024))
       (then (return (f64.mul (f64.mul (local.get $sum) (f64.const 2)) (f64.const 8.98846567431158e307)))))
     (f64.mul (local.get $sum)
@@ -163,16 +180,21 @@
     (global.set $a (f64.load (i32.const 0))) (global.set $w (f64.load (i32.const 8)))
     (global.set $p (f64.load (i32.const 16))) (global.set $v (f64.load (i32.const 24)))
     (global.set $stable (f64.load (i32.const 32))) (global.set $strength (f64.load (i32.const 40)))
+  )
+  (func (export "configure")
     (global.set $inertia (f64.load (i32.const 64))) (global.set $linear (f64.load (i32.const 72)))
     (global.set $brake (f64.load (i32.const 80))) (global.set $quadratic (f64.load (i32.const 88)))
     (global.set $friction (f64.load (i32.const 96))) (global.set $spring (f64.load (i32.const 104)))
     (global.set $damping (f64.load (i32.const 112))) (global.set $pointerInertia (f64.load (i32.const 120)))
     (global.set $restitution (f64.load (i32.const 128))) (global.set $coupling (f64.load (i32.const 136))))
+  (func $writeState (param $address i32)
+    (f64.store offset=0 (local.get $address) (global.get $a)) (f64.store offset=8 (local.get $address) (global.get $w))
+    (f64.store offset=16 (local.get $address) (global.get $p)) (f64.store offset=24 (local.get $address) (global.get $v))
+    (f64.store offset=32 (local.get $address) (global.get $stable)) (f64.store offset=40 (local.get $address) (global.get $strength))
+    (f64.store offset=48 (local.get $address) (f64.convert_i32_s (global.get $lastPeg))))
   (func $publish
-    (f64.store (i32.const 0) (global.get $a)) (f64.store (i32.const 8) (global.get $w))
-    (f64.store (i32.const 16) (global.get $p)) (f64.store (i32.const 24) (global.get $v))
-    (f64.store (i32.const 32) (global.get $stable)) (f64.store (i32.const 40) (global.get $strength))
-    (f64.store (i32.const 48) (f64.convert_i32_s (global.get $lastPeg))))
+    (call $writeState (i32.const 0))
+    (f64.store (i32.const 304) (global.get $time)))
   (func $clearImpacts (local $i i32)
     (loop $clear
       (f64.store (i32.add (i32.const 512) (i32.mul (local.get $i) (i32.const 8))) (f64.const -inf))
@@ -186,7 +208,7 @@
   (func (export "init") (param $count f64)
     (call $setCount (local.get $count))
     (global.set $a (call $wrap (f64.sub (global.get $halfPi) (f64.div (global.get $pi) (f64.convert_i32_s (global.get $count))))))
-    (call $publish))
+    (call $publish) (call $writeState (i32.const 224)))
   (func (export "launch") (param $charge f64) (param $seed i32) (local $target f64)
     (call $read) (global.set $rng (local.get $seed))
     (global.set $w (f64.const 0)) (global.set $lastPeg (i32.const -1)) (global.set $contactPeg (i32.const -1))
@@ -202,7 +224,7 @@
     (global.set $v (call $range (f64.const -0.08) (f64.const 0.08)))
     (global.set $dragScale (call $range (f64.const 0.985) (f64.const 1.015)))
     (global.set $restitutionScale (call $range (f64.const 0.96) (f64.const 1.04)))
-    (global.set $stable (f64.const 0)) (call $publish))
+    (global.set $stable (f64.const 0)) (call $publish) (call $writeState (i32.const 224)))
   (func (export "is_settled") (result i32) (f64.ge (f64.load (i32.const 32)) (f64.const 0.35)))
   (func (export "event_count") (result i32) (global.get $events))
   (func $pegIndex (param $logical f64) (result i32) (local $index i32)
@@ -212,9 +234,11 @@
     (local.set $address (i32.add (i32.const 512) (i32.mul (local.get $peg) (i32.const 8))))
     (if (f64.lt (f64.sub (global.get $time) (f64.load (local.get $address))) (f64.const 0.025)) (then (return)))
     (f64.store (local.get $address) (global.get $time))
-    ;; At most 8 attempts per substep * 32 substeps. Trap on ABI misuse,
-    ;; never silently discard physical click events.
-    (if (i32.ge_u (global.get $events) (i32.const 256)) (then unreachable))
+    ;; Diagnostics retain deduplication state but do not accumulate audio.
+    (if (i32.eqz (global.get $captureEvents)) (then (return)))
+    ;; A 30-tick frame spans 0.125s. The 25ms per-pin cooldown bounds it to
+    ;; at most 300 events (50 pins * 6); single ticks have at most 256 attempts.
+    (if (i32.ge_u (global.get $events) (i32.const 512)) (then unreachable))
     (local.set $address (i32.add (i32.const 1024) (i32.mul (global.get $events) (i32.const 32))))
     (f64.store (local.get $address) (f64.convert_i32_s (local.get $peg)))
     (f64.store offset=8 (local.get $address) (local.get $strength))
@@ -438,7 +462,7 @@
     (global.set $v (f64.add (global.get $v) (f64.mul (f64.div (local.get $pointerTorque) (global.get $pointerInertia)) (local.get $dt))))
     (global.set $p (call $clamp (f64.add (global.get $p) (f64.mul (global.get $v) (local.get $dt))) (f64.const -1) (f64.const 1)))
     (call $penetration (local.get $dt))
-    (global.set $strength (f64.mul (global.get $strength) (call $exp (f64.mul (f64.neg (local.get $dt)) (f64.const 9)))))
+    (global.set $strength (f64.mul (global.get $strength) (global.get $decay)))
     (local.set $stopped (i32.and (i32.and
       (i32.and (f64.lt (f64.abs (global.get $w)) (f64.const 0.025)) (f64.lt (f64.abs (global.get $v)) (f64.const 0.06)))
       (i32.and (f64.lt (f64.abs (global.get $p)) (f64.const 0.012)) (i32.lt_s (global.get $contactPeg) (i32.const 0))))
@@ -446,12 +470,12 @@
     (global.set $stable (select (f64.add (global.get $stable) (local.get $dt)) (f64.const 0) (local.get $stopped)))
     (if (f64.ge (global.get $stable) (f64.const 0.35)) (then (global.set $w (f64.const 0)))))
 
-  ;; One outer tick per call; all adaptive substeps stay inside Wasm.
-  (func (export "step") (param $dt f64)
+  ;; Shared integrator: globals stay live across ticks in a batch.
+  (func $tick (param $dt f64)
     (local $launchDelta f64) (local $speed f64) (local $maxTravel f64)
     (local $springSteps f64) (local $dampingSteps f64) (local $travelSteps f64)
-    (local $subdivisions i32) (local $i i32)
-    (call $read) (global.set $events (i32.const 0))
+    (local $subdivisions i32) (local $i i32) (local $subDt f64)
+    (call $writeState (i32.const 224))
     (local.set $launchDelta (f64.div (f64.mul (global.get $launchTorque) (f64.min (local.get $dt) (global.get $launchRemaining))) (global.get $inertia)))
     (local.set $speed (f64.add (f64.abs (global.get $w)) (f64.abs (local.get $launchDelta))))
     (local.set $maxTravel (f64.min (f64.const 0.025) (f64.div (f64.div (global.get $tau) (f64.convert_i32_s (global.get $count))) (f64.const 8))))
@@ -459,8 +483,46 @@
     (local.set $dampingSteps (f64.div (f64.mul (local.get $dt) (f64.add (global.get $damping) (f64.const 2))) (global.get $pointerInertia)))
     (local.set $travelSteps (f64.div (f64.mul (local.get $speed) (local.get $dt)) (local.get $maxTravel)))
     (local.set $subdivisions (i32.trunc_f64_s (call $clamp (f64.ceil (f64.max (f64.max (local.get $travelSteps) (local.get $springSteps)) (local.get $dampingSteps))) (f64.const 1) (f64.const 32))))
+    (local.set $subDt (f64.div (local.get $dt) (f64.convert_i32_s (local.get $subdivisions))))
+    ;; Every substep has the same dt; calculate impact decay only once.
+    (global.set $decay (call $exp (f64.mul (f64.neg (local.get $subDt)) (f64.const 9))))
     (loop $substeps
-      (call $integrate (f64.div (local.get $dt) (f64.convert_i32_s (local.get $subdivisions))))
+      (call $integrate (local.get $subDt))
       (local.set $i (i32.add (local.get $i) (i32.const 1))) (br_if $substeps (i32.lt_s (local.get $i) (local.get $subdivisions))))
+  )
+
+  (func (export "step") (param $dt f64)
+    (call $read) (global.set $events (i32.const 0))
+    (call $tick (local.get $dt)) (call $publish))
+
+  ;; Animation: exactly the requested ticks, retaining the final two states.
+  ;; Limit matches FixedStepLoop's catch-up cap and bounds event memory.
+  (func (export "advance") (param $ticks i32) (local $i i32)
+    (if (i32.gt_u (local.get $ticks) (i32.const 30)) (then unreachable))
+    (call $read) (global.set $events (i32.const 0))
+    (block $done (loop $ticksLoop
+      (br_if $done (i32.ge_u (local.get $i) (local.get $ticks)))
+      (call $tick (global.get $fixedDt))
+      (local.set $i (i32.add (local.get $i) (i32.const 1))) (br $ticksLoop)))
     (call $publish))
+
+  ;; Diagnostics: stop at the first settled outer tick or the caller's cap.
+  ;; No event accumulation, so arbitrarily long runs cannot overflow audio.
+  ;; Duration is for this call; result is -1 if the cap was reached unsettled.
+  (func (export "run_until_settled") (param $maxTicks i32) (result i32) (local $ticks i32)
+    (if (i32.lt_s (local.get $maxTicks) (i32.const 0)) (then unreachable))
+    (call $read) (global.set $events (i32.const 0)) (global.set $captureEvents (i32.const 0))
+    (block $done (loop $run
+      (br_if $done (i32.or (i32.ge_u (local.get $ticks) (local.get $maxTicks))
+        (f64.ge (global.get $stable) (f64.const 0.35))))
+      (call $tick (global.get $fixedDt))
+      (local.set $ticks (i32.add (local.get $ticks) (i32.const 1))) (br $run)))
+    (global.set $captureEvents (i32.const 1))
+    (f64.store (i32.const 288) (f64.mul (f64.convert_i32_s (local.get $ticks)) (global.get $fixedDt)))
+    (f64.store (i32.const 296) (if (result f64) (f64.ge (global.get $stable) (f64.const 0.35))
+      (then (f64.convert_i32_s (i32.rem_u (i32.trunc_f64_u
+        (f64.floor (f64.div (call $wrap (f64.sub (global.get $halfPi) (global.get $a)))
+          (f64.div (global.get $tau) (f64.convert_i32_s (global.get $count)))))) (global.get $count))))
+      (else (f64.const -1))))
+    (call $publish) (local.get $ticks))
 )
