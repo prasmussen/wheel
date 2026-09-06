@@ -1,6 +1,7 @@
 import { openEditor, closeEditor } from './editor';
 import { expect, test } from '@playwright/test';
 import { SIMULATION_VERSION } from '../../src/app/Config';
+import { createSharePayload, readShareUrl } from '../../src/wheel/Share';
 
 test('automatically stores 30 JSON snapshots and replays directly from history after reload', async ({ page }) => {
   await page.goto('/');
@@ -30,11 +31,12 @@ test('automatically stores 30 JSON snapshots and replays directly from history a
   await closeEditor(page);
   await page.locator('#share-wheel').click();
   const url = await page.locator('#share-link').inputValue();
-  const shared = await page.evaluate(url => {
-    const text = new URL(url).searchParams.get('wheel')!.replace(/-/g, '+').replace(/_/g, '/');
-    return JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(text), c => c.charCodeAt(0))));
-  }, url);
-  expect(history[0].state).toEqual(shared);
+  const shared = new URL(url);
+  expect(shared.searchParams.get('choices')).toBe('æøå,café,lunch');
+  expect(shared.searchParams.get('replay')).toMatch(/^2\.[A-Za-z0-9_-]{48}$/);
+  expect(shared.searchParams.has('replayChoices')).toBe(false);
+  const decoded = readShareUrl(shared)!;
+  expect(createSharePayload(decoded.wheelConfig, decoded.lastSpin)).toEqual(history[0].state);
   await page.locator("#close-share").click();
   await openEditor(page);
   page.once('dialog', dialog => dialog.accept());

@@ -1,37 +1,54 @@
-import { describe, expect, it } from "vitest";
-import { DEFAULT_PHYSICS, SIMULATION_VERSION } from "../src/app/Config";
-import type { SpinRecord } from "../src/app/State";
-import { decodeShare, encodeShare } from "../src/wheel/Share";
-import { createDefaultConfig } from "../src/wheel/WheelConfig";
-import { PhysicsEngine } from "../src/physics/PhysicsEngine";
-import { SeededRandom } from "../src/utils/Random";
+import { describe, expect, it } from 'vitest';
+import { DEFAULT_PHYSICS, SIMULATION_VERSION } from '../src/app/Config';
+import type { SpinRecord } from '../src/app/State';
+import { readShareUrl, writeShareUrl } from '../src/wheel/Share';
+import { createDefaultConfig } from '../src/wheel/WheelConfig';
+import { PhysicsEngine } from '../src/physics/PhysicsEngine';
+import { SeededRandom } from '../src/utils/Random';
 
 const wheel = createDefaultConfig();
 const replay: SpinRecord = {
   seed: [42, 0, 0xffffffff, 7], charge: 0.42, startingAngle: 1.234,
   simulationVersion: SIMULATION_VERSION, wheelConfig: wheel, physicsConfig: { ...DEFAULT_PHYSICS },
 };
-const raw = (payload: unknown) => btoa(JSON.stringify(payload)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-const payload = { v: 1, choices: ['A', 'B'], replay: { version: SIMULATION_VERSION, seed: replay.seed, charge: 0.4, angle: 1 } };
 const labels = (config: typeof wheel) => config.items.map(item => item.label);
+const share = (config = wheel, spin?: SpinRecord) => {
+  const url = new URL('https://example.com/?source=a%20b#old');
+  writeShareUrl(url, config, spin);
+  return url;
+};
 
-describe('share links', () => {
-  it('round-trips Unicode and duplicate choices without a replay', () => {
-    const config = structuredClone(wheel);
-    config.items[0].label = 'Æø 🍕 /?#&';
-    config.items[1].label = config.items[0].label;
-    const shared = decodeShare(encodeShare(config))!;
-    expect(labels(shared.wheelConfig)).toEqual(labels(config));
-    expect(shared.lastSpin).toBeUndefined();
-    expect(new Set(shared.wheelConfig.items.map(item => item.id)).size).toBe(config.items.length);
+describe('readable share links', () => {
+  it('writes plain labels and preserves unrelated parameters without a fragment', () => {
+    expect(share().href).toBe('https://example.com/?source=a%20b&choices=pizza,sushi,tacos,thai,pasta,ramen,curry,burger');
+    expect(readShareUrl(new URL('https://example.com/?source=test'))).toBeUndefined();
   });
 
-  it('preserves separate edited and replay choices and reproduces the trajectory', () => {
+  it('round-trips delimiters, Unicode, duplicate and temporarily blank choices', () => {
+    const config = structuredClone(wheel);
+    const values = ['A,B', 'A+B', '%2C', 'ÆØ 🍕 /?#&', '', 'A,B', '"=!', 'A B'];
+    config.items.forEach((item, i) => item.label = values[i]);
+    const url = share(config);
+    expect(url.search).toContain('choices=a%2Cb,a%2Bb,%252c,');
+    const decoded = readShareUrl(url)!;
+    expect(labels(decoded.wheelConfig)).toEqual(values);
+    expect(new Set(decoded.wheelConfig.items.map(item => item.id)).size).toBe(values.length);
+    expect(decoded.lastSpin).toBeUndefined();
+    expect(labels(readShareUrl(new URL('https://example.com/?choices=A+B,C'))!.wheelConfig)).toEqual(['A B', 'C']);
+  });
+
+  it('preserves distinct replay choices and reproduces the exact trajectory', () => {
     const edited = structuredClone(wheel);
-    edited.items[0].label = 'Changed';
-    const shared = decodeShare(encodeShare(edited, replay))!;
-    expect(labels(shared.wheelConfig)).toEqual(labels(edited));
-    expect(labels(shared.lastSpin!.wheelConfig)).toEqual(labels(wheel));
+    edited.items[0].label = 'CHANGED,🍕';
+    const url = share(edited, replay);
+    expect(url.searchParams.get('replay')).toMatch(/^2\.[A-Za-z0-9_-]{48}$/);
+    expect(url.search).toContain('&replayChoices=pizza,sushi');
+    const decoded = readShareUrl(url)!;
+    expect(labels(decoded.wheelConfig)).toEqual(labels(edited));
+    expect(labels(decoded.lastSpin!.wheelConfig)).toEqual(labels(wheel));
+    expect(decoded.lastSpin!.seed).toEqual(replay.seed);
+    expect(decoded.lastSpin!.charge).toBe(replay.charge);
+    expect(decoded.lastSpin!.startingAngle).toBe(replay.startingAngle);
     const simulate = (record: SpinRecord) => {
       const engine = new PhysicsEngine(record.physicsConfig, record.wheelConfig.items.length);
       engine.wheel.angle = record.startingAngle;
@@ -39,39 +56,54 @@ describe('share links', () => {
       for (let i = 0; i < 7200; i++) engine.step(1 / 240);
       return engine.snapshot();
     };
-    expect(simulate(shared.lastSpin!)).toEqual(simulate(replay));
+    expect(simulate(decoded.lastSpin!)).toEqual(simulate(replay));
   });
 
-  it('deduplicates matching replay choices and restores fixed physics', () => {
-    const encoded = encodeShare(wheel, replay);
-    const data = JSON.parse(atob(encoded.replace(/-/g, '+').replace(/_/g, '/')));
-    expect(data.replay.choices).toBeUndefined();
-    data.replay.physicsConfig = { ...DEFAULT_PHYSICS, wheelInertia: 0 };
-    const shared = decodeShare(raw(data))!;
-    expect(shared.lastSpin!.physicsConfig).toEqual(DEFAULT_PHYSICS);
-    expect(labels(shared.lastSpin!.wheelConfig)).toEqual(labels(wheel));
+  it('deduplicates replay choices and preserves signed zero', () => {
+    const url = share(wheel, { ...replay, charge: -0, startingAngle: -0 });
+    expect(url.searchParams.has('replayChoices')).toBe(false);
+    const record = readShareUrl(url)!.lastSpin!;
+    expect(record.charge).toBe(-0);
+    expect(record.startingAngle).toBe(-0);
+    expect(record.physicsConfig).toEqual(DEFAULT_PHYSICS);
   });
 
-  it('loads choices but declines replays from a different simulation version', () => {
-    const shared = decodeShare(raw({ ...payload, replay: { ...payload.replay, version: -1 } }))!;
-    expect(labels(shared.wheelConfig)).toEqual(['A', 'B']);
-    expect(shared.replayUnavailable).toBe(true);
-    expect(shared.lastSpin).toBeUndefined();
+  it('loads choices but declines a different simulation version', () => {
+    const url = share(wheel, replay);
+    const bytes = Buffer.from(url.searchParams.get('replay')!.slice(2), 'base64url');
+    bytes.writeUInt32LE(SIMULATION_VERSION + 1, 0);
+    url.search = url.search.replace(/replay=2\.[\w-]+/, 'replay=2.' + bytes.toString('base64url'));
+    const decoded = readShareUrl(url)!;
+    expect(labels(decoded.wheelConfig)).toEqual(labels(wheel));
+    expect(decoded.replayUnavailable).toBe(true);
+    expect(decoded.lastSpin).toBeUndefined();
   });
 
   it.each([
-    '', '!!!', 'a'.repeat(24001), raw(null), raw({ v: 2, choices: ['A', 'B'] }),
-    raw({ v: 1, choices: ['A'] }), raw({ v: 1, choices: Array(51).fill('A') }),
-    raw({ v: 1, choices: ['A', 1] }), raw({ v: 1, choices: ['A', 'x'.repeat(13)] }),
-    ...[{ seed: [1] }, { seed: [1, 2, 3, -1] }, { seed: [1, 2, 3, 0.5] },
-      { charge: 2 }, { charge: '0.4' }, { angle: -1 }, { angle: 7 }, { choices: [' ', 'B'] }]
-      .map(change => raw({ ...payload, replay: { ...payload.replay, ...change } })),
-  ])('rejects malformed or oversized input %#', hash => expect(() => decodeShare(hash)).toThrow());
+    'wheel=old', 'choices=', 'choices=A', 'choices=A,B&choices=C,D',
+    'choices=%ZZ,B', 'choices=%FF,B', 'choices=' + Array(51).fill('A').join(','),
+    'choices=A,' + 'x'.repeat(13), 'choices=' + 'x'.repeat(24001),
+    'replay=2.AAAA', 'choices=A,B&replay=', 'choices=A,B&replay=3.AAAA',
+    'choices=A,B&replayChoices=C,D', 'choices=A,B&replay=2.' + 'A'.repeat(47),
+  ])('rejects malformed input: %s', query => {
+    expect(() => readShareUrl(new URL('https://example.com/?' + query))).toThrow();
+  });
 
-  it('supports maximum-size wheels with distinct replay choices', () => {
+  it.each([[20, NaN], [20, 2], [28, Infinity], [28, -1], [28, 7]])('rejects invalid binary replay value at %s: %s', (offset, value) => {
+    const url = share(wheel, replay);
+    const bytes = Buffer.from(url.searchParams.get('replay')!.slice(2), 'base64url');
+    bytes.writeDoubleLE(value, offset);
+    url.search = url.search.replace(/replay=2\.[\w-]+/, 'replay=2.' + bytes.toString('base64url'));
+    expect(() => readShareUrl(url)).toThrow();
+  });
+
+  it('handles maximum Unicode lists and removes stale share fields on rewrite', () => {
     const large = { version: 'test', items: Array.from({ length: 50 }, (_, i) => ({ id: String(i), label: '界'.repeat(12), weight: 1 })) };
     const original = structuredClone(large);
     original.items[0].label = '語'.repeat(12);
-    expect(decodeShare(encodeShare(large, { ...replay, wheelConfig: original }))!.lastSpin).toBeDefined();
+    const url = share(large, { ...replay, wheelConfig: original });
+    expect(readShareUrl(url)!.lastSpin).toBeDefined();
+    writeShareUrl(url, wheel);
+    expect(url.href).toBe(share().href);
   });
 });

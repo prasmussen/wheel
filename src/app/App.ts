@@ -10,7 +10,7 @@ import { secureSeed, SeededRandom } from "../utils/Random";
 import { parseChoices, validateConfig } from "../wheel/Storage";
 import { appendSpinHistory, HISTORY_KEY, readSpinHistory, type SpinHistoryEntry } from "../wheel/History";
 import { selectedIndex } from "../wheel/SegmentLayout";
-import { createSharePayload, decodeShare, encodeShare, readSharePayload } from "../wheel/Share";
+import { createSharePayload, readShareUrl, writeShareUrl, readSharePayload } from "../wheel/Share";
 import { createDefaultConfig, type WheelConfig, type WheelItem } from "../wheel/WheelConfig";
 
 export class App {
@@ -36,10 +36,10 @@ export class App {
 
   constructor(root: HTMLElement) {
     this.root = root;
-    let shared: ReturnType<typeof decodeShare>;
+    let shared: ReturnType<typeof readShareUrl>;
     try {
       const url = new URL(location.href);
-      shared = decodeShare(url.searchParams.get("wheel"));
+      shared = readShareUrl(url);
     } catch {
       shared = { wheelConfig: createDefaultConfig() };
       history.replaceState(history.state, "", location.pathname);
@@ -355,8 +355,7 @@ export class App {
     const saved = this.store("momentum-wheel", this.state.wheelConfig);
     try {
       const url = new URL(location.href);
-      url.searchParams.set("wheel", encodeShare(this.state.wheelConfig, this.state.lastSpin));
-      url.hash = "";
+      writeShareUrl(url, this.state.wheelConfig, this.state.lastSpin);
       // Replacing the URL avoids navigation and one Back entry per keystroke.
       history.replaceState(history.state, "", url);
     } catch {
@@ -443,8 +442,7 @@ export class App {
     status.textContent = "";
     try {
       const url = new URL(location.href);
-      url.searchParams.set("wheel", encodeShare(this.state.wheelConfig, this.state.lastSpin));
-      url.hash = "";
+      writeShareUrl(url, this.state.wheelConfig, this.state.lastSpin);
       input.value = url.href;
     } catch (error) {
       button.disabled = true;

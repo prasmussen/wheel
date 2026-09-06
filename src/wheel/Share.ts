@@ -39,21 +39,74 @@ export function createSharePayload(wheel: WheelConfig, replay?: SpinRecord) {
 
 export type SharePayload = ReturnType<typeof createSharePayload>;
 
-export function encodeShare(wheel: WheelConfig, replay?: SpinRecord): string {
-  const bytes = new TextEncoder().encode(JSON.stringify(createSharePayload(wheel, replay)));
-  const encoded = btoa(Array.from(bytes, byte => String.fromCharCode(byte)).join(""))
-    .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-  if (encoded.length > MAX_PAYLOAD_LENGTH) throw new Error("This wheel is too large to share in a link.");
-  return encoded;
+const SHARE_PARAMS = new Set(["wheel", "choices", "replay", "replayChoices"]);
+
+// Split labels before percent-decoding: an encoded comma belongs to a label.
+function decodeChoices(encoded: string): string[] {
+  return encoded.split(",").map(label => decodeURIComponent(label.replace(/\+/g, " ")).toUpperCase().normalize("NFC"));
 }
 
-export function decodeShare(encoded: string | null): SharedWheel | undefined {
-  if (encoded === null) return;
-  if (!encoded || encoded.length > MAX_PAYLOAD_LENGTH || !/^[\w-]+$/.test(encoded)) {
+function encodeChoices(choices: string[]): string {
+  return choices.map(label => encodeURIComponent(label.toLowerCase())).join(",");
+}
+
+/** Write readable labels and a fixed-width, lossless replay record. */
+export function writeShareUrl(url: URL, wheel: WheelConfig, replay?: SpinRecord): void {
+  const payload = createSharePayload(wheel, replay);
+  readSharePayload(payload);
+  const parts = [`choices=${encodeChoices(payload.choices)}`];
+  if (payload.replay) {
+    const record = payload.replay;
+    const bytes = new Uint8Array(36);
+    const view = new DataView(bytes.buffer);
+    view.setUint32(0, record.version, true);
+    record.seed.forEach((word, index) => view.setUint32(4 + index * 4, word, true));
+    view.setFloat64(20, record.charge, true);
+    view.setFloat64(28, record.angle, true);
+    const encoded = btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_");
+    parts.push(`replay=2.${encoded}`);
+    if (record.choices) parts.push(`replayChoices=${encodeChoices(record.choices)}`);
+  }
+  if (parts.join("&").length > MAX_PAYLOAD_LENGTH) throw new Error("This wheel is too large to share in a link.");
+  // Preserve unrelated parameters byte-for-byte; URLSearchParams would escape separators.
+  const others = url.search.slice(1).split("&").filter(part => part &&
+    !SHARE_PARAMS.has(new URLSearchParams(part).keys().next().value ?? ""));
+  url.search = [...others, ...parts].join("&");
+  url.hash = "";
+}
+
+/** Read labels before percent-decoding their separators. */
+export function readShareUrl(url: URL): SharedWheel | undefined {
+  const params = new Map<string, string>();
+  for (const part of url.search.slice(1).split("&")) {
+    const key = new URLSearchParams(part).keys().next().value;
+    if (!key || !SHARE_PARAMS.has(key)) continue;
+    if (params.has(key)) throw new Error("Duplicate wheel parameter");
+    params.set(key, part.slice(part.indexOf("=") + 1));
+  }
+  if (!params.has("choices")) {
+    if (params.has("replay") || params.has("replayChoices")) throw new Error("Missing shared choices");
+    if (params.has("wheel")) throw new Error("Unsupported wheel link");
+    return;
+  }
+  if ([...params.values()].reduce((size, value) => size + value.length, 0) > MAX_PAYLOAD_LENGTH) {
     throw new Error("Invalid wheel link");
   }
-  const bytes = Uint8Array.from(atob(encoded.replace(/-/g, "+").replace(/_/g, "/")), char => char.charCodeAt(0));
-  return readSharePayload(JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)));
+  const choices = decodeChoices(params.get("choices")!);
+  const encoded = params.get("replay");
+  if (encoded === undefined) {
+    if (params.has("replayChoices")) throw new Error("Missing replay");
+    return readSharePayload({ v: 1, choices });
+  }
+  if (!/^2\.[A-Za-z0-9_-]{48}$/.test(encoded)) throw new Error("Invalid replay");
+  const bytes = Uint8Array.from(atob(encoded.slice(2).replace(/-/g, "+").replace(/_/g, "/")), char => char.charCodeAt(0));
+  const view = new DataView(bytes.buffer);
+  return readSharePayload({ v: 1, choices, replay: {
+    version: view.getUint32(0, true),
+    seed: Array.from({ length: 4 }, (_, index) => view.getUint32(4 + index * 4, true)),
+    charge: view.getFloat64(20, true), angle: view.getFloat64(28, true),
+    choices: params.has("replayChoices") ? decodeChoices(params.get("replayChoices")!) : undefined,
+  } });
 }
 
 export function readSharePayload(value: unknown): SharedWheel {

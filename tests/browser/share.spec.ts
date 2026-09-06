@@ -22,7 +22,7 @@ test('shares edited choices and the latest replay into a fresh browser context',
   await expect(page.locator('#share-status')).toContainText('Copy the selected link');
   await expect(page.locator('#notice')).toHaveCount(0);
   const url = await page.locator('#share-link').inputValue();
-  expect(new URL(url).searchParams.has('wheel')).toBe(true);
+  expect(new URL(url).searchParams.has('choices')).toBe(true);
   expect(new URL(url).hash).toBe('');
   const context = await browser.newContext();
   try {
@@ -74,8 +74,7 @@ test('copies a wheel without a replay and recovers from a malformed link', async
 });
 
 test('confirmed reset updates the URL with defaults; cancelling keeps the link', async ({ page }) => {
-  const payload = btoa(JSON.stringify({ v: 1, choices: ['One', 'Two'] })).replace(/=+$/, '');
-  await page.goto('/?source=test&wheel=' + payload);
+  await page.goto('/?source=test&choices=One,Two');
   await openEditor(page);
   await expect(page.locator('#editor-list input')).toHaveCount(2);
   const sharedUrl = page.url();
@@ -85,7 +84,7 @@ test('confirmed reset updates the URL with defaults; cancelling keeps the link',
   await expect(page.locator('#editor-list input')).toHaveCount(2);
   page.once('dialog', dialog => dialog.accept());
   await page.locator('#reset-wheel').click();
-  expect(new URL(page.url()).searchParams.has('wheel')).toBe(true);
+  expect(new URL(page.url()).searchParams.has('choices')).toBe(true);
   expect(new URL(page.url()).hash).toBe('');
   expect(page.url()).not.toBe(sharedUrl);
   expect(new URL(page.url()).searchParams.get('source')).toBe('test');
@@ -101,8 +100,7 @@ test('updates a shared URL as choices are typed and reloads without local storag
   await page.addInitScript(() => {
     Storage.prototype.setItem = () => { throw new DOMException('Full', 'QuotaExceededError'); };
   });
-  const payload = btoa(JSON.stringify({ v: 1, choices: ['ONE', 'TWO', 'THREE'] })).replace(/=+$/, '');
-  await page.goto('/?source=test&wheel=' + payload);
+  await page.goto('/?source=test&choices=ONE,TWO,THREE');
   await expect(page.locator('#spin-button')).toBeEnabled();
   const historyLength = await page.evaluate(() => history.length);
   await openEditor(page);
@@ -111,7 +109,8 @@ test('updates a shared URL as choices are typed and reloads without local storag
   await expect(first).toHaveValue('CAFÉ 🍕');
   const editedUrl = page.url();
   expect(new URL(editedUrl).searchParams.get('source')).toBe('test');
-  expect(new URL(editedUrl).searchParams.get('wheel')).not.toBe(payload);
+  expect(new URL(editedUrl).searchParams.has('wheel')).toBe(false);
+  expect(new URL(editedUrl).searchParams.get('choices')).toContain('café 🍕');
   expect(new URL(editedUrl).hash).toBe('');
   await expect(page.locator('#wheel-editor')).toBeVisible();
   await expect(first).toBeFocused();
@@ -130,19 +129,19 @@ test('keeps the URL current after batch edits, additions, reordering, and blank 
   await page.locator('#bulk-choices').fill('first\nsecond\nthird');
   await page.locator('#apply-bulk').click();
   const urlChoices = () => page.evaluate(() => {
-    const encoded = new URL(location.href).searchParams.get('wheel')!.replace(/-/g, '+').replace(/_/g, '/');
-    return JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(encoded), c => c.charCodeAt(0)))).choices;
+    const raw = new URL(location.href).search.slice(1).split('&').find(part => part.startsWith('choices='))!.slice(8);
+    return raw.split(',').map(decodeURIComponent);
   });
-  expect(await urlChoices()).toEqual(['FIRST', 'SECOND', 'THIRD']);
+  expect(await urlChoices()).toEqual(['first', 'second', 'third']);
   await page.locator('#add-item').click();
-  expect(await urlChoices()).toEqual(['FIRST', 'SECOND', 'THIRD', 'OPTION 4']);
+  expect(await urlChoices()).toEqual(['first', 'second', 'third', 'option 4']);
   await page.locator('#editor-list button[data-action="up"]').last().click();
-  expect(await urlChoices()).toEqual(['FIRST', 'SECOND', 'OPTION 4', 'THIRD']);
+  expect(await urlChoices()).toEqual(['first', 'second', 'option 4', 'third']);
   await page.locator('#editor-list button[data-action="delete"]').last().click();
-  expect(await urlChoices()).toEqual(['FIRST', 'SECOND', 'OPTION 4']);
+  expect(await urlChoices()).toEqual(['first', 'second', 'option 4']);
   await page.locator('#editor-list input').first().fill('');
   await closeEditor(page);
-  expect(await urlChoices()).toEqual(['SECOND', 'OPTION 4']);
+  expect(await urlChoices()).toEqual(['second', 'option 4']);
   await page.reload();
   await expect(page.locator('#editor-list input')).toHaveCount(2);
   await expect(page.locator('#editor-list input').first()).toHaveValue('SECOND');
@@ -173,4 +172,17 @@ test('share modal fits mobile and supports selection, dismissal, and focus resto
   await page.locator('#share-wheel').click();
   await page.mouse.click(2, 2);
   await expect(dialog).toBeHidden();
+});
+
+test('readable links preserve separators and escaped labels through editing and reload', async ({ page }) => {
+  await page.goto('/?source=a%20b&choices=A%2CB,C%2BD,%252C,%F0%9F%8D%95');
+  await expect(page.locator('#editor-list input')).toHaveCount(4);
+  await expect(page.locator('#editor-list input').nth(0)).toHaveValue('A,B');
+  await expect(page.locator('#editor-list input').nth(1)).toHaveValue('C+D');
+  await expect(page.locator('#editor-list input').nth(2)).toHaveValue('%2C');
+  await openEditor(page);
+  await page.locator('#editor-list input').nth(3).fill('TACOS');
+  await expect(page).toHaveURL('http://127.0.0.1:4174/?source=a%20b&choices=a%2Cb,c%2Bd,%252c,tacos');
+  await page.reload();
+  await expect(page.locator('#editor-list input').nth(0)).toHaveValue('A,B');
 });

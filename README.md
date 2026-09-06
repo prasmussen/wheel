@@ -26,7 +26,7 @@ Choose **Edit wheel** to edit choices, or **Spin history** to open previous spin
 
 Wheel labels use smooth semibold Manrope text with system font fallbacks, displaying uppercase text while preserving accents, non-Latin scripts, and emoji. Character coverage depends on available fonts. Labels fit the available width with modest size reduction followed by an ellipsis at a complete grapheme boundary. Option inputs automatically uppercase text, including pasted batches. Blank lines in batches are ignored; blank individual choices are removed when the modal closes, provided at least two choices remain. Full labels are retained in the editor and result.
 
-History is stored under `momentum-spin-history` as a JSON array. Each entry has `completedAt`, `result`, and `state`; `state` is the same plain object encoded in a share link, without Base64. Invalid or incompatible entries are skipped. If storage fails, history remains available for the session.
+History is stored under `momentum-spin-history` as a JSON array. Each entry has `completedAt`, `result`, and `state`; `state` holds the choices and replay inputs as a plain object. Invalid or incompatible entries are skipped. If storage fails, history remains available for the session.
 
 ## Sharing
 
@@ -36,7 +36,7 @@ Choice changes automatically update the current URL without navigating or adding
 
 If choices changed after the latest spin, the link preserves both sets: replay restores the original choices. Links take precedence over locally stored choices on load. Invalid links silently clear the URL query and fragment and reset the saved wheel to the defaults; replays from a different simulation version are unavailable, but their shared choices still load.
 
-Data is encoded as compact UTF-8 JSON in a URL-safe Base64 query parameter (`?wheel=…`), with matching choice lists stored only once. No sharing service is needed. Anyone with the link can read its choices and replay. Large wheels produce longer links. Physics values come from the fixed simulation version, never from link-supplied settings.
+New links use readable lowercase comma-separated choices (`?choices=pizza,sushi,tacos`). Labels are restored to uppercase when loading the wheel. Each label is individually percent-encoded, so commas within labels, spaces, and Unicode round-trip correctly. Optional `replay=2.…` data uses base64url over 36 binary bytes: a little-endian uint32 simulation version, four uint32 seed words, and float64 charge and starting angle. A separate `replayChoices` list is included only when the recorded choices differ. Split choice lists on literal commas before percent-decoding; do not reserialize them through `URLSearchParams`. Legacy `?wheel=…` links are unsupported. No sharing service is needed. Anyone with the link can read its choices and replay. Large wheels produce longer links. Physics values come from the fixed simulation version, never from link-supplied settings.
 
 ## Physics and replay
 
