@@ -46,7 +46,7 @@ Every new launch uses a fresh seed from `crypto.getRandomValues`. The seed varie
 
 Longer holds increase launch energy for the same random preload, and even the weakest full-charge launch is stronger than the strongest zero-charge launch. The preload range grows with charge to keep travel varied under the stronger brake. The randomized launch speed remains below 38 rad/s across the full charge range. New records use simulation version 7, identifying the handwritten WebAssembly core and its optimized, self-contained math routines. Each launch resets transient contact state and records its seed, charge, starting angle, complete choice list, physics settings, and simulation version.
 
-**Replay** in Spin history restores that configuration and reproduces a saved spin. A shared replay that is not already saved appears there as **Replay shared spin**. It remains available after editing choices. Completed replay records persist in Spin history; share links can also carry them across reloads. Replay requires the same simulation version. Version 7 retains the previous mechanics but optimizes math evaluation, so earlier-version replays are unavailable; their shared choices still load. Identical inputs are checked for deterministic state and impact sequences, but cross-engine replay equivalence is not covered by the browser suite.
+**Replay** in Spin history restores that configuration and reproduces a saved spin. A shared replay that is not already saved appears there as **Replay shared spin**. It remains available after editing choices. Completed replay records persist in Spin history; share links can also carry them across reloads. Replay requires the same simulation version. Version 7 retains the previous mechanics but optimizes math evaluation, so earlier-version replays are unavailable; their shared choices still load. The physics-only replay suite verifies exact state and impact equivalence across Chrome, Firefox, and WebKit for 101 scenarios. The [recorded results](docs/cross-browser-replay.json) identify the tested browser builds and platform.
 
 Physics settings are fixed and cannot be adjusted in the interface. The outer simulation ticks at 240 Hz. Fast peg travel and spring response use bounded adaptive substeps within each tick, including launch acceleration, so a pin cannot simply cross the contact area between samples. The lighter spring pointer has lower damping and returns quickly enough to show individual deflections on the default wheel. Dense wheels can keep the pointer deflected while it flutters against successive pins. Repeated contact visits within the substeps do not produce duplicate click notifications for the same pin traversal.
 
@@ -76,10 +76,13 @@ The report includes histograms, total variation distance from uniform frequencie
 npm test
 npm run build
 npm run test:browser
+npm run test:determinism
 npm run analyze:distribution
 # Explicitly refresh the checked-in current-model report:
 WHEEL_WRITE_DISTRIBUTION=1 npm run analyze:distribution
 ```
+
+The cross-browser replay suite uses locally installed Google Chrome plus Playwright’s Firefox and WebKit builds (`npx playwright install firefox webkit`). It starts a physics-only page and requires no WebGPU support. See the [comparison method and report instructions](docs/wasm-physics.md#cross-browser-replay).
 
 The fast tests also verify the import-free Wasm module, numerical accuracy, preserved RNG streams, exact batch/single-tick equivalence, interpolation endpoints, and explicit configuration updates. They cover deterministic replay after previous spins, stationary charging, launch extremes, high-speed contacts in both directions and across tick alignments, passive brake torque, spin duration, peg crossings, pointer rebound, low-speed reversal, settling at every segment count from 2 through 50, winner geometry, history and stored-data validation, bulk entry, and label handling.
 

@@ -1,0 +1,2724 @@
+{
+  "simulationVersion": 7,
+  "moduleSha256": "36c9cddf0c3febdbd63fbf7478efd7cc8d843103df4f19fe44a7241d8891cc86",
+  "fixedDt": 0.004166666666666667,
+  "maxTicks": 10800,
+  "physicsConfig": {
+    "wheelInertia": 2.8,
+    "linearDrag": 0.32,
+    "brakeDrag": 1.4,
+    "quadraticDrag": 0,
+    "bearingFriction": 0.32,
+    "pointerSpring": 100,
+    "pointerDamping": 0.55,
+    "pointerInertia": 0.01,
+    "collisionRestitution": 0.16,
+    "collisionCoupling": 0.075
+  },
+  "platform": "darwin",
+  "arch": "arm64",
+  "browsers": [
+    {
+      "name": "Chrome",
+      "version": "152.0.7977.76"
+    },
+    {
+      "name": "Firefox",
+      "version": "155.0"
+    },
+    {
+      "name": "WebKit",
+      "version": "26.6"
+    }
+  ],
+  "comparison": "Exact little-endian IEEE-754 bytes of full observable snapshots, prior snapshots, simulation time and impact records; plus ticks, durations, RNG state and winners. Trace hashes are summaries only.",
+  "expectedScenarios": 101,
+  "passedScenarios": 101,
+  "results": [
+    {
+      "scenario": {
+        "id": "2 choices / charge 0 / offset 0 / seed 0",
+        "count": 2,
+        "charge": 0,
+        "seed": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "startingAngle": 0,
+        "mode": "ticks"
+      },
+      "ticks": 1954,
+      "records": 1955,
+      "eventCount": 23,
+      "winner": 1,
+      "stateSha256": "39f022b036a6f7b92a3a6a42e26563f4dead3b4ac7430a1a7633105d7ad0ba5d",
+      "impactSha256": "6c11e51d7d95d043f9a23b9595976214b7bd69019478ac2df789a356bdb74f51",
+      "headless": {
+        "ticks": 1954,
+        "duration": 8.141666666666666,
+        "settled": true,
+        "selectedIndex": 1,
+        "state": "AAAAAACInkCiwUjp33gBQAAAAAAAAAAAIsdehmo2qLgROo46X8UbOZ+qqqqqqtY/ikwnCWIQdT0AAAAAAAAAAN9nB9nfeAFANIkVToh6Dj+5QxzbUjezuO64sG93yxU5W2ZmZmZm1j8Lu9rJb951PQAAAAAAAAAA3oeIiIhIIEA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "2 choices / charge 0 / offset 0 / seed 1",
+        "count": 2,
+        "charge": 0,
+        "seed": [
+          4294967295,
+          2147483648,
+          0,
+          42
+        ],
+        "startingAngle": 0,
+        "mode": "ticks"
+      },
+      "ticks": 1883,
+      "records": 1884,
+      "eventCount": 17,
+      "winner": 1,
+      "stateSha256": "c97e812c67de657ca9c53b1e2c1d7abdafa9529f7a32f1a3104eceab556fbba5",
+      "impactSha256": "09576234c22baf5e293fd4d250b7b487e9103a2e630b6bab8c9056de566c9275",
+      "headless": {
+        "ticks": 1883,
+        "duration": 7.845833333333333,
+        "settled": true,
+        "selectedIndex": 1,
+        "state": "AAAAAABsnUAvS1LHDSEGQAAAAAAAAAAAify+e8UrUDYEenQGzOGGtn2IiIiIiNY/WBISqvhmtzwAAAAAAAAAAGVfXK0NIQZAXKnIDY1WCD9nEh418ytQNv47hHAFV6I2OURERERE1j/TS5r45Uu4PAAAAAAAAAAA4CAiIiJiH0A="
+      }
+    },
+    {
+      "scenario": {
+        "id": "2 choices / charge 0 / offset 0.37 / seed 0",
+        "count": 2,
+        "charge": 0,
+        "seed": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "startingAngle": 0.37,
+        "mode": "ticks"
+      },
+      "ticks": 1967,
+      "records": 1968,
+      "eventCount": 19,
+      "winner": 1,
+      "stateSha256": "1f9950ff2f2c7eff39a1d7a28b7db2f7a0c4099da740a84a10f990395c58fbd0",
+      "impactSha256": "f46a94e2899d7cb10120ac2f638fb76bfc46ec1386bf1d195bbf94f4c405305a",
+      "headless": {
+        "ticks": 1967,
+        "duration": 8.195833333333333,
+        "settled": true,
+        "selectedIndex": 1,
+        "state": "AAAAAAC8nkC3hvXayZQEQAAAAAAAAAAArBWOttLKxLZg3+KYAeVXt32IiIiIiNY/Bz18LChX6DwAAAAAAAAAAMeUPKfJlARAbgcNaLE+GD/s4O7KIKDQNkn/u7UZtVy3OURERERE1j82bIMKQ0XpPAAAAAAAAAAAmENERERkIEA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "2 choices / charge 0 / offset 0.37 / seed 1",
+        "count": 2,
+        "charge": 0,
+        "seed": [
+          4294967295,
+          2147483648,
+          0,
+          42
+        ],
+        "startingAngle": 0.37,
+        "mode": "ticks"
+      },
+      "ticks": 1887,
+      "records": 1888,
+      "eventCount": 16,
+      "winner": 1,
+      "stateSha256": "2d2557e5dd9f8036753c54c6086802192e760aaec166fa2269ad2a686495e16b",
+      "impactSha256": "898358c06437d2463985a752c954b40b3708bf510f6d9d8ff032b277151566db",
+      "headless": {
+        "ticks": 1887,
+        "duration": 7.8625,
+        "settled": true,
+        "selectedIndex": 1,
+        "state": "AAAAAAB8nUDwW9KKkSoJQAAAAAAAAAAAuPdFKY8VSjXhjL3f1duzNZ+qqqqqqtY/poLR9NbLbTwAAAAAAAAAAPBb0oqRKglAAAAAAAAAAACPamtwuZM7NQxdRYRGF8A1W2ZmZmZm1j+QjJaNUO9uPAAAAAAAAAAA8DEzMzNzH0A="
+      }
+    },
+    {
+      "scenario": {
+        "id": "2 choices / charge 0.55 / offset 0 / seed 0",
+        "count": 2,
+        "charge": 0.55,
+        "seed": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "startingAngle": 0,
+        "mode": "ticks"
+      },
+      "ticks": 2085,
+      "records": 2086,
+      "eventCount": 22,
+      "winner": 0,
+      "stateSha256": "6e4e2e40e7b9c2b43b598fc14f4eadd124c96100782b1e1b367bf348ef40745e",
+      "impactSha256": "a4841a5d5f8377bf8afa8a22e0e51a76bfbfe1a0f51e271ea1bdeff176125dde",
+      "headless": {
+        "ticks": 2085,
+        "duration": 8.6875,
+        "settled": true,
+        "selectedIndex": 0,
+        "state": "AAAAAABKoEDcB9HT0loXQAAAAAAAAAAAbButiCMHVjYgSIx7lzruNn2IiIiIiNY/c4n7epVqxzwAAAAAAADwP4R8FL3SWhdAzpKDosJQFT/49Qrq8BBntrzenmlS9PE2OURERERE1j9e91Agpk/IPAAAAAAAAPA/QP////9fIUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "2 choices / charge 0.55 / offset 0 / seed 1",
+        "count": 2,
+        "charge": 0.55,
+        "seed": [
+          4294967295,
+          2147483648,
+          0,
+          42
+        ],
+        "startingAngle": 0,
+        "mode": "ticks"
+      },
+      "ticks": 2025,
+      "records": 2026,
+      "eventCount": 19,
+      "winner": 0,
+      "stateSha256": "8c7cd01f785b67a819c0279260256913dad1a78d11aa434769ecead30fd73053",
+      "impactSha256": "968f238f37a03495db90e1a2c8f1b0f533a5949d7069f1128e2b452786034ac2",
+      "headless": {
+        "ticks": 2025,
+        "duration": 8.4375,
+        "settled": true,
+        "selectedIndex": 0,
+        "state": "AAAAAACkn0BOHmFVJw8ZQAAAAAAAAAAA0kAna+paX7Xzd7jrO9LANX2IiIiIiNY/PThJAolncTwAAAAAAADwP04eYVUnDxlAAAAAAAAAAADpDGgGNZNjtfa+9xagRqs1OURERERE1j/lWUNDyhFyPAAAAAAAAPA/TP/////fIEA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "2 choices / charge 0.55 / offset 0.37 / seed 0",
+        "count": 2,
+        "charge": 0.55,
+        "seed": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "startingAngle": 0.37,
+        "mode": "ticks"
+      },
+      "ticks": 2090,
+      "records": 2091,
+      "eventCount": 21,
+      "winner": 0,
+      "stateSha256": "91f18419e5f0eedac22b352572ebb2d7d3482ee51bcdd0253833c4f75b1ceba0",
+      "impactSha256": "cd6d35758fcc39689d37b9fe4818ac8093e8620f5b0ea021ac86e97b687a7062",
+      "headless": {
+        "ticks": 2090,
+        "duration": 8.708333333333334,
+        "settled": true,
+        "selectedIndex": 0,
+        "state": "AAAAAABUoEBdriW56OAYQAAAAAAAAAAAm4UCs0ojdjXj5iasGx7RtZ+qqqqqqtY/MMhtWCnLdjwAAAAAAADwP12uJbno4BhAAAAAAAAAAAB01MpjBM15NehB0LmGrKG1W2ZmZmZm1j//RmN6Iqp3PAAAAAAAAPA/6qmqqqpqIUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "2 choices / charge 0.55 / offset 0.37 / seed 1",
+        "count": 2,
+        "charge": 0.55,
+        "seed": [
+          4294967295,
+          2147483648,
+          0,
+          42
+        ],
+        "startingAngle": 0.37,
+        "mode": "ticks"
+      },
+      "ticks": 2027,
+      "records": 2028,
+      "eventCount": 18,
+      "winner": 0,
+      "stateSha256": "60e4ee72cba8f368e42e51174405addebec67a907fcae4323bc2879f6a55b296",
+      "impactSha256": "3ee88ce8e113d7255ce05622ce116c64994db97624589602c6ed2a4781a4cbb7",
+      "headless": {
+        "ticks": 2027,
+        "duration": 8.445833333333333,
+        "settled": true,
+        "selectedIndex": 0,
+        "state": "AAAAAACsn0CVyymtsPHWPwAAAAAAAAAAN2ubCx11fzTqXC4FHF4FtX2IiIiIiNY/lAbIlp5dODwAAAAAAADwP3nnJISw8dY/cAxT7Uo64z5iPd9mP1WTNMbIMTzm4gS1OURERERE1j8ic7+s+Es5PAAAAAAAAPA/kENERETkIEA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "2 choices / charge 1 / offset 0 / seed 0",
+        "count": 2,
+        "charge": 1,
+        "seed": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "startingAngle": 0,
+        "mode": "ticks"
+      },
+      "ticks": 4741,
+      "records": 4742,
+      "eventCount": 65,
+      "winner": 1,
+      "stateSha256": "ffa8feeeaf1daca6193de86c2c563df7ff99dc9dd695721d866b176f08ec1e8a",
+      "impactSha256": "a7c854869d9e269618ec2e97e4e881c0b582ff34e172272271d20b46b4be4851",
+      "headless": {
+        "ticks": 4741,
+        "duration": 19.754166666666666,
+        "settled": true,
+        "selectedIndex": 1,
+        "state": "AAAAAACFskDp2jO86OMRQAAAAAAAAAAA8Fy5IYThIbDu5IJcubPVsJ+qqqqqqtY/IneMqDi46joAAAAAAAAAAN6V/LPo4xFA3NP16ELPDj9prhO+K/RVMKGM10v5sdiwW2ZmZmZm1j8iHQ2Pmb3rOgAAAAAAAAAAzxMRERHBM0A="
+      }
+    },
+    {
+      "scenario": {
+        "id": "2 choices / charge 1 / offset 0 / seed 1",
+        "count": 2,
+        "charge": 1,
+        "seed": [
+          4294967295,
+          2147483648,
+          0,
+          42
+        ],
+        "startingAngle": 0,
+        "mode": "ticks"
+      },
+      "ticks": 4585,
+      "records": 4586,
+      "eventCount": 62,
+      "winner": 0,
+      "stateSha256": "8dc87c30b9cf139649c448fa16436faa14d618808cb64c54c7a26b4dfe03acd2",
+      "impactSha256": "574364dac2d01376040ccd5de4076218f6cebfa00a1db1043f2db4c4a282703e",
+      "headless": {
+        "ticks": 4585,
+        "duration": 19.104166666666668,
+        "settled": true,
+        "selectedIndex": 0,
+        "state": "AAAAAADpsUAVMZIl8ffJPwAAAAAAAAAARg1EKKAJWbMoySGxJM7AM32IiIiIiNY/+B/1j/GO0DsAAAAAAADwPxUxkiXx98k/AAAAAAAAAAD141IcEZFgs31DZ/klb7IzOURERERE1j8swvgO7DDROwAAAAAAAPA/4KyqqqoaM0A="
+      }
+    },
+    {
+      "scenario": {
+        "id": "2 choices / charge 1 / offset 0.37 / seed 0",
+        "count": 2,
+        "charge": 1,
+        "seed": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "startingAngle": 0.37,
+        "mode": "ticks"
+      },
+      "ticks": 5052,
+      "records": 5053,
+      "eventCount": 65,
+      "winner": 1,
+      "stateSha256": "634631b5765dc6867f4c1e6fd5312d92357bf30f6c5c23fef8513cbd258239c5",
+      "impactSha256": "9ee05afea387fb6ab34e4b0cd99b7a1fbf909b9cdb86866f26e8496e854f122a",
+      "headless": {
+        "ticks": 5052,
+        "duration": 21.05,
+        "settled": true,
+        "selectedIndex": 1,
+        "state": "AAAAAAC8s0AuzRfONZoSQAAAAAAAAAAAuAkrH0WKzr0l4uyFhJlfPp+qqqqqqtY/xYFAZH8a0DwAAAAAAADwP3z4iNU1mhJAwA90ZWLoC78aSklOlsrovcqItyQ5NWA+W2ZmZmZm1j9cDRfIBrjQPAAAAAAAAPA/rdDMzMwMNUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "2 choices / charge 1 / offset 0.37 / seed 1",
+        "count": 2,
+        "charge": 1,
+        "seed": [
+          4294967295,
+          2147483648,
+          0,
+          42
+        ],
+        "startingAngle": 0.37,
+        "mode": "ticks"
+      },
+      "ticks": 4592,
+      "records": 4593,
+      "eventCount": 60,
+      "winner": 0,
+      "stateSha256": "c4c1f16e5c18eb05d44b8dda61cc42b52563378fad084c16b597779ac5faab60",
+      "impactSha256": "508acc453e878e1fc8b796ee816084459fb92502f4e5b8fcaa9c1a7be1e8411f",
+      "headless": {
+        "ticks": 4592,
+        "duration": 19.133333333333333,
+        "settled": true,
+        "selectedIndex": 0,
+        "state": "AAAAAADwsUDUlsygxuDiPwAAAAAAAAAADf/G1DxiNbLcSb/naKOXsn2IiIiIiNY//8FcwGnbdTsAAAAAAADwP9SWzKDG4OI/AAAAAAAAAAAc/tMco44rsmFe94bpZKWyOURERERE1j9lxZyZObF2OwAAAAAAAPA/XiQiIiIiM0A="
+      }
+    },
+    {
+      "scenario": {
+        "id": "8 choices / charge 0 / offset 0 / seed 0",
+        "count": 8,
+        "charge": 0,
+        "seed": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "startingAngle": 1.1780972450961724,
+        "mode": "ticks"
+      },
+      "ticks": 1916,
+      "records": 1917,
+      "eventCount": 68,
+      "winner": 6,
+      "stateSha256": "a223c16f9b976655c3718b0c04551852da92eb1a47c628961ca7049ed0910305",
+      "impactSha256": "e040e258bf26f044e8a38b967d5227903b4405eef517212f8a01e86c727ccc7f",
+      "headless": {
+        "ticks": 1916,
+        "duration": 7.983333333333333,
+        "settled": true,
+        "selectedIndex": 6,
+        "state": "AAAAAADwnUCijvHkIZcIQAAAAAAAAAAAJoc6FodoULz8Ztda5kvhvJ+qqqqqqtY/HoBcAyfcrT4AAAAAAAAYQKKO8eQhlwhAAAAAAAAAAABMR4Y3RMdWPCjagR3/6OS8W2ZmZmZm1j8jlHMvQACvPgAAAAAAABhApO3u7u7uH0A="
+      }
+    },
+    {
+      "scenario": {
+        "id": "8 choices / charge 0 / offset 0 / seed 1",
+        "count": 8,
+        "charge": 0,
+        "seed": [
+          4294967295,
+          2147483648,
+          0,
+          42
+        ],
+        "startingAngle": 1.1780972450961724,
+        "mode": "ticks"
+      },
+      "ticks": 1841,
+      "records": 1842,
+      "eventCount": 65,
+      "winner": 5,
+      "stateSha256": "45a2ecbb55b565a0e47cd2ebdc65ab108cde5c6f466d9aebfba3b9243d8d994f",
+      "impactSha256": "1a03d2d29e4f54412c56ade84803e1c8f11fa8d51731ebbfe2da21b6bd2f3b64",
+      "headless": {
+        "ticks": 1841,
+        "duration": 7.670833333333333,
+        "settled": true,
+        "selectedIndex": 5,
+        "state": "AAAAAADEnEBrnfH04kMNQAAAAAAAAAAAeklxdkTFVLk+xKsgXS3GOX2IiIiIiNY/73jOn4/vqT0AAAAAAAAYQGud8fTiQw1AAAAAAAAAAAAEiyCrIAdguUj9vfUg28A5OURERERE1j8Np3ucRe2qPQAAAAAAABhAuO3u7u6uHkA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "8 choices / charge 0 / offset 0.37 / seed 0",
+        "count": 8,
+        "charge": 0,
+        "seed": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "startingAngle": 1.5480972450961725,
+        "mode": "ticks"
+      },
+      "ticks": 1841,
+      "records": 1842,
+      "eventCount": 89,
+      "winner": 5,
+      "stateSha256": "88715b57f2c27069e1c0188ffca8edf5ee157383b3ac8d7a6480178a0cd6b653",
+      "impactSha256": "d729fda28b8f2147980a8d72bfa81a3927b33614f64cb9d927f584a742a76f8e",
+      "headless": {
+        "ticks": 1841,
+        "duration": 7.670833333333333,
+        "settled": true,
+        "selectedIndex": 5,
+        "state": "AAAAAADEnEBKQEa4ItIKQAAAAAAAAAAAEqY20lGTJj2wyQ9jhVxUPX2IiIiIiNY/Lqixt3wt1D4AAAAAAAAYQEpARrgi0gpAAAAAAAAAAACreurqSMMkPQC75jrpHIQ9OURERERE1j9ucQ7q3vLUPgAAAAAAABhAuO3u7u6uHkA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "8 choices / charge 0 / offset 0.37 / seed 1",
+        "count": 8,
+        "charge": 0,
+        "seed": [
+          4294967295,
+          2147483648,
+          0,
+          42
+        ],
+        "startingAngle": 1.5480972450961725,
+        "mode": "ticks"
+      },
+      "ticks": 2202,
+      "records": 2203,
+      "eventCount": 59,
+      "winner": 5,
+      "stateSha256": "06d375b144ff38081a493aca96c872387f60d737635de8504e045759389c6c82",
+      "impactSha256": "c46a99a9b19a7b0e63348e899485589fd3a58683db037ecb3c01008eae705c09",
+      "headless": {
+        "ticks": 2202,
+        "duration": 9.175,
+        "settled": true,
+        "selectedIndex": 5,
+        "state": "AAAAAAA0oUApN2nQhesOQAAAAAAAAAAAwsIcfTTt0r17/kbyI2BiPp+qqqqqqtY/5V8HnVzYtzwAAAAAAAAUQB0IdtuF6w5AJMbPyAe4BL+o456HSmPtvQB1HFgRvWI+W2ZmZmZm1j+BH9Uin8G4PAAAAAAAABRAzpiZmZlZIkA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "8 choices / charge 0.55 / offset 0 / seed 0",
+        "count": 8,
+        "charge": 0.55,
+        "seed": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "startingAngle": 1.1780972450961724,
+        "mode": "ticks"
+      },
+      "ticks": 2009,
+      "records": 2010,
+      "eventCount": 94,
+      "winner": 1,
+      "stateSha256": "40a02d48708af6564933923becee8da76252e0a7a0a113d5c583b2325bb98ab0",
+      "impactSha256": "9862955388522c81267969d8d402162193d28dd7eee737e1df741661e7738256",
+      "headless": {
+        "ticks": 2009,
+        "duration": 8.370833333333334,
+        "settled": true,
+        "selectedIndex": 1,
+        "state": "AAAAAABkn0Cx29XB1dTUPwAAAAAAAAAAs2uT/1QvI7shyc4N1RieO5+qqqqqqtY/d8rb5weSOj4AAAAAAAAAQEprFrjV1NQ/gKJMwPJG0j5qrqP5f3gxu8jpGzGKUZo7W2ZmZmZm1j+4pYM385U7PgAAAAAAAABAKd3d3d29IEA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "8 choices / charge 0.55 / offset 0 / seed 1",
+        "count": 8,
+        "charge": 0.55,
+        "seed": [
+          4294967295,
+          2147483648,
+          0,
+          42
+        ],
+        "startingAngle": 1.1780972450961724,
+        "mode": "ticks"
+      },
+      "ticks": 1935,
+      "records": 1936,
+      "eventCount": 74,
+      "winner": 1,
+      "stateSha256": "b93363e357681bd512bc47b08ede01275581a97eeb5fdfb9570c7d255bad197e",
+      "impactSha256": "57064d663fe8479a29ae476230ecd07ebe05ea944016c312879b5e45327398f6",
+      "headless": {
+        "ticks": 1935,
+        "duration": 8.0625,
+        "settled": true,
+        "selectedIndex": 1,
+        "state": "AAAAAAA8nkDwS9K9kTLnPwAAAAAAAAAAaD6tWppps707O218it9BPp+qqqqqqtY//CEdv0JowD4AAAAAAADwP/BL0r2RMuc/AAAAAAAAAABIvu4qwQ/NvbVVkv5eIUI+W2ZmZmZm1j+bAxnWwgjBPgAAAAAAAPA/WP////8fIEA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "8 choices / charge 0.55 / offset 0.37 / seed 0",
+        "count": 8,
+        "charge": 0.55,
+        "seed": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "startingAngle": 1.5480972450961725,
+        "mode": "ticks"
+      },
+      "ticks": 2092,
+      "records": 2093,
+      "eventCount": 85,
+      "winner": 1,
+      "stateSha256": "1db32ca48c0e37bd9009f71e7ac16c29ca1c8d4bc48a0b15069834c9c9f6442d",
+      "impactSha256": "d54ddfbd186aed4190f60d6f1c9d716215ce66e978c75d2cbc065b0c12e7bf08",
+      "headless": {
+        "ticks": 2092,
+        "duration": 8.716666666666667,
+        "settled": true,
+        "selectedIndex": 1,
+        "state": "AAAAAABYoEACx4C41DXnPwAAAAAAAAAAyoA5DI1Nkb3nJlldcEYRPn2IiIiIiNY/JXVDvZ0mLz8AAAAAAADwP4bPtcfUNec/QPdu92+D3L40qONlps+hvXCv6MVOAhA+OURERERE1j8fOYXMqyswPwAAAAAAAPA/L+7u7u5uIUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "8 choices / charge 0.55 / offset 0.37 / seed 1",
+        "count": 8,
+        "charge": 0.55,
+        "seed": [
+          4294967295,
+          2147483648,
+          0,
+          42
+        ],
+        "startingAngle": 1.5480972450961725,
+        "mode": "ticks"
+      },
+      "ticks": 1953,
+      "records": 1954,
+      "eventCount": 83,
+      "winner": 0,
+      "stateSha256": "dd8e26b76ec2c48cccefd80d4d6eb0d64910c60ab432a1b22eacbb30bb495377",
+      "impactSha256": "3d89cf5f8528f05ea2cb285ce96c40cadfa7e3a8bb9a4fceac8181fd46ec7cb7",
+      "headless": {
+        "ticks": 1953,
+        "duration": 8.1375,
+        "settled": true,
+        "selectedIndex": 0,
+        "state": "AAAAAACEnkDnHgJzUEfyPwAAAAAAAAAAWpatnpDHzzowOYkImSwsO5+qqqqqqtY/qrE01MqyHT4AAAAAAADwP+ceAnNQR/I/AAAAAAAAAADlGnSAF2jGOh8Gcxjo5zs7W2ZmZmZm1j+EWc5nT9UePgAAAAAAAPA/vGVmZmZGIEA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "8 choices / charge 1 / offset 0 / seed 0",
+        "count": 8,
+        "charge": 1,
+        "seed": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "startingAngle": 1.1780972450961724,
+        "mode": "ticks"
+      },
+      "ticks": 4446,
+      "records": 4447,
+      "eventCount": 282,
+      "winner": 6,
+      "stateSha256": "1910695032a3d6608bd8fd9b7587603597cc7fa37566c172d0eb9f6c85cd83a3",
+      "impactSha256": "a1df1ba9e0392aee0d2b70caa828d1ab8e63b1a84e6d9ab0ab49f847f52104ad",
+      "headless": {
+        "ticks": 4446,
+        "duration": 18.525,
+        "settled": true,
+        "selectedIndex": 6,
+        "state": "AAAAAABesUBjewoLhrcEQAAAAAAAAAAA9IWl78tVhDwTS1q26YMIvX2IiIiIiNY/lHqCAOkvqj4AAAAAAAAcQGN7CguGtwRAAAAAAAAAAACkdWpTAEWXPJSVTlJ8hge9OURERERE1j9VWTx4FDCrPgAAAAAAABxAD2hmZmaGMkA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "8 choices / charge 1 / offset 0 / seed 1",
+        "count": 8,
+        "charge": 1,
+        "seed": [
+          4294967295,
+          2147483648,
+          0,
+          42
+        ],
+        "startingAngle": 1.1780972450961724,
+        "mode": "ticks"
+      },
+      "ticks": 4916,
+      "records": 4917,
+      "eventCount": 238,
+      "winner": 4,
+      "stateSha256": "5463de65c54dcb53903390f515277f10135cf71ccee80dd53b727e4e9349a726",
+      "impactSha256": "1d7cdf95079d11b616a951f90f3158cf1408326d1479f89d154c48d14af72d6b",
+      "headless": {
+        "ticks": 4916,
+        "duration": 20.483333333333334,
+        "settled": true,
+        "selectedIndex": 4,
+        "state": "AAAAAAA0s0BU0xhLgJcSQAAAAAAAAAAAe0FxyQix0r039IxdBfpMPn2IiIiIiNY/xFovY7Tv7zsAAAAAAAAQQFTTGEuAlxJAAAAAAAAAAAAnA3Gm4+zgvYLLgnEeQUk+OURERERE1j+L8IesDpTwOwAAAAAAABBAJL+7u7t7NEA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "8 choices / charge 1 / offset 0.37 / seed 0",
+        "count": 8,
+        "charge": 1,
+        "seed": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "startingAngle": 1.5480972450961725,
+        "mode": "ticks"
+      },
+      "ticks": 4544,
+      "records": 4545,
+      "eventCount": 265,
+      "winner": 6,
+      "stateSha256": "2cec6eea4b11193b6b3d28d5f52840797ec2181a95f52100f415c69c55a09280",
+      "impactSha256": "d168241359c0f1396c5a1bb193192ac26034e51f972ebd6d3e4fc0bbd2a0cc6f",
+      "headless": {
+        "ticks": 4544,
+        "duration": 18.933333333333334,
+        "settled": true,
+        "selectedIndex": 6,
+        "state": "AAAAAADAsUDkFf43qU8IQAAAAAAAAAAAfvCWnereDri+Yv+/cGJjuH2IiIiIiNY/Ya/fhbWBQz0AAAAAAAAcQM5EzRKpTwhAqN+kAuJuET8Kg5hMAvsHuF4oBY3XpHa4OURERERE1j9gQvRWh0BEPQAAAAAAABxA8/Du7u7uMkA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "8 choices / charge 1 / offset 0.37 / seed 1",
+        "count": 8,
+        "charge": 1,
+        "seed": [
+          4294967295,
+          2147483648,
+          0,
+          42
+        ],
+        "startingAngle": 1.5480972450961725,
+        "mode": "ticks"
+      },
+      "ticks": 4387,
+      "records": 4388,
+      "eventCount": 248,
+      "winner": 3,
+      "stateSha256": "e17d4e821eb1996655022506941e21afa876a67ba50f040786afac06d70f41e4",
+      "impactSha256": "f1821e59dee31c943cbc6e52d54797b9a8c7eb6b20a461849f772e9458a74474",
+      "headless": {
+        "ticks": 4387,
+        "duration": 18.279166666666665,
+        "settled": true,
+        "selectedIndex": 3,
+        "state": "AAAAAAAjsUCRyfvprPwUQAAAAAAAAAAApAgLO+tFIzmARb8HGAZxuZ+qqqqqqtY/OuGX9b6Zlz0AAAAAAAAQQJHJ++ms/BRAAAAAAAAAAAAa/E4Tf7AkOdISXJom5GQ5W2ZmZmZm1j87GPn0nICYPQAAAAAAABBA8nh3d3dHMkA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "40 choices / charge 0 / offset 0 / seed 0",
+        "count": 40,
+        "charge": 0,
+        "seed": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "startingAngle": 1.4922565104551517,
+        "mode": "ticks"
+      },
+      "ticks": 2419,
+      "records": 2420,
+      "eventCount": 411,
+      "winner": 33,
+      "stateSha256": "e912fbf2fdb438b371e852353e70710b966ea967170d8c48d6232e1551cedeeb",
+      "impactSha256": "eee072508548794bc1fa88f3d83fe86559f245468f19f0a6bd2925463303e059",
+      "headless": {
+        "ticks": 2419,
+        "duration": 10.079166666666666,
+        "settled": true,
+        "selectedIndex": 33,
+        "state": "AAAAAADmokAqlVzuWdgEQAAAAAAAAAAA1BLKyVcdwj2uua+68AY4Pp+qqqqqqtY/+AzEdc0zFj0AAAAAAIBAQCqVXO5Z2ARAAAAAAAAAAABgRC5OQi2fPX+zcyzL5UA+W2ZmZmZm1j/WOGb1/QwXPQAAAAAAgEBAoIeIiIgoJEA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "40 choices / charge 0 / offset 0 / seed 1",
+        "count": 40,
+        "charge": 0,
+        "seed": [
+          4294967295,
+          2147483648,
+          0,
+          42
+        ],
+        "startingAngle": 1.4922565104551517,
+        "mode": "ticks"
+      },
+      "ticks": 2299,
+      "records": 2300,
+      "eventCount": 351,
+      "winner": 29,
+      "stateSha256": "f8397e8f5b58a0e60cfbd2163dd857a53363c6e3416f6262fdaf98af869aa86f",
+      "impactSha256": "42cc76c24c5ef7dc82dc6c0f88ded41901806bc67a994470a01e30c16dbc3d3f",
+      "headless": {
+        "ticks": 2299,
+        "duration": 9.579166666666666,
+        "settled": true,
+        "selectedIndex": 29,
+        "state": "AAAAAAD2oUDWNj7xO+AJQAAAAAAAAAAAFtEzTYLF2716gD0JJYYyPn2IiIiIiNY/3l0s3i05aDwAAAAAAAA9QNY2PvE74AlAAAAAAAAAAAAXGVIJaIzfvXBhKzsp3eC9OURERERE1j93Lw98IyZpPAAAAAAAAD1AsIeIiIgoI0A="
+      }
+    },
+    {
+      "scenario": {
+        "id": "40 choices / charge 0 / offset 0.37 / seed 0",
+        "count": 40,
+        "charge": 0,
+        "seed": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "startingAngle": 1.8622565104551518,
+        "mode": "ticks"
+      },
+      "ticks": 2440,
+      "records": 2441,
+      "eventCount": 433,
+      "winner": 30,
+      "stateSha256": "7cdd20cecc8c185b0d77275428f59edd515e77ba90b809a3cc5e8935630dbd17",
+      "impactSha256": "0b6ec2b463cdc55f5fa56e9a9543a8ee88a3ca5ff0e8f2b90fc73c664199dc23",
+      "headless": {
+        "ticks": 2440,
+        "duration": 10.166666666666666,
+        "settled": true,
+        "selectedIndex": 30,
+        "state": "AAAAAAAQo0ATtVvWsKAIQAAAAAAAAAAAnov44dhU6j2sE7UotQ42vp+qqqqqqtY/MZnv7grcxzwAAAAAAAA+QBO1W9awoAhAAAAAAAAAAABALX0+khnsPdBY3jlXOi8+W2ZmZmZm1j+c3MR2ccXIPAAAAAAAAD5AalRVVVVVJEA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "40 choices / charge 0 / offset 0.37 / seed 1",
+        "count": 40,
+        "charge": 0,
+        "seed": [
+          4294967295,
+          2147483648,
+          0,
+          42
+        ],
+        "startingAngle": 1.8622565104551518,
+        "mode": "ticks"
+      },
+      "ticks": 2390,
+      "records": 2391,
+      "eventCount": 401,
+      "winner": 26,
+      "stateSha256": "a7741a30039eae333785e39225a64f7a06e4fb84d5cbd825299ce9b2aadea60e",
+      "impactSha256": "7688db470e7b3dcb6332b8f5001f67ac1fa37404b23730b27b9ec5ca4eeb2e55",
+      "headless": {
+        "ticks": 2390,
+        "duration": 9.958333333333334,
+        "settled": true,
+        "selectedIndex": 26,
+        "state": "AAAAAACsokCmks6YbqcNQAAAAAAAAAAAqY9KXNLW6T3SNtYoVQk2vp+qqqqqqtY/Y+f5Xl80yjwAAAAAAAA6QA4WoaNupw1A3GlaY7ZKBL855nlg+qDrPYZ3lZ7MxC0+W2ZmZmZm1j+xb6p9tjTLPAAAAAAAADpAxqmqqqrqI0A="
+      }
+    },
+    {
+      "scenario": {
+        "id": "40 choices / charge 0.55 / offset 0 / seed 0",
+        "count": 40,
+        "charge": 0.55,
+        "seed": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "startingAngle": 1.4922565104551517,
+        "mode": "ticks"
+      },
+      "ticks": 2637,
+      "records": 2638,
+      "eventCount": 516,
+      "winner": 10,
+      "stateSha256": "cfc3c9a0ee716e59b7e812e06586b5d6e5b86bc6f1d6aaf0780e2c2379be0f6e",
+      "impactSha256": "b24ca817dddc03ef43f158a940d2e33e03ec6d5a085885e3613e2cb473c46f4f",
+      "headless": {
+        "ticks": 2637,
+        "duration": 10.9875,
+        "settled": true,
+        "selectedIndex": 10,
+        "state": "AAAAAACapEBIoCgJn+EYQAAAAAAAAAAAQr73nDppzD1Hf1vTXPpZPn2IiIiIiNY/YH8Shpql7zwAAAAAAAAkQEiLMh2f4RhA8IxpUEzJEr/+lBSEBaHOvVToqDj8w18+OURERERE1j9MYsxNl23wPAAAAAAAACRAkpiZmZn5JUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "40 choices / charge 0.55 / offset 0 / seed 1",
+        "count": 40,
+        "charge": 0.55,
+        "seed": [
+          4294967295,
+          2147483648,
+          0,
+          42
+        ],
+        "startingAngle": 1.4922565104551517,
+        "mode": "ticks"
+      },
+      "ticks": 2505,
+      "records": 2506,
+      "eventCount": 459,
+      "winner": 7,
+      "stateSha256": "0803d9928da3e3691d071ef84b229a747b187bce83b39d8d29d15a23b043d53d",
+      "impactSha256": "f20c0dfb57a3c5b3ae1b07b963dba7a4514f6f56eddb24b1c3b75afbe7bad90a",
+      "headless": {
+        "ticks": 2505,
+        "duration": 10.4375,
+        "settled": true,
+        "selectedIndex": 7,
+        "state": "AAAAAACSo0DPnwLGkx7aPwAAAAAAAAAAayGdouVs6z1cqW1AKaItPn2IiIiIiNY/nNzEdnHFyDwAAAAAAAAcQM+fAsaTHto/AAAAAAAAAAAWYWCSqQboPfpBt3qyQk0+OURERERE1j9O938uw7fJPAAAAAAAABxACP/////fJEA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "40 choices / charge 0.55 / offset 0.37 / seed 0",
+        "count": 40,
+        "charge": 0.55,
+        "seed": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "startingAngle": 1.8622565104551518,
+        "mode": "ticks"
+      },
+      "ticks": 2508,
+      "records": 2509,
+      "eventCount": 483,
+      "winner": 8,
+      "stateSha256": "4331883b1ca95f087e1355eeaf99f52c7c919250b737d2326d5d9c357e3ba8ae",
+      "impactSha256": "74425c33e70769dcc27b7e9f14a9b7fb480f41926bcc0c141821912250f28497",
+      "headless": {
+        "ticks": 2508,
+        "duration": 10.45,
+        "settled": true,
+        "selectedIndex": 8,
+        "state": "AAAAAACYo0AdknIplxHQPwAAAAAAAAAAReFZ8yXI7T0wKBoW7uoIvp+qqqqqqtY/jNVzUidTzTwAAAAAAAAgQB2ScimXEdA/AAAAAAAAAABg++UjAcHsPWkK1wGDCUU+W2ZmZmZm1j9xWr9VBHLOPAAAAAAAACBAcGVmZmbmJEA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "40 choices / charge 0.55 / offset 0.37 / seed 1",
+        "count": 40,
+        "charge": 0.55,
+        "seed": [
+          4294967295,
+          2147483648,
+          0,
+          42
+        ],
+        "startingAngle": 1.8622565104551518,
+        "mode": "ticks"
+      },
+      "ticks": 2398,
+      "records": 2399,
+      "eventCount": 437,
+      "winner": 5,
+      "stateSha256": "775ebe4fe760407c8e34df211a1ce8f8ffa7146bc004b698119995c2b91ab900",
+      "impactSha256": "39fb745c74c34e240eb5781e543a711c009d991933d8b8c17d64146b3ed6cfb7",
+      "headless": {
+        "ticks": 2398,
+        "duration": 9.991666666666667,
+        "settled": true,
+        "selectedIndex": 5,
+        "state": "AAAAAAC8okCOvEZ0nhznPwAAAAAAAAAAO+RlvNgd6z3wYPwahYYTvn2IiIiIiNY/dFTiVFezyjwAAAAAAAAUQNBsR7CeHOc/kPYTn1Ig/L7+P6rt33bqPdmGtlLJAkI+OURERERE1j9UAiJ+iLjLPAAAAAAAABRA0rq7u7v7I0A="
+      }
+    },
+    {
+      "scenario": {
+        "id": "40 choices / charge 1 / offset 0 / seed 0",
+        "count": 40,
+        "charge": 1,
+        "seed": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "startingAngle": 1.4922565104551517,
+        "mode": "ticks"
+      },
+      "ticks": 4765,
+      "records": 4766,
+      "eventCount": 1361,
+      "winner": 23,
+      "stateSha256": "3aee46ab1e21be89d6ec253f003ce2016d8a3c646b18967ad8a47041983e69c0",
+      "impactSha256": "df80464b511beda9a4efd94b52fb39c88bd3dbee71536f235d633e1d397fd91f",
+      "headless": {
+        "ticks": 4765,
+        "duration": 19.854166666666668,
+        "settled": true,
+        "selectedIndex": 23,
+        "state": "AAAAAACdskAQ8kpXQ7YQQAAAAAAAAAAAku99/0F16z1vfDdhxWM2vp+qqqqqqtY/dFTiVFezyjwAAAAAAAA3QH+womNDthBAeifkEIUkF79u+FdLpDftPdvw61079zA+W2ZmZmZm1j9UAiJ+iLjLPAAAAAAAADdAza2qqqraM0A="
+      }
+    },
+    {
+      "scenario": {
+        "id": "40 choices / charge 1 / offset 0 / seed 1",
+        "count": 40,
+        "charge": 1,
+        "seed": [
+          4294967295,
+          2147483648,
+          0,
+          42
+        ],
+        "startingAngle": 1.4922565104551517,
+        "mode": "ticks"
+      },
+      "ticks": 4669,
+      "records": 4670,
+      "eventCount": 1263,
+      "winner": 6,
+      "stateSha256": "ba312cbd88e8cc76f3152475ed348309de02b1f94b8ee34a947b7569ec8661d2",
+      "impactSha256": "bb49623648e83c7b882dd66b09d77f4afc1100a1e1651e4de429875eadb666b9",
+      "headless": {
+        "ticks": 4669,
+        "duration": 19.454166666666666,
+        "settled": true,
+        "selectedIndex": 6,
+        "state": "AAAAAAA9skC5jG7K6hXiPwAAAAAAAAAAntQZ+4bK6z31gM9kZ2M2vp+qqqqqqtY/dFTiVFezyjwAAAAAAAAYQGTxJAnrFeI/DO9dMH9lDb94DJ0xrojtPfvFHEMUejE+W2ZmZmZm1j9UAiJ+iLjLPAAAAAAAABhAzUZERER0M0A="
+      }
+    },
+    {
+      "scenario": {
+        "id": "40 choices / charge 1 / offset 0.37 / seed 0",
+        "count": 40,
+        "charge": 1,
+        "seed": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "startingAngle": 1.8622565104551518,
+        "mode": "ticks"
+      },
+      "ticks": 4680,
+      "records": 4681,
+      "eventCount": 1338,
+      "winner": 21,
+      "stateSha256": "d4f5c2d8af8bf69e9352abe40d028438b2ad16fe2c4c096480b03ab1c4986db8",
+      "impactSha256": "418a6b240c51a96b1d8f5845871b75de9bcb461483f87c1a00ba4c3824ca74af",
+      "headless": {
+        "ticks": 4680,
+        "duration": 19.5,
+        "settled": true,
+        "selectedIndex": 21,
+        "state": "AAAAAABIskAv+3pSlPcRQAAAAAAAAAAA6NscSfH1xD2AVN2smfRQvn2IiIiIiNY/rzzFjF4hpDwAAAAAAAA1QC/7elKU9xFAAAAAAAAAAABRgfiSiMfcPfeFZOrC9FC+OURERERE1j/8JOM0SuakPAAAAAAAADVA0wIAAACAM0A="
+      }
+    },
+    {
+      "scenario": {
+        "id": "40 choices / charge 1 / offset 0.37 / seed 1",
+        "count": 40,
+        "charge": 1,
+        "seed": [
+          4294967295,
+          2147483648,
+          0,
+          42
+        ],
+        "startingAngle": 1.8622565104551518,
+        "mode": "ticks"
+      },
+      "ticks": 4576,
+      "records": 4577,
+      "eventCount": 1244,
+      "winner": 4,
+      "stateSha256": "331a3c223aaf9499ef8ab403ba062775ced83c110af2b24e95f8cf90b99205d1",
+      "impactSha256": "c100b76fc3a73d407e072a1d1a9576ba7ac6cd9b3d8b86319bd5b6a34e4837be",
+      "headless": {
+        "ticks": 4576,
+        "duration": 19.066666666666666,
+        "settled": true,
+        "selectedIndex": 4,
+        "state": "AAAAAADgsUCuYKSDZiPsPwAAAAAAAAAANAHMiD1Z7T0Q9WsSnS8Ovn2IiIiIiNY/XvdQIKZPyDwAAAAAAAAQQJ7RX1BnI+w/YHEZPPf9F7+fayIy6m7sPRTWRedsVkQ+OURERERE1j/lnlqMdz3JPAAAAAAAABBAQxMRERERM0A="
+      }
+    },
+    {
+      "scenario": {
+        "id": "50 choices / charge 0 / offset 0 / seed 0",
+        "count": 50,
+        "charge": 0,
+        "seed": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "startingAngle": 1.5079644737231006,
+        "mode": "ticks"
+      },
+      "ticks": 2727,
+      "records": 2728,
+      "eventCount": 593,
+      "winner": 8,
+      "stateSha256": "b0a88f73c28821ea1a681c89f2fd65d8b3bfd09ef34be710ee2b380b9400b159",
+      "impactSha256": "62645e83e3bb30156fba1219da0bee9f828a145631ccc92e0264a35e1163ffdb",
+      "headless": {
+        "ticks": 2727,
+        "duration": 11.3625,
+        "settled": true,
+        "selectedIndex": 8,
+        "state": "AAAAAABOpUCoG+QPOCHgPwAAAAAAAAAAhzO8b08rzz0QNIP2vlwtPn2IiIiIiNY/FRiS+bNcST0AAAAAAAAgQKgb5A84IeA/AAAAAAAAAAB+mothIX/FPSbqQVI0Vjw+OURERERE1j+vPmhbzVRKPQAAAAAAACBAh5iZmZm5JkA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "50 choices / charge 0 / offset 0 / seed 1",
+        "count": 50,
+        "charge": 0,
+        "seed": [
+          4294967295,
+          2147483648,
+          0,
+          42
+        ],
+        "startingAngle": 1.5079644737231006,
+        "mode": "ticks"
+      },
+      "ticks": 2746,
+      "records": 2747,
+      "eventCount": 583,
+      "winner": 49,
+      "stateSha256": "8d225e280d6b759bc7a0267244fcb03cbd9b48e8e0a2948ed4dc3be7ed86346a",
+      "impactSha256": "e6d644653a77b846564efc5e2c090524921b2f236acca190e86617df70aea59c",
+      "headless": {
+        "ticks": 2746,
+        "duration": 11.441666666666666,
+        "settled": true,
+        "selectedIndex": 49,
+        "state": "AAAAAAB0pUDx5rFX1in6PwAAAAAAAAAALx0l8aPuuT1CiUn9ETw+Pn2IiIiIiNY/gVhgtmFWSz0AAAAAAIBIQPHmsVfWKfo/AAAAAAAAAAD2lluccMWhvYH6DpNGYkM+OURERERE1j8avMnHzWFMPQAAAAAAgEhADiEiIiLiJkA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "50 choices / charge 0 / offset 0.37 / seed 0",
+        "count": 50,
+        "charge": 0,
+        "seed": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "startingAngle": 1.8779644737231007,
+        "mode": "ticks"
+      },
+      "ticks": 2578,
+      "records": 2579,
+      "eventCount": 554,
+      "winner": 6,
+      "stateSha256": "5bc3fcdd21dca72c77b3f8b8c783723b1faa27224758f61b78277d939b9bf0e4",
+      "impactSha256": "b19fa8914d27bd0275996743168d84468dc50788a3301f4f606c0f19263eb8da",
+      "headless": {
+        "ticks": 2578,
+        "duration": 10.741666666666667,
+        "settled": true,
+        "selectedIndex": 6,
+        "state": "AAAAAAAkpEB2mZBTby3oPwAAAAAAAAAAetZl6nB9wz0eAG2rmH04Pp+qqqqqqtY/HJPIcmLUSj0AAAAAAAAYQI9XlmhvLeg/mPvjN2K1874EJkjsrMqjPbarwCB2a0E+W2ZmZmZm1j/jQ2jZ1tpLPQAAAAAAABhAvbq7u7t7JUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "50 choices / charge 0 / offset 0.37 / seed 1",
+        "count": 50,
+        "charge": 0,
+        "seed": [
+          4294967295,
+          2147483648,
+          0,
+          42
+        ],
+        "startingAngle": 1.8779644737231007,
+        "mode": "ticks"
+      },
+      "ticks": 2666,
+      "records": 2667,
+      "eventCount": 561,
+      "winner": 48,
+      "stateSha256": "a99e1ed6e42fe9249c24403f4d902aa4bd55f3237e3ca59b8b61714bcce6e3fa",
+      "impactSha256": "af787db087c51b3c8e1f222b475df44f82a4ad0f6dacd7b2db9420613c15333c",
+      "headless": {
+        "ticks": 2666,
+        "duration": 11.108333333333333,
+        "settled": true,
+        "selectedIndex": 48,
+        "state": "AAAAAADUpEBju1Jd1iv8PwAAAAAAAAAAVNosOJuk0D22mlfRcMMfPp+qqqqqqtY/HJPIcmLUSj0AAAAAAABIQGO7Ul3WK/w/AAAAAAAAAAAEumvZuz/LPa4eL+TsmzU+W2ZmZmZm1j/jQ2jZ1tpLPQAAAAAAAEhAbnZ3d3c3JkA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "50 choices / charge 0.55 / offset 0 / seed 0",
+        "count": 50,
+        "charge": 0.55,
+        "seed": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "startingAngle": 1.5079644737231006,
+        "mode": "ticks"
+      },
+      "ticks": 2978,
+      "records": 2979,
+      "eventCount": 710,
+      "winner": 29,
+      "stateSha256": "12fbda3d41c5128b281e55d124d13aed96ca939a8299f61d266e425ff858e98e",
+      "impactSha256": "40de21a4eadb969b6d2dd7cf5000f36d7aea9712a5caa17c922184168a0e2851",
+      "headless": {
+        "ticks": 2978,
+        "duration": 12.408333333333333,
+        "settled": true,
+        "selectedIndex": 29,
+        "state": "AAAAAABEp0DY656W7JcQQAAAAAAAAAAAksJAga9xyD00n6v3llMyPp+qqqqqqtY/GrzJx81hTD0AAAAAAAA9QNjrnpbslxBAAAAAAAAAAAAY1J28Wii6PSaxx1dc1z0+W2ZmZmZm1j8BryfYcXdNPQAAAAAAAD1Azg8RERHRKEA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "50 choices / charge 0.55 / offset 0 / seed 1",
+        "count": 50,
+        "charge": 0.55,
+        "seed": [
+          4294967295,
+          2147483648,
+          0,
+          42
+        ],
+        "startingAngle": 1.5079644737231006,
+        "mode": "ticks"
+      },
+      "ticks": 2896,
+      "records": 2897,
+      "eventCount": 658,
+      "winner": 26,
+      "stateSha256": "93748cd1ffd306f32a001537a49a5d17bc626b5554e480fb1123a9e0526db040",
+      "impactSha256": "bbb040e55406b88f89fba09500c149e010b52167078fc8297f597cd21f92c6b1",
+      "headless": {
+        "ticks": 2896,
+        "duration": 12.066666666666666,
+        "settled": true,
+        "selectedIndex": 26,
+        "state": "AAAAAACgpkBKQJqMExoSQAAAAAAAAAAA3IwHkYo/pD2SGjP+9ec/Pn2IiIiIiNY/GFAqudypRj0AAAAAAAA6QKQbTKgTGhJAKF3To732Gb+l4PQA+sW5vZ8DuPKbzkI+OURERERE1j/1U/UckIdHPQAAAAAAADpA/CAiIiIiKEA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "50 choices / charge 0.55 / offset 0.37 / seed 0",
+        "count": 50,
+        "charge": 0.55,
+        "seed": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "startingAngle": 1.8779644737231007,
+        "mode": "ticks"
+      },
+      "ticks": 2468,
+      "records": 2469,
+      "eventCount": 569,
+      "winner": 30,
+      "stateSha256": "5bdde1f9a992508928f29eb5d3cf595e68e05062a36b15c579a5b93ecbffa124",
+      "impactSha256": "21c17734846b802dfe019da8635c9b80cee5421424287f6b7e714256ef1d25d9",
+      "headless": {
+        "ticks": 2468,
+        "duration": 10.283333333333333,
+        "settled": true,
+        "selectedIndex": 30,
+        "state": "AAAAAABIo0B6SJE8ZBcQQAAAAAAAAAAA4m/y710npD3stA9/wp4/Pn2IiIiIiNY/2fuT0z7QOj0AAAAAAAA+QL59UUJkFxBAuP5Nu8eQ9b6eJl5eQIC5vfJP35mGpEI+OURERERE1j/2arG8itY7PQAAAAAAAD5AFBARERGRJEA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "50 choices / charge 0.55 / offset 0.37 / seed 1",
+        "count": 50,
+        "charge": 0.55,
+        "seed": [
+          4294967295,
+          2147483648,
+          0,
+          42
+        ],
+        "startingAngle": 1.8779644737231007,
+        "mode": "ticks"
+      },
+      "ticks": 2455,
+      "records": 2456,
+      "eventCount": 537,
+      "winner": 26,
+      "stateSha256": "71d58129ea0f7ba532117eb31e5ee0ad75d32b0d02f4f63c1fc51a8099eb9148",
+      "impactSha256": "ea582d112704795717027cba8a5bffb003032cd26c7cfcc7b207ba0673f2d220",
+      "headless": {
+        "ticks": 2455,
+        "duration": 10.229166666666666,
+        "settled": true,
+        "selectedIndex": 26,
+        "state": "AAAAAAAuo0BBM1BwAhoSQAAAAAAAAAAA2CIddU2Ryj3ZAzDqewQ1Pp+qqqqqqtY/ZRO9WhnkSD0AAAAAAAA6QAZGTHkCGhJA7u2kMKPYEL9Y6U9l7zW7PQlX6wvM1EA+W2ZmZmZm1j8XxKn0ltdJPQAAAAAAADpAa1RVVVV1JEA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "50 choices / charge 1 / offset 0 / seed 0",
+        "count": 50,
+        "charge": 1,
+        "seed": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "startingAngle": 1.5079644737231006,
+        "mode": "ticks"
+      },
+      "ticks": 4751,
+      "records": 4752,
+      "eventCount": 1653,
+      "winner": 26,
+      "stateSha256": "979fabe4b7fec6e8c44c412c0e2eb2adc170cfde4f2ffdb58ee2c1555bce21c8",
+      "impactSha256": "dfbc4cb541af735597213a208f241254916a656dc937b8409afaaf61bd90b0cc",
+      "headless": {
+        "ticks": 4751,
+        "duration": 19.795833333333334,
+        "settled": true,
+        "selectedIndex": 26,
+        "state": "AAAAAACPskCX2Yzj7BkSQAAAAAAAAAAAqoByi68AyD1iMTfl5scxPn2IiIiIiNY/S/ewZLiEUz0AAAAAAAA6QJfZjOPsGRJAAAAAAAAAAACUusw1bOy5PdrUyKrxDz0+OURERERE1j/GgqKqp0NUPQAAAAAAADpA1767u7vLM0A="
+      }
+    },
+    {
+      "scenario": {
+        "id": "50 choices / charge 1 / offset 0 / seed 1",
+        "count": 50,
+        "charge": 1,
+        "seed": [
+          4294967295,
+          2147483648,
+          0,
+          42
+        ],
+        "startingAngle": 1.5079644737231006,
+        "mode": "ticks"
+      },
+      "ticks": 4775,
+      "records": 4776,
+      "eventCount": 1561,
+      "winner": 10,
+      "stateSha256": "59e10ddd5b116cf7855804acd53c4c6f08300647c18084d2df9a7b35a40d8647",
+      "impactSha256": "39987391dbb76c223d6b87708b3bd3ff114ef0a7d3c1d1430a289233543cfe81",
+      "headless": {
+        "ticks": 4775,
+        "duration": 19.895833333333332,
+        "settled": true,
+        "selectedIndex": 10,
+        "state": "AAAAAACnskCSPDcSyC/QPwAAAAAAAAAAWs/XNby0uT3eiHxD6aU9Pn2IiIiIiNY/FRiS+bNcST0AAAAAAAAkQJI8NxLIL9A/AAAAAAAAAACcT8OHW+agvRDGs5fICEM+OURERERE1j+vPmhbzVRKPQAAAAAAACRAg1hVVVXlM0A="
+      }
+    },
+    {
+      "scenario": {
+        "id": "50 choices / charge 1 / offset 0.37 / seed 0",
+        "count": 50,
+        "charge": 1,
+        "seed": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "startingAngle": 1.8779644737231007,
+        "mode": "ticks"
+      },
+      "ticks": 5394,
+      "records": 5395,
+      "eventCount": 1822,
+      "winner": 21,
+      "stateSha256": "011ce6942511fba3fda8ae4e0b0a28c93eb1cf4cc58944feb1a8ac0762ef0f9f",
+      "impactSha256": "794870743de2595cca6a060b72146393b30bb6294b587a7dd934a50f945211c4",
+      "headless": {
+        "ticks": 5394,
+        "duration": 22.475,
+        "settled": true,
+        "selectedIndex": 21,
+        "state": "AAAAAAAStUDkNz28Jp4UQAAAAAAAAAAAxUrggU924L1AZPIkUrvPPX2IiIiIiNY/LUUijAZXsjwAAAAAAAA1QFQeqMUmnhRAQAwrEXCoAb+XMdmqDmHfvVC7NDCq5zi+OURERERE1j+6iaWPbgqzPAAAAAAAADVADJ+ZmZl5NkA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "50 choices / charge 1 / offset 0.37 / seed 1",
+        "count": 50,
+        "charge": 1,
+        "seed": [
+          4294967295,
+          2147483648,
+          0,
+          42
+        ],
+        "startingAngle": 1.8779644737231007,
+        "mode": "ticks"
+      },
+      "ticks": 4848,
+      "records": 4849,
+      "eventCount": 1589,
+      "winner": 44,
+      "stateSha256": "15e3ff3dc730763eaffeeb9e003ae996c69a48537ada2f748eaa7f81fb68245b",
+      "impactSha256": "04c5ba6781033b2541fc6ac0e7a036b9c6428b6ecb8ecafbf0e9ebfb38d99a0e",
+      "headless": {
+        "ticks": 4848,
+        "duration": 20.2,
+        "settled": true,
+        "selectedIndex": 44,
+        "state": "AAAAAADwskBVWSu/gBsCQAAAAAAAAAAArBiEP7ElxD1j5icSnJs5Pn2IiIiIiNY/GrzJx81hTD0AAAAAAABGQENAduOAGwJAFDlRPxwDEb8cfPWfANCjPYkmJhOMK0I+OURERERE1j8BryfYcXdNPQAAAAAAAEZAqzYzMzMzNEA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "2 choices / mixed frame batches",
+        "count": 2,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 0,
+        "mode": "frames"
+      },
+      "ticks": 2240,
+      "records": 299,
+      "eventCount": 23,
+      "winner": 1,
+      "stateSha256": "93a3eff8c634a4091d9d099a31827ff63b6eee605e4c53ba42efd6f54caddd5f",
+      "impactSha256": "d9c1517053b59c44cc3ef0f1b4ad228866223e8330184b5e13c8bd6e1f2e8de7",
+      "headless": {
+        "ticks": 2211,
+        "duration": 9.2125,
+        "settled": true,
+        "selectedIndex": 1,
+        "state": "AAAAAABGoUCeD/U3pHsIQAAAAAAAAAAAh2spuSGCZLUEuCb96GOttX2IiIiIiNY/lkUEXeo/cTwAAAAAAAAAAJ4P9TekewhAAAAAAAAAAABKvY8mBHdhtXZ6jK/s5se1OURERERE1j9pKeILqOhxPAAAAAAAAAAA+svMzMxsIkA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "3 choices / mixed frame batches",
+        "count": 3,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 0.5235987755982989,
+        "mode": "frames"
+      },
+      "ticks": 2240,
+      "records": 299,
+      "eventCount": 31,
+      "winner": 2,
+      "stateSha256": "b8c5114cef349eba116389cad96458d3bb699dae8b115e7363cae30a3a4f22a9",
+      "impactSha256": "dfa5e0b3107bf7512acc8bc3354f6cdfd19b684b824d7f708134fda2ec78508a",
+      "headless": {
+        "ticks": 2212,
+        "duration": 9.216666666666667,
+        "settled": true,
+        "selectedIndex": 2,
+        "state": "AAAAAABIoUACeHo5f0cMQAAAAAAAAAAA+E/QIbrjUbQwRET5LKPFNJ+qqqqqqtY/bi2fGx+xJDwAAAAAAAAAAAJ4ejl/RwxAAAAAAAAAAADWEeu9NARdtPixByqoWsE0W2ZmZmZm1j/fg8f8iHslPAAAAAAAAAAAHO7u7u5uIkA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "4 choices / mixed frame batches",
+        "count": 4,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 0.7853981633974483,
+        "mode": "frames"
+      },
+      "ticks": 2195,
+      "records": 293,
+      "eventCount": 50,
+      "winner": 2,
+      "stateSha256": "df88e17a1b010f7dd2908e9da3eae68b49a2ef16841abca9c2efcef0b627855f",
+      "impactSha256": "fa227c9a51aa058220d8c401143060b5652823762f98017e52582fecead8a754",
+      "headless": {
+        "ticks": 2176,
+        "duration": 9.066666666666666,
+        "settled": true,
+        "selectedIndex": 2,
+        "state": "AAAAAAAAoUA9xlD8JFMNQAAAAAAAAAAA2AsK5ikNSjn/OrzqiDWpuZ+qqqqqqtY/a420i1BTpD0AAAAAAAAIQHWJm/kkUw1AAF+I2EdP5D7C1seUXMRPOcYeQZ44h5C5W2ZmZmZm1j9P0ubHJBqlPQAAAAAAAAhAVCEiIiIiIkA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "5 choices / mixed frame batches",
+        "count": 5,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 0.9424777960769379,
+        "mode": "frames"
+      },
+      "ticks": 2195,
+      "records": 293,
+      "eventCount": 55,
+      "winner": 3,
+      "stateSha256": "42c9a66d92dd439ce16d5fa254b6a145565b0d9c72aaf00e2f07a9c0c2b3d9b1",
+      "impactSha256": "5b87aa28009f77df7ec67e6f346aca5885b60af91b954416c1fa30895e8cab74",
+      "headless": {
+        "ticks": 2193,
+        "duration": 9.1375,
+        "settled": true,
+        "selectedIndex": 3,
+        "state": "AAAAAAAioUA1VMIX01AOQAAAAAAAAAAAoN0Z0ELAnDa8uYgRxnNwN32IiIiIiNY/TGLMTZdt8DwAAAAAAAAQQDVUwhfTUA5AAAAAAAAAAABrSL91xtPxtuMHNTu2e3I3OURERERE1j9UpkCJSw7xPAAAAAAAABBAlmVmZmZGIkA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "6 choices / mixed frame batches",
+        "count": 6,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.0471975511965979,
+        "mode": "frames"
+      },
+      "ticks": 2602,
+      "records": 348,
+      "eventCount": 64,
+      "winner": 4,
+      "stateSha256": "0b05cbf41d91d8c4af56c8869f039349e5bbd771957616b8a1e3a7905f9919aa",
+      "impactSha256": "43f3ef76d825f26a966f35655e47f590d851cb338d49e7968b806a312af9b804",
+      "headless": {
+        "ticks": 2601,
+        "duration": 10.8375,
+        "settled": true,
+        "selectedIndex": 4,
+        "state": "AAAAAABSpEAg3g+mXdEMQAAAAAAAAAAArDlhjw7E7T1ECWiVa3ldPn2IiIiIiNY/GOS4F91IYTwAAAAAAAAQQCDeD6Zd0QxAAAAAAAAAAAC4sWnEFenXPUCj1YDMK2Y+OURERERE1j9x4h9P8vFhPAAAAAAAABBAxsvMzMysJUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "7 choices / mixed frame batches",
+        "count": 7,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.121997376282069,
+        "mode": "frames"
+      },
+      "ticks": 2150,
+      "records": 287,
+      "eventCount": 85,
+      "winner": 4,
+      "stateSha256": "67433506f48ff15948ff1adb9fe7eeaac5107d71bf6bee77a8d189666c711b7a",
+      "impactSha256": "597e0fa042fe75d2884a00ab96a47db5fe6745fc98c8225f1bc368d3fb70cd3b",
+      "headless": {
+        "ticks": 2145,
+        "duration": 8.9375,
+        "settled": true,
+        "selectedIndex": 4,
+        "state": "AAAAAADCoEDOGNCGxi4OQAAAAAAAAAAAtpfVhzLfTjoQXxyoDA6fun2IiIiIiNY/IeQdnhMC9D0AAAAAAAAUQM4Y0IbGLg5AAAAAAAAAAACWx+dBM9VQOs7rakod/4g6OURERERE1j87FR8pzcX0PQAAAAAAABRANv/////fIUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "8 choices / mixed frame batches",
+        "count": 8,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.1780972450961724,
+        "mode": "frames"
+      },
+      "ticks": 2195,
+      "records": 293,
+      "eventCount": 89,
+      "winner": 5,
+      "stateSha256": "91b9d51c4270f0ea22ed852251110a0046bbcfb3077bb40e66d65b474c461124",
+      "impactSha256": "038ae2f991e693808849d8637b87eec7f9e3cbc56c22fb6585f4401db77ac063",
+      "headless": {
+        "ticks": 2170,
+        "duration": 9.041666666666666,
+        "settled": true,
+        "selectedIndex": 5,
+        "state": "AAAAAAD0oEA/An2NIXcOQAAAAAAAAAAAmqbbjXVEUrgP+pdK2tnFOJ+qqqqqqtY//ZqPtYbYWj0AAAAAAAAYQBer5n8hdw5AhAJ0a+N5CT+pXHqUh35duJyU5TLOcsE4W2ZmZmZm1j+OqPGfI99bPQAAAAAAABhAiFRVVVUVIkA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "9 choices / mixed frame batches",
+        "count": 9,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.2217304763960306,
+        "mode": "frames"
+      },
+      "ticks": 2555,
+      "records": 341,
+      "eventCount": 99,
+      "winner": 6,
+      "stateSha256": "6ed4b758c0e6579f67fd30b2fd7c241b0b12cfd0e21d2617aec2fef265aec251",
+      "impactSha256": "d55acb661d64bd6fe630ff67137f5f5285db148454798ff5b86d430037aaf648",
+      "headless": {
+        "ticks": 2555,
+        "duration": 10.645833333333334,
+        "settled": true,
+        "selectedIndex": 6,
+        "state": "AAAAAAD2o0AmeaFjVNIMQAAAAAAAAAAA6vfahGeF0r3usJaJYKhjPp+qqqqqqtY/C9UhPwuAhjwAAAAAAAAYQPggiXJU0gxAxKP8qFryC787w4GiIJ7uvXN4+vkINmQ+W2ZmZmZm1j/lXAyPJVyHPAAAAAAAABhAqqmqqqpKJUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "10 choices / mixed frame batches",
+        "count": 10,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.2566370614359172,
+        "mode": "frames"
+      },
+      "ticks": 2105,
+      "records": 281,
+      "eventCount": 127,
+      "winner": 6,
+      "stateSha256": "44b562e8d7f42920cc7fbfe6101b50d6814f93a2afe369610624306a2ec1890b",
+      "impactSha256": "be15b2dc1efb694cd63009f3bb7aa9d099dee1121067a3a6bbb2318d2b2b4688",
+      "headless": {
+        "ticks": 2094,
+        "duration": 8.725,
+        "settled": true,
+        "selectedIndex": 6,
+        "state": "AAAAAABcoEC12AeiNa0NQAAAAAAAAAAA6YaR8gp/O7wZSizRVSSLvH2IiIiIiNY/juih1B5FjT4AAAAAAAAcQLXYB6I1rQ1AAAAAAAAAAAAyq9W4TmI2vEx9S3dcGqK8OURERERE1j/ZhjORcmOOPgAAAAAAABxAcTIzMzNzIUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "11 choices / mixed frame batches",
+        "count": 11,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.2851969946503699,
+        "mode": "frames"
+      },
+      "ticks": 2150,
+      "records": 287,
+      "eventCount": 126,
+      "winner": 7,
+      "stateSha256": "b125702b4a5fb640738a934d75ef74359fe5569c43891e14460acbcb2e1dfbaa",
+      "impactSha256": "b9612ad06921a2b977ec9b4b807851f49a1ba319428382d78fb4aecc693bca9f",
+      "headless": {
+        "ticks": 2140,
+        "duration": 8.916666666666666,
+        "settled": true,
+        "selectedIndex": 7,
+        "state": "AAAAAAC4oED/9BKL880NQAAAAAAAAAAAZmZcOOUb+jnFNgZb5KtMOn2IiIiIiNY/i+042L/52j0AAAAAAAAgQF+NGmPzzQ1AIqanknC8Ej8p3aBhQ9r0OTwubqABAGI6OURERERE1j8WmiXCoQHcPQAAAAAAACBAjVRVVVXVIUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "12 choices / mixed frame batches",
+        "count": 12,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.3089969389957472,
+        "mode": "frames"
+      },
+      "ticks": 2116,
+      "records": 285,
+      "eventCount": 137,
+      "winner": 8,
+      "stateSha256": "a322a14dfcd0f5c4714bc34671cf6076cff8f59f032c4f22f8f176d2f7a9e0ca",
+      "impactSha256": "7b67e1f25e99a82cdf5df11d8042380894244f6dfe335dfa94b5ac4294ea4bbb",
+      "headless": {
+        "ticks": 2116,
+        "duration": 8.816666666666666,
+        "settled": true,
+        "selectedIndex": 8,
+        "state": "AAAAAACIoEBizRXEmtYMQAAAAAAAAAAASjK/WTMqu733RzkVRyk6Pn2IiIiIiNY/k9RSXv83yj4AAAAAAAAgQGLNFcSa1gxAAAAAAAAAAACpht16HG7LvXJo579ZDzg+OURERERE1j97mO/yeTjLPgAAAAAAACBAXCEiIiKiIUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "13 choices / mixed frame batches",
+        "count": 13,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.3291353534418355,
+        "mode": "frames"
+      },
+      "ticks": 2555,
+      "records": 341,
+      "eventCount": 144,
+      "winner": 9,
+      "stateSha256": "c518148290d46cf02e937955495a55984e1d31760ba075340eb540282d101376",
+      "impactSha256": "976fb528cd515c7e4d3f93c1d7889912bd399aad422264f192701b1fa01ceeaf",
+      "headless": {
+        "ticks": 2529,
+        "duration": 10.5375,
+        "settled": true,
+        "selectedIndex": 9,
+        "state": "AAAAAADCo0BJWK3+wIgLQAAAAAAAAAAAno8bWkkB5b12ZxW0QO1jPn2IiIiIiNY/BwcR/D5fjjwAAAAAAAAiQElYrf7AiAtAAAAAAAAAAACplN0W4Ar1vdOZ2DsoRGI+OURERERE1j+QsuaMWoiPPAAAAAAAACJANzIzMzMTJUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "14 choices / mixed frame batches",
+        "count": 14,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.3463968515384828,
+        "mode": "frames"
+      },
+      "ticks": 2701,
+      "records": 363,
+      "eventCount": 178,
+      "winner": 10,
+      "stateSha256": "d0804ad4926db2963b61831eeaa9e610d83e44acbd37a90bc87aecd6a8e8becc",
+      "impactSha256": "f71994ecd77acc7b282df357d1483c35a65ad93e8b7e0b240a4732222b4bccb9",
+      "headless": {
+        "ticks": 2701,
+        "duration": 11.254166666666666,
+        "settled": true,
+        "selectedIndex": 10,
+        "state": "AAAAAAAapUA1gD0orGgKQAAAAAAAAAAARwRePHH20D1wvE9jhf4vPn2IiIiIiNY/b4j2XkqcJD0AAAAAAAAkQDWAPSisaApAAAAAAAAAAAA2PkrlOGPHPUF8UCnA3D4+OURERERE1j92W9d56GUlPQAAAAAAACRADyEiIiKCJkA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "15 choices / mixed frame batches",
+        "count": 15,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.361356816555577,
+        "mode": "frames"
+      },
+      "ticks": 2917,
+      "records": 390,
+      "eventCount": 272,
+      "winner": 11,
+      "stateSha256": "268554058b96fee7ff0113ad5c43c0efb138e6c6f0e1d7450f3aa3494c607d69",
+      "impactSha256": "41b922ecc02513b6b0abb3063fcb2e689ae5fdaec116a7b62d17edb82abe63a8",
+      "headless": {
+        "ticks": 2917,
+        "duration": 12.154166666666667,
+        "settled": true,
+        "selectedIndex": 11,
+        "state": "AAAAAADKpkAJ+TZsWWwJQAAAAAAAAAAA0H3ELlBmjr3+YMvWYMUNvn2IiIiIiNY/Q8QFCRyN4j0AAAAAAAAmQFUj5HBZbAlAUCZmmV6J4b7Y1i+wqX1gPS0LxHBBjRO+OURERERE1j9bYNoclULjPQAAAAAAACZAv+3u7u5OKEA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "16 choices / mixed frame batches",
+        "count": 16,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.3744467859455345,
+        "mode": "frames"
+      },
+      "ticks": 2060,
+      "records": 275,
+      "eventCount": 193,
+      "winner": 11,
+      "stateSha256": "24f91c5339ba82969e5a539dc47334586c0f323f18551203867e401119fe3ea6",
+      "impactSha256": "f22ee70afed7aec5b4152d939b411f0f60a16d42b9fd299d6ba091f8d5d3a0c3",
+      "headless": {
+        "ticks": 2049,
+        "duration": 8.5375,
+        "settled": true,
+        "selectedIndex": 11,
+        "state": "AAAAAAACoECBDcQ4n+AKQAAAAAAAAAAAG8ZRs0CP2rym41bTKwlUvZ+qqqqqqtY/2u3nuQEQwz4AAAAAAAAoQEq/ZCef4ApAwuC4U1lJED8IwmCqYTeovIZwDtuue1u9W2ZmZmZm1j+dep9Ge8rDPgAAAAAAAChAdzIzMzMTIUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "17 choices / mixed frame batches",
+        "count": 17,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.3859967589366735,
+        "mode": "frames"
+      },
+      "ticks": 2070,
+      "records": 277,
+      "eventCount": 198,
+      "winner": 12,
+      "stateSha256": "2fd959b406900752baa612c5c432254bf99333607779af94d11b7bf50dda3cec",
+      "impactSha256": "104824b86e85afe0108f2e6849de96fb975d32d27e0aeef1669b131710ab2989",
+      "headless": {
+        "ticks": 2063,
+        "duration": 8.595833333333333,
+        "settled": true,
+        "selectedIndex": 12,
+        "state": "AAAAAAAeoECppP9V3oAKQAAAAAAAAAAArjlzyezbELxYvafrJFpnvJ+qqqqqqtY/nHYWinOtgD4AAAAAAAAqQKmk/1XegApAAAAAAAAAAACGoEYAeJYJvBp9p5Z/83m8W2ZmZmZm1j+Oh2p4mFCBPgAAAAAAACpAUxARERExIUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "18 choices / mixed frame batches",
+        "count": 18,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.3962634015954636,
+        "mode": "frames"
+      },
+      "ticks": 2060,
+      "records": 275,
+      "eventCount": 209,
+      "winner": 13,
+      "stateSha256": "8bb9ffb5a0c3cfb11a7d2c5abe4db2b6a6d5e8c507e5024a788c4a4b487f6c3c",
+      "impactSha256": "4576d26f563b26a7117245660c1860caf2aaefd32dd6282c31caf16f7cf209b5",
+      "headless": {
+        "ticks": 2048,
+        "duration": 8.533333333333333,
+        "settled": true,
+        "selectedIndex": 13,
+        "state": "AAAAAAAAoEDrbH2VVfAJQAAAAAAAAAAAArkKx9v/TjxhaJUK1RPIvH2IiIiIiNY/3hXJR936tj4AAAAAAAAqQOtsfZVV8AlAAAAAAAAAAADqcOqT8BhcPPq47cAh/8S8OURERERE1j9MfDQOqdu3PgAAAAAAACpAVRARERERIUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "19 choices / mixed frame batches",
+        "count": 19,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.4054493450270127,
+        "mode": "frames"
+      },
+      "ticks": 2105,
+      "records": 281,
+      "eventCount": 218,
+      "winner": 14,
+      "stateSha256": "e022bda4a06a73fe1d3428885bc37b5cdbd3a3c327f9a33522346a6eade4cd5e",
+      "impactSha256": "c2ab971747324c6fc954c197211a58708fd1c43bfb9eeae232036919a25b9da9",
+      "headless": {
+        "ticks": 2103,
+        "duration": 8.7625,
+        "settled": true,
+        "selectedIndex": 14,
+        "state": "AAAAAABuoED7mpWaJFAJQAAAAAAAAAAAYwMDKM53h70meyBdRK0XPp+qqqqqqtY/dprVA9HDEj8AAAAAAAAsQPualZokUAlAAAAAAAAAAADMiEVi8baivYLvyQp+Oxg+W2ZmZmZm1j9q8CxAYXsTPwAAAAAAACxAo2VmZmaGIUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "20 choices / mixed frame batches",
+        "count": 20,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.413716694115407,
+        "mode": "frames"
+      },
+      "ticks": 2060,
+      "records": 275,
+      "eventCount": 227,
+      "winner": 15,
+      "stateSha256": "a0f0940e7f5ba84dc2da5bb4fc295285e25f284356b2bd4222eab6ffe17b4e61",
+      "impactSha256": "567928ecd84cbd8d544f2501a16a6941f692e6fea15b4107f7c246e8d493aae7",
+      "headless": {
+        "ticks": 2057,
+        "duration": 8.570833333333333,
+        "settled": true,
+        "selectedIndex": 15,
+        "state": "AAAAAAASoEBk+SL5WqYIQAAAAAAAAAAAIVN+0xh1oL3l2UywRqgwPp+qqqqqqtY/Lqixt3wt1D4AAAAAAAAuQPSpcAhbpghAYGJyDquxDL9yfKKMrk66vZ0wQwKiDTE+W2ZmZmZm1j9ucQ7q3vLUPgAAAAAAAC5Ah0NEREQkIUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "21 choices / mixed frame batches",
+        "count": 21,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.421196676623954,
+        "mode": "frames"
+      },
+      "ticks": 2015,
+      "records": 269,
+      "eventCount": 234,
+      "winner": 16,
+      "stateSha256": "d7278e93a96cf5aa54915d5b646655e9a713e22f2407020c94ce96823b911370",
+      "impactSha256": "139daaa6aec6b3eb75021d29113f1105acf5edf7b79c755171a8994b6c12f68a",
+      "headless": {
+        "ticks": 2010,
+        "duration": 8.375,
+        "settled": true,
+        "selectedIndex": 16,
+        "state": "AAAAAABon0BjxtG6/AwIQAAAAAAAAAAASE1suU4SuL23+UNkX7g3Pn2IiIiIiNY/nXqfRnvKwz4AAAAAAAAwQGPG0br8DAhAAAAAAAAAAADUXaj+5JrIvUyUSAD86zU+OURERERE1j849f/4FIzEPgAAAAAAADBASf////+/IEA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "22 choices / mixed frame batches",
+        "count": 22,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.4279966607226333,
+        "mode": "frames"
+      },
+      "ticks": 2195,
+      "records": 293,
+      "eventCount": 246,
+      "winner": 17,
+      "stateSha256": "98079309e22be93125e59172ca8d4bcaca2e650cba66d3dd8e724870accde66f",
+      "impactSha256": "693679323c283f71bcc7b30dab4064f7e5b8d60e177ad970bea018505915205e",
+      "headless": {
+        "ticks": 2191,
+        "duration": 9.129166666666666,
+        "settled": true,
+        "selectedIndex": 17,
+        "state": "AAAAAAAeoUAg9M2MMYEHQAAAAAAAAAAAc3Fci4dss727W71BOppCPp+qqqqqqtY/qYSHsWOApT0AAAAAAAAxQCD0zYwxgQdAAAAAAAAAAAB6oHpmSODNvakTynHZ8UI+W2ZmZmZm1j/DVrofuVKmPQAAAAAAADFAUyEiIiJCIkA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "23 choices / mixed frame batches",
+        "count": 23,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.43420534185621,
+        "mode": "frames"
+      },
+      "ticks": 2431,
+      "records": 327,
+      "eventCount": 256,
+      "winner": 18,
+      "stateSha256": "13f2d5b99440e5b31e929d4c0466c92ebd9c20f2d83bac90dedbf0286d7c80bd",
+      "impactSha256": "ada03978d95d0c5e1da8cddb0bd53befa252c45d9c17420756d51a0190686924",
+      "headless": {
+        "ticks": 2431,
+        "duration": 10.129166666666666,
+        "settled": true,
+        "selectedIndex": 18,
+        "state": "AAAAAAD+okCXF++NQv8GQAAAAAAAAAAArY7vn7OT0L2nl00dqcldPp+qqqqqqtY/00ua+OVLuDwAAAAAAAAyQA/4tJ5C/wZAhHcP4QRzD792qtfyVWjovQjMzXvGI14+W2ZmZmZm1j+MeiS0kjm5PAAAAAAAADJAMyEiIiJCJEA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "24 choices / mixed frame batches",
+        "count": 24,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.4398966328953218,
+        "mode": "frames"
+      },
+      "ticks": 2645,
+      "records": 353,
+      "eventCount": 280,
+      "winner": 19,
+      "stateSha256": "3b2a27989f818698b147e2d8a61a964e435b940c105de45c40290121677b8c31",
+      "impactSha256": "9f59b507d03250c3481d6490330da156801ddeaa101d03f37a4c13ee63b027bd",
+      "headless": {
+        "ticks": 2634,
+        "duration": 10.975,
+        "settled": true,
+        "selectedIndex": 19,
+        "state": "AAAAAACUpEC1VE0GL4UGQAAAAAAAAAAAeSMYy136wT0/G1eXJC42Pp+qqqqqqtY/IPKqXhyZFD0AAAAAAAAzQLVUTQYvhQZAAAAAAAAAAADqITZVwiqjPRd/LSqErT8+W2ZmZmZm1j+rEcRem2IVPQAAAAAAADNAKTIzMzPzJUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "25 choices / mixed frame batches",
+        "count": 25,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.4451326206513049,
+        "mode": "frames"
+      },
+      "ticks": 2870,
+      "records": 383,
+      "eventCount": 376,
+      "winner": 20,
+      "stateSha256": "fb7606e0a8e22bb28003de3eb0a83e5e8ca6be5a9659257bdf4ed70c7cd329fe",
+      "impactSha256": "a04800efd80d72a0a9e331698034ec8371973c420810e515012c67fbf8f0cd06",
+      "headless": {
+        "ticks": 2857,
+        "duration": 11.904166666666667,
+        "settled": true,
+        "selectedIndex": 20,
+        "state": "AAAAAABSpkDzkVcM8hIGQAAAAAAAAAAArtk1IOXkgT0e78nImDoQvn2IiIiIiNY/Q8QFCRyN4j0AAAAAAAA0QMXHtRbyEgZAUJgA6aRw877I9KtR34OaPQ+J95bSbxC+OURERERE1j9bYNoclULjPQAAAAAAADRAx+3u7u7OJ0A="
+      }
+    },
+    {
+      "scenario": {
+        "id": "26 choices / mixed frame batches",
+        "count": 26,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.4499658401183662,
+        "mode": "frames"
+      },
+      "ticks": 2030,
+      "records": 274,
+      "eventCount": 315,
+      "winner": 20,
+      "stateSha256": "0ebbca8c242f33b1002b95a00bb340d51fd26c0c745e6514b116a6d9105eae91",
+      "impactSha256": "950dc6d48c85fba2b8e0a22f8eeaf3dbdb8b6284578d1291f28b287e90cd872b",
+      "headless": {
+        "ticks": 2027,
+        "duration": 8.445833333333333,
+        "settled": true,
+        "selectedIndex": 20,
+        "state": "AAAAAACsn0AMdf9RvK4HQAAAAAAAAAAAnHGhf2oxo72WxgIyh70zPp+qqqqqqtY/WWtU/3C8xT4AAAAAAAA0QAx1/1G8rgdAAAAAAAAAAABFEfygYge/vXgZ3sY9PTQ+W2ZmZmZm1j/ublvfEZHGPgAAAAAAADRAi0NERETkIEA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "27 choices / mixed frame batches",
+        "count": 27,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.454441043328608,
+        "mode": "frames"
+      },
+      "ticks": 2330,
+      "records": 311,
+      "eventCount": 309,
+      "winner": 21,
+      "stateSha256": "16c83a2093b0d0379cfebb8d2edd2af1bffbfe94f8bac828d068eb93a09a21b4",
+      "impactSha256": "5ab52d4e8dc72760694e50579a4595ba048bcaec8285deb9523566f6880dc60f",
+      "headless": {
+        "ticks": 2314,
+        "duration": 9.641666666666666,
+        "settled": true,
+        "selectedIndex": 21,
+        "state": "AAAAAAAUokDi2pGoIz8HQAAAAAAAAAAAEIOTQ++Xur0Vm+0X3sFLPp+qqqqqqtY/S+fOWFytVj0AAAAAAAA1QPl9TMAjPwdAUGDC5fg+Fr9OGPwdr7jVvUtmS5oYf0w+W2ZmZmZm1j8alNX1MYtXPQAAAAAAADVAqYeIiIhII0A="
+      }
+    },
+    {
+      "scenario": {
+        "id": "28 choices / mixed frame batches",
+        "count": 28,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.4585965891666897,
+        "mode": "frames"
+      },
+      "ticks": 2600,
+      "records": 347,
+      "eventCount": 312,
+      "winner": 22,
+      "stateSha256": "a437e2331c77a15d411f330230ed25bac79ed2764459b922aa28bede010b8a67",
+      "impactSha256": "46eeb68e11baadd1549f4c90b33974b573bd2e5bdd746e2e0a5f9f471721897e",
+      "headless": {
+        "ticks": 2571,
+        "duration": 10.7125,
+        "settled": true,
+        "selectedIndex": 22,
+        "state": "AAAAAAAWpEAjx1qkkdMGQAAAAAAAAAAAWHeBG00H3b2++dknsN43vn2IiIiIiNY/MgoabAcPOzwAAAAAAAA2QCPHWqSR0wZAAAAAAAAAAACtmAQ1AfzUvZ1C3FJ8cki+OURERERE1j+gYLV/uRc8PAAAAAAAADZAy8vMzMxsJUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "29 choices / mixed frame batches",
+        "count": 29,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.4624655456366278,
+        "mode": "frames"
+      },
+      "ticks": 2750,
+      "records": 370,
+      "eventCount": 398,
+      "winner": 23,
+      "stateSha256": "185332efb999441a043390eb5ae047c838717594d42ba179748ee83f876a3917",
+      "impactSha256": "47c7f9201507de4d38d34c70d479ff014758aa0e552e7e1081f0480cd3c2e168",
+      "headless": {
+        "ticks": 2749,
+        "duration": 11.454166666666666,
+        "settled": true,
+        "selectedIndex": 23,
+        "state": "AAAAAAB6pUCUjKsd4G4GQAAAAAAAAAAAapkpHbTuor2jq3OQtNsiPp+qqqqqqtY/8lhw1Aihtz0AAAAAAAA3QJSMqx3gbgZAAAAAAAAAAAAo7kEF1XazvUO55xW5dyE+W2ZmZmZm1j/QFUUgLoi4PQAAAAAAADdAb4eIiIjoJkA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "30 choices / mixed frame batches",
+        "count": 30,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.4660765716752369,
+        "mode": "frames"
+      },
+      "ticks": 2285,
+      "records": 305,
+      "eventCount": 361,
+      "winner": 23,
+      "stateSha256": "9fd02cd35d7502498e871a2791c027fcf4f0432b3735d1d24e7bc76ca8cbefde",
+      "impactSha256": "f9fec0d87a7e648cc139a48102dd0c98a696aa7a91f7fb51f4fd665ac0c40fde",
+      "headless": {
+        "ticks": 2262,
+        "duration": 9.425,
+        "settled": true,
+        "selectedIndex": 23,
+        "state": "AAAAAACsoUDeo7g6vc4HQAAAAAAAAAAAqljCVeW2xr1uTrxeRY1GPn2IiIiIiNY/xG728s+4vj0AAAAAAAA3QA7uvGa9zgdAYnhlxgKiFL/4RMdKxU/XvcHLKDvz30Q+OURERERE1j8BnyWtV+W/PQAAAAAAADdAwZiZmZnZIkA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "31 choices / mixed frame batches",
+        "count": 31,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.469454628292,
+        "mode": "frames"
+      },
+      "ticks": 2555,
+      "records": 341,
+      "eventCount": 354,
+      "winner": 24,
+      "stateSha256": "5b3438446a212c323c8a37e75bc42f3d75bafc3c64e406e2412f65108dbc569d",
+      "impactSha256": "0bdea3d1396e81473c8c7071387f61966cc9344e73622359b980258d00e60fe2",
+      "headless": {
+        "ticks": 2548,
+        "duration": 10.616666666666667,
+        "settled": true,
+        "selectedIndex": 24,
+        "state": "AAAAAADoo0Arpy5fgWgHQAAAAAAAAAAAqHzngu4cmj2VCIFdPFJPvp+qqqqqqtY/B4jeFf6faTwAAAAAAAA4QCunLl+BaAdAAAAAAAAAAACM/4ozne3SPZ/bS1U3M1G+W2ZmZmZm1j/BFTG2qZpqPAAAAAAAADhAvbq7u7s7JUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "32 choices / mixed frame batches",
+        "count": 32,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.4726215563702154,
+        "mode": "frames"
+      },
+      "ticks": 2510,
+      "records": 335,
+      "eventCount": 402,
+      "winner": 24,
+      "stateSha256": "0c1bed618811047ec32624d160fa71929ca0ddd337df383603768f776ca85bcd",
+      "impactSha256": "5070694925bb826afebfcba0aff5db6a0c9ff738a5014454e4beccb54a69fca7",
+      "headless": {
+        "ticks": 2487,
+        "duration": 10.3625,
+        "settled": true,
+        "selectedIndex": 24,
+        "state": "AAAAAABuo0Aemh9ebqQIQAAAAAAAAAAAMOw/FBtOzb1erDGeNwhOPn2IiIiIiNY/+BCGWxmFfT0AAAAAAAA4QB6aH15upAhAAAAAAAAAAAAPMVUsYZjevZIVgCWu+ks+OURERERE1j+hGknz3qV+PQAAAAAAADhAo5iZmZm5JEA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "33 choices / mixed frame batches",
+        "count": 33,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.4755965494133876,
+        "mode": "frames"
+      },
+      "ticks": 2420,
+      "records": 323,
+      "eventCount": 397,
+      "winner": 25,
+      "stateSha256": "9811fbc45bdc02a0fbd0f17f4eba6af71f4f5dcd08a42066348f44dd6cb54057",
+      "impactSha256": "742113729ad6894042f3b9d72af756021da7f9feebc3c64a1e3cf1ac409fb60c",
+      "headless": {
+        "ticks": 2418,
+        "duration": 10.075,
+        "settled": true,
+        "selectedIndex": 25,
+        "state": "AAAAAADkokAiZWqBo0EIQAAAAAAAAAAAC1VEOpXn1r3DRWGbCjlXPn2IiIiIiNY/TDJ9f/nHGj0AAAAAAAA5QCJlaoGjQQhAAAAAAAAAAADuf4zWNsbnvQwj8xC4llU+OURERERE1j8ylFKA9M0bPQAAAAAAADlAeWVmZmYmJEA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "34 choices / mixed frame batches",
+        "count": 34,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.478396542865785,
+        "mode": "frames"
+      },
+      "ticks": 2690,
+      "records": 359,
+      "eventCount": 441,
+      "winner": 26,
+      "stateSha256": "a671f9419c5b761f839e3717517e7caa06960da85ecd0fdec94a8675341bcd18",
+      "impactSha256": "24f933d71afce544c4f98e197bf6c3778a3ad328e2b91fb054ac8c92919908a6",
+      "headless": {
+        "ticks": 2664,
+        "duration": 11.1,
+        "settled": true,
+        "selectedIndex": 26,
+        "state": "AAAAAADQpECElZFPIt8HQAAAAAAAAAAAOSK5Q1H4yj30zEnGInsgvn2IiIiIiNY/Ew4ulEd1aD0AAAAAAAA6QISVkU8i3wdAAAAAAAAAAACAWga4MjjOPbDAReeBlvE9OURERERE1j/dk0MdiWRpPQAAAAAAADpAJTIzMzMzJkA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "35 choices / mixed frame batches",
+        "count": 35,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.481036536692331,
+        "mode": "frames"
+      },
+      "ticks": 2510,
+      "records": 335,
+      "eventCount": 448,
+      "winner": 26,
+      "stateSha256": "d1101dc9e69d7eda629350a5a65b3d6c1699b7af7b0973a66a78187fe9c7c4f9",
+      "impactSha256": "b55f398aabc359df312a183e66beee3153dc9a1e89fe7bd7bbbd8c3986454f61",
+      "headless": {
+        "ticks": 2510,
+        "duration": 10.458333333333334,
+        "settled": true,
+        "selectedIndex": 26,
+        "state": "AAAAAACco0AYApDs6/4IQAAAAAAAAAAAJt2GWvxp273fU0MZ73FaPn2IiIiIiNY/7p61U57PKT0AAAAAAAA6QBgCkOzr/ghAAAAAAAAAAABTZsCDv7TrvWhNsX1mVFg+OURERERE1j8BmdjXG8wqPQAAAAAAADpAsamqqqrqJEA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "36 choices / mixed frame batches",
+        "count": 36,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.4835298641951802,
+        "mode": "frames"
+      },
+      "ticks": 2555,
+      "records": 341,
+      "eventCount": 434,
+      "winner": 27,
+      "stateSha256": "ba95615c6bbfa25346a1138c2048139d996b20346109a2dacbd22190a1323a76",
+      "impactSha256": "0837080e353a3a1c8619721c1bb02887fe4db540c69dad37bb448a123a826b26",
+      "headless": {
+        "ticks": 2552,
+        "duration": 10.633333333333333,
+        "settled": true,
+        "selectedIndex": 27,
+        "state": "AAAAAADwo0CP5sxkA6AIQAAAAAAAAAAAG33D0PS90z0wsV1iHHZRvp+qqqqqqtY/38WtP2jyjjwAAAAAAAA7QI/mzGQDoAhAAAAAAAAAAAB4WS/i/hLjPR+1j4BxgE++W2ZmZmZm1j8XDU2xkRCQPAAAAAAAADtARUNEREREJUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "37 choices / mixed frame batches",
+        "count": 37,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.4858884172384157,
+        "mode": "frames"
+      },
+      "ticks": 2645,
+      "records": 353,
+      "eventCount": 489,
+      "winner": 27,
+      "stateSha256": "d2d4fa992fea2a6337c77f2578c7fa3ec37c5317f8b759a33f258756835bb445",
+      "impactSha256": "d225c9e05309f66e8c61177f84644d71b00f247f94f45d8bcad74fd1372a2215",
+      "headless": {
+        "ticks": 2626,
+        "duration": 10.941666666666666,
+        "settled": true,
+        "selectedIndex": 27,
+        "state": "AAAAAACEpEBnr5949aYJQAAAAAAAAAAAogQlXbaN4b3THjo7DJ5gPn2IiIiIiNY/KKR8n+ObBj0AAAAAAAA7QGNCf4D1pglAYGOKLmeG7b6Us3dSvZDxvVQLV696c14+OURERERE1j8lSh1TDnkHPQAAAAAAADtAGiEiIiLiJUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "38 choices / mixed frame batches",
+        "count": 38,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.4881228359109546,
+        "mode": "frames"
+      },
+      "ticks": 2510,
+      "records": 335,
+      "eventCount": 481,
+      "winner": 28,
+      "stateSha256": "37b9e64d189713a1498cb1bb64aaafe6df75e6a3fee4c8a1ad05009498d4f288",
+      "impactSha256": "43b8bc8c4e385c36984de2c04d283af4f8867a71c049db760d8d1109b41607c5",
+      "headless": {
+        "ticks": 2504,
+        "duration": 10.433333333333334,
+        "settled": true,
+        "selectedIndex": 28,
+        "state": "AAAAAACQo0Cdf+mlKksJQAAAAAAAAAAAKAp2LXDe0r28P7QcEQJhPp+qqqqqqtY/DFDLTRnn9zwAAAAAAAA8QJ1/6aUqSwlAAAAAAAAAAACSFfsf2dfrvfer3YIEN2E+W2ZmZmZm1j/yYRT969D4PAAAAAAAADxA5tzd3d3dJEA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "39 choices / mixed frame batches",
+        "count": 39,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.4902426690105428,
+        "mode": "frames"
+      },
+      "ticks": 2645,
+      "records": 353,
+      "eventCount": 484,
+      "winner": 29,
+      "stateSha256": "5d70c6bcf60b7899602954eb152f9c2f5a28d74ca6181eb2183e9e98c7a9bd94",
+      "impactSha256": "533b0667414742d899526cb648ee3b40c976997e3c9c425c154c57457823e185",
+      "headless": {
+        "ticks": 2634,
+        "duration": 10.975,
+        "settled": true,
+        "selectedIndex": 29,
+        "state": "AAAAAACUpECjwJ1PI/AIQAAAAAAAAAAAbGMtD6/ZoD1raGF+71k9Pp+qqqqqqtY/NR/SIxbv/TwAAAAAAAA9QKPAnU8j8AhAAAAAAAAAAAAfuYOT6o24vYc31UZaN0E+W2ZmZmZm1j9B7tGH6BP/PAAAAAAAAD1AKzIzMzPzJUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "40 choices / mixed frame batches",
+        "count": 40,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.4922565104551517,
+        "mode": "frames"
+      },
+      "ticks": 2692,
+      "records": 360,
+      "eventCount": 535,
+      "winner": 29,
+      "stateSha256": "4da6d46798c9eee54002de5313eaf9fff120d0bc8b71d9dcdeab55d65b65b657",
+      "impactSha256": "c239a546872d899f267b776255c894f6ec33f973598db9b88e22709b41377c57",
+      "headless": {
+        "ticks": 2691,
+        "duration": 11.2125,
+        "settled": true,
+        "selectedIndex": 29,
+        "state": "AAAAAAAGpUAXab+IWeIJQAAAAAAAAAAAvLWkSJHz6z3gtNUeqXA2vp+qqqqqqtY/qfBJjjv7xjwAAAAAAAA9QEcHSp5Z4glAMEGaTPQxFL/T/NYqjLHtPTk+zMsIqjE+W2ZmZmZm1j8xme/uCtzHPAAAAAAAAD1AvsvMzMxsJkA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "41 choices / mixed frame batches",
+        "count": 41,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.494172115731731,
+        "mode": "frames"
+      },
+      "ticks": 2602,
+      "records": 348,
+      "eventCount": 528,
+      "winner": 30,
+      "stateSha256": "fba0d6366b239fa1060dc058d40df62a38685f6d466152eb9a2fa6478c25d1a5",
+      "impactSha256": "05c71657a14b8c6d242e4f1f938b1e67ce3a14c29550a1cfa5c34c3c24abedf9",
+      "headless": {
+        "ticks": 2602,
+        "duration": 10.841666666666667,
+        "settled": true,
+        "selectedIndex": 30,
+        "state": "AAAAAABUpECwXv360IsJQAAAAAAAAAAAbONrNf8o6T1NxgjqszJDvn2IiIiIiNY/ted9T9tZwjwAAAAAAAA+QLrN1A7RiwlA3I4oGviZAr/f0DmXh0DtPXhlpDLgyhG+OURERERE1j8cgNUEXw3DPAAAAAAAAD5A7O3u7u6uJUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "42 choices / mixed frame batches",
+        "count": 42,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.4959965017094252,
+        "mode": "frames"
+      },
+      "ticks": 2602,
+      "records": 348,
+      "eventCount": 518,
+      "winner": 31,
+      "stateSha256": "46fee3ae84cbadc778e6163001a6686669f3328dc47e0241e1ae48a6ee58672d",
+      "impactSha256": "8717175b07bd59a45fdcebb59b71c009a766a25519dfd73cd31c9d49dbc71822",
+      "headless": {
+        "ticks": 2602,
+        "duration": 10.841666666666667,
+        "settled": true,
+        "selectedIndex": 31,
+        "state": "AAAAAABUpECAwGju7jcJQAAAAAAAAAAA6UQghL7A3b1LK28ZdPsiPn2IiIiIiNY/BlYjIus8eDwAAAAAAAA/QOxBy/HuNwlAQKIZq8pi2b7hldN8WO3evftNOwNcSSi+OURERERE1j/zM0FUBSp5PAAAAAAAAD9A6e3u7u6uJUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "43 choices / mixed frame batches",
+        "count": 43,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.4977360325253666,
+        "mode": "frames"
+      },
+      "ticks": 2745,
+      "records": 367,
+      "eventCount": 577,
+      "winner": 31,
+      "stateSha256": "7677d7c58697f5bbd746908012f8caa810d8031c526b6a04610946550534485f",
+      "impactSha256": "52f4854831768a214772e7adf8b13d1dacdae03f8f69e06ace5a0d2283ae1be3",
+      "headless": {
+        "ticks": 2744,
+        "duration": 11.433333333333334,
+        "settled": true,
+        "selectedIndex": 31,
+        "state": "AAAAAABwpUDdRf9RvxUKQAAAAAAAAAAApH3DfK9xlD0d+x7o6xhNvn2IiIiIiNY/k2gC1CT0pjwAAAAAAAA/QN1F/1G/FQpAAAAAAAAAAAAjzA+phFvRPa9lqIk/BlC+OURERERE1j/Vk3/crtSnPAAAAAAAAD9Awtzd3d3dJkA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "44 choices / mixed frame batches",
+        "count": 44,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.499396493758765,
+        "mode": "frames"
+      },
+      "ticks": 2690,
+      "records": 359,
+      "eventCount": 571,
+      "winner": 32,
+      "stateSha256": "e9bc98c2dbe288cce8bcb57b137c071d2a8674a4462a573dd4d7e2da5c53d1e4",
+      "impactSha256": "5129e88832ec84d5aaf6541ecc3742d965318b18f560e0462b9e6c11ec6fef5f",
+      "headless": {
+        "ticks": 2675,
+        "duration": 11.145833333333334,
+        "settled": true,
+        "selectedIndex": 32,
+        "state": "AAAAAADmpEDlV8QR0cMJQAAAAAAAAAAA852Y9VjzyL2qTCxe8Z9Ivn2IiIiIiNY/dS50PO9jnjwAAAAAAABAQOVXxBHRwwlAAAAAAAAAAAC4kbRZAMKcPXJGFLZKJ1C+OURERERE1j9Hb3mqOI2fPAAAAAAAAEBAlqmqqqpKJkA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "45 choices / mixed frame batches",
+        "count": 45,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.5009831567151233,
+        "mode": "frames"
+      },
+      "ticks": 2645,
+      "records": 353,
+      "eventCount": 568,
+      "winner": 33,
+      "stateSha256": "15abb581df613c622b323cf671e8bd7900c908ae7f7367caab92fd54a1df390d",
+      "impactSha256": "7232d1a51439c82be7cd574a55ab196ef4e6d5b3269e37674b12f9519c5b5ebf",
+      "headless": {
+        "ticks": 2629,
+        "duration": 10.954166666666666,
+        "settled": true,
+        "selectedIndex": 33,
+        "state": "AAAAAACKpEC0VkyWtHUJQAAAAAAAAAAAE9k6YZOb2r3ouWvELs41vp+qqqqqqtY/5eLX/r1/lDwAAAAAAIBAQPO0rZi0dQlAsGKT2ELa4b6Epxv6QUHTvekaSg/+XUa+W2ZmZmZm1j8d1TXVREiVPAAAAAAAgEBAdoeIiIjoJUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "46 choices / mixed frame batches",
+        "count": 46,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.5025008343255533,
+        "mode": "frames"
+      },
+      "ticks": 2870,
+      "records": 383,
+      "eventCount": 638,
+      "winner": 33,
+      "stateSha256": "6a359efb56fcfecd6eee38ae2224411f25ba082f7e842623bc3fd3cf64b5b2b5",
+      "impactSha256": "6d696cdd6aabbbc0b2cb85f859a2b7409478c8c70d7fd0d10434c5b5209448f7",
+      "headless": {
+        "ticks": 2851,
+        "duration": 11.879166666666666,
+        "settled": true,
+        "selectedIndex": 33,
+        "state": "AAAAAABGpkAcijIWckUKQAAAAAAAAAAAhxSwMrUH371f2qbh7jFfPn2IiIiIiNY/pnyQg6HcvTwAAAAAAIBAQDiddC1yRQpA0Duo6vHNBb/GpGS3wgfwvW1ygI8n81w+OURERERE1j//k/1dvwC/PAAAAAAAgEBA7yAiIiLCJ0A="
+      }
+    },
+    {
+      "scenario": {
+        "id": "47 choices / mixed frame batches",
+        "count": 47,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.5039539299100073,
+        "mode": "frames"
+      },
+      "ticks": 2750,
+      "records": 370,
+      "eventCount": 612,
+      "winner": 36,
+      "stateSha256": "a8c182a8bc6707dd36815059734abe95e079284935a3d0ca24efac47a0a6cbdd",
+      "impactSha256": "849cc0caf19ad40135143691a52e12ff8b36ee9109e21249a25d0440518286b0",
+      "headless": {
+        "ticks": 2749,
+        "duration": 11.454166666666666,
+        "settled": true,
+        "selectedIndex": 36,
+        "state": "AAAAAAB6pUBKBMwxX9UHQAAAAAAAAAAAuZCgk7k72L2Oly+P+glZPn2IiIiIiNY/RgZAsCu2iDwAAAAAAABCQE4nkERf1QdAUB1O1OCXAb+LDK/a4WnpvTJ4BNmVXVc+OURERERE1j/yMH8B6KeJPAAAAAAAAEJAYIeIiIjoJkA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "48 choices / mixed frame batches",
+        "count": 48,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.5053464798451093,
+        "mode": "frames"
+      },
+      "ticks": 2700,
+      "records": 361,
+      "eventCount": 605,
+      "winner": 38,
+      "stateSha256": "07f14e43d70659eab6aae8a5605da6256bba0dc3104fd611e8e76e1385f1fe4d",
+      "impactSha256": "2ea35234a561410c6a191738952a2ea82a728b78a5440720055cc4a0a9c20509",
+      "headless": {
+        "ticks": 2693,
+        "duration": 11.220833333333333,
+        "settled": true,
+        "selectedIndex": 38,
+        "state": "AAAAAAAKpUBJP5ZjmosGQAAAAAAAAAAAAAT8BIfigL2+54pCylpgPp+qqqqqqtY/ToETywqshTwAAAAAAABDQEk/lmOaiwZAAAAAAAAAAABshw5zpmXivdvPIa7ePGI+W2ZmZmZm1j8L1SE/C4CGPAAAAAAAAENA7Q8RERFxJkA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "49 choices / mixed frame batches",
+        "count": 49,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.5066821910073498,
+        "mode": "frames"
+      },
+      "ticks": 2600,
+      "records": 347,
+      "eventCount": 596,
+      "winner": 46,
+      "stateSha256": "431780c04e95d6858f26f693917f8ce5b38448277a0db9e994e51ee087a89b90",
+      "impactSha256": "ae6844e3e4d0a587c7029271233e11901cff8666ad102d59272c331d94c23006",
+      "headless": {
+        "ticks": 2594,
+        "duration": 10.808333333333334,
+        "settled": true,
+        "selectedIndex": 46,
+        "state": "AAAAAABEpEDd8tLpxk7+PwAAAAAAAAAAtMr0h1+8qD3b5dicYClTvp+qqqqqqtY/WyhnvDJlAj0AAAAAAABHQP4vJw/HTv4/YjJpp3x/Eb85IgtPeDPYPcyWvYv51VS+W2ZmZmZm1j8kHddjJRkDPQAAAAAAAEdAxNzd3d2dJUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "50 choices / mixed frame batches",
+        "count": 50,
+        "charge": 0.65,
+        "seed": [
+          2166136261
+        ],
+        "startingAngle": 1.5079644737231006,
+        "mode": "frames"
+      },
+      "ticks": 3005,
+      "records": 401,
+      "eventCount": 726,
+      "winner": 3,
+      "stateSha256": "3d5272599ac05b3dec55f4f03a2c8705f74fcf1f62a20081cf4d8f0ea3ddb2c1",
+      "impactSha256": "9f005abb454b6a030ea161eccf5672dc96a1c927cf974030f9cca2401723cfdc",
+      "headless": {
+        "ticks": 3003,
+        "duration": 12.5125,
+        "settled": true,
+        "selectedIndex": 3,
+        "state": "AAAAAAB2p0BgUs1v/B7yPwAAAAAAAAAAcAtuzpzfuD3ms58Z1sA7Pp+qqqqqqtY/jHZxN4RsRT0AAAAAAAAIQC6AcpL8HvI/cNSTeG09EL+EFCmGko6cvfGCfxYy5UE+W2ZmZmZm1j8IDpA+Fz5GPQAAAAAAAAhAFmVmZmYGKUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "2 choices / reused engine",
+        "count": 2,
+        "charge": 1,
+        "seed": [
+          4294967295,
+          2147483648,
+          0,
+          42
+        ],
+        "startingAngle": 1.234,
+        "mode": "ticks",
+        "reuse": true
+      },
+      "ticks": 4601,
+      "records": 4602,
+      "eventCount": 58,
+      "winner": 0,
+      "stateSha256": "e86528c02a2c8953100de3f1e4539cb2eaad539eb17f7d4a00ccf0df146a4ed4",
+      "impactSha256": "20311f554e77683f2d627f9d27d896b1256f3c1625406ef3d360773bee032bd4",
+      "headless": {
+        "ticks": 4601,
+        "duration": 19.170833333333334,
+        "settled": true,
+        "selectedIndex": 0,
+        "state": "AAAAAAD5sUBfFhJwK4b3PwAAAAAAAAAAR4P7ZlFHHTAInSP+n4aGMH2IiIiIiNY/6R42VMMl1joAAAAAAADwP18WEnArhvc/AAAAAAAAAAAAlIFHfLEOMPv/MvFlMZIwOURERERE1j+HbxR9av7WOgAAAAAAAPA/AL67u7srM0A="
+      }
+    },
+    {
+      "scenario": {
+        "id": "8 choices / reused engine",
+        "count": 8,
+        "charge": 1,
+        "seed": [
+          4294967295,
+          2147483648,
+          0,
+          42
+        ],
+        "startingAngle": 1.234,
+        "mode": "ticks",
+        "reuse": true
+      },
+      "ticks": 5139,
+      "records": 5140,
+      "eventCount": 348,
+      "winner": 4,
+      "stateSha256": "56d9d8eaf1099bd785590c962448bc65c1668ab6e81260adfdd7a8682c704a3f",
+      "impactSha256": "53742c7090d8beb7a3c02db35c22dc5d427ff5f26f73c52fe7b6a1f7a0b2c76e",
+      "headless": {
+        "ticks": 5139,
+        "duration": 21.4125,
+        "settled": true,
+        "selectedIndex": 4,
+        "state": "AAAAAAATtEDNVcTloJMSQAAAAAAAAAAAkN7BckY8Yz0FddSi69AXvn2IiIiIiNY/LL7gZdU31z0AAAAAAAAQQM1VxOWgkxJAAAAAAAAAAAAmJ6FFJ7acPZXa/v8LLBq+OURERERE1j8ZFSOX9RrYPQAAAAAAABBA0p2ZmZlpNUA="
+      }
+    },
+    {
+      "scenario": {
+        "id": "40 choices / reused engine",
+        "count": 40,
+        "charge": 1,
+        "seed": [
+          4294967295,
+          2147483648,
+          0,
+          42
+        ],
+        "startingAngle": 1.234,
+        "mode": "ticks",
+        "reuse": true
+      },
+      "ticks": 4603,
+      "records": 4604,
+      "eventCount": 1248,
+      "winner": 8,
+      "stateSha256": "22b3f1de8ec2440548aea6a06d8caae557f8b747dc5cdee1c1df498b4766c75d",
+      "impactSha256": "ea87af678d8edb102e66ab3b86c7dae1b68173e08110995a100fc1a2fbf349f2",
+      "headless": {
+        "ticks": 4603,
+        "duration": 19.179166666666667,
+        "settled": true,
+        "selectedIndex": 8,
+        "state": "AAAAAAD7sUAwvKvdjRDQPwAAAAAAAAAAtVDlQRZB7T0YTL/IrNkOvn2IiIiIiNY/Y+f5Xl80yjwAAAAAAAAgQDC8q92NENA/AAAAAAAAAAA5pS/I5FrsPQoJTPIQOEQ+OURERERE1j+xb6p9tjTLPAAAAAAAACBAKeDd3d0tM0A="
+      }
+    },
+    {
+      "scenario": {
+        "id": "50 choices / reused engine",
+        "count": 50,
+        "charge": 1,
+        "seed": [
+          4294967295,
+          2147483648,
+          0,
+          42
+        ],
+        "startingAngle": 1.234,
+        "mode": "ticks",
+        "reuse": true
+      },
+      "ticks": 4864,
+      "records": 4865,
+      "eventCount": 1596,
+      "winner": 49,
+      "stateSha256": "bc8c94827ff94eea8b38b0f274d98ace6dbc8b01edbfc888e76191159468c4c7",
+      "impactSha256": "3989f1ece6bcdb7ab94b85f6ebf30eb6f7df3a56ccfbbb27649ef4319c62aa05",
+      "headless": {
+        "ticks": 4864,
+        "duration": 20.266666666666666,
+        "settled": true,
+        "selectedIndex": 49,
+        "state": "AAAAAAAAs0DMU7UweCn6PwAAAAAAAAAAgVVA9wXLyT3qmN9OCAA0Pp+qqqqqqtY/F8Sp9JbXST0AAAAAAIBIQJpoHU94Kfo/GDs7gZOBDL8fM19AzN26Pb2vzfFCHUA+W2ZmZmZm1j8ck8hyYtRKPQAAAAAAgEhAykdERERENEA="
+      }
+    }
+  ]
+}

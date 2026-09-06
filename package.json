@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "test": "vitest run",
     "test:browser": "playwright test",
-    "analyze:distribution": "vitest run --config vitest.distribution.config.ts"
+    "analyze:distribution": "vitest run --config vitest.distribution.config.ts",
+    "test:determinism": "playwright test --config playwright.determinism.config.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
