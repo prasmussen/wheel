@@ -15,6 +15,7 @@ export class FixedStepLoop {
     private readonly fixedDt: number,
     private readonly advance: (tickCount: number) => void,
     private readonly render: (alpha: number, time: number) => void,
+    private readonly onError?: (error: unknown) => void,
   ) {}
 
   start(): void {
@@ -30,25 +31,31 @@ export class FixedStepLoop {
 
   private tick = (now: number): void => {
     if (!this.running) return;
-    const elapsed = Math.min((now - this.previousTime) / 1000, 0.1);
-    this.previousTime = now;
-    this.accumulator += elapsed;
-    let steps = 0;
-    while (this.accumulator >= this.fixedDt && steps < MAX_ADVANCE_TICKS) {
-      this.accumulator -= this.fixedDt;
-      steps++;
+    try {
+      const elapsed = Math.min((now - this.previousTime) / 1000, 0.1);
+      this.previousTime = now;
+      this.accumulator += elapsed;
+      let steps = 0;
+      while (this.accumulator >= this.fixedDt && steps < MAX_ADVANCE_TICKS) {
+        this.accumulator -= this.fixedDt;
+        steps++;
+      }
+      if (steps > 0) this.advance(steps);
+      this.sampledFrames++;
+      this.sampledSteps += steps;
+      if (now - this.sampleTime >= 500) {
+        const scale = 1000 / (now - this.sampleTime);
+        this.fps = Math.round(this.sampledFrames * scale);
+        this.physicsSteps = Math.round(this.sampledSteps * scale);
+        this.sampleTime = now;
+        this.sampledFrames = this.sampledSteps = 0;
+      }
+      this.render(this.accumulator / this.fixedDt, now);
+      if (this.running) this.frameHandle = requestAnimationFrame(this.tick);
+    } catch (error) {
+      this.stop();
+      if (this.onError) this.onError(error);
+      else throw error;
     }
-    if (steps > 0) this.advance(steps);
-    this.sampledFrames++;
-    this.sampledSteps += steps;
-    if (now - this.sampleTime >= 500) {
-      const scale = 1000 / (now - this.sampleTime);
-      this.fps = Math.round(this.sampledFrames * scale);
-      this.physicsSteps = Math.round(this.sampledSteps * scale);
-      this.sampleTime = now;
-      this.sampledFrames = this.sampledSteps = 0;
-    }
-    this.render(this.accumulator / this.fixedDt, now);
-    if (this.running) this.frameHandle = requestAnimationFrame(this.tick);
   };
 }

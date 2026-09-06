@@ -107,3 +107,19 @@ describe('readable share links', () => {
     expect(url.href).toBe(share().href);
   });
 });
+
+it('preserves uppercase sharp S instead of expanding it through lowercase URLs', () => {
+  const config = structuredClone(wheel);
+  config.items[0].label = 'ẞ'.repeat(12);
+  const url = share(config, { ...replay, wheelConfig: config });
+  expect(labels(readShareUrl(url)!.wheelConfig)).toEqual(labels(config));
+  expect(labels(readShareUrl(url)!.lastSpin!.wheelConfig)).toEqual(labels(config));
+});
+
+it('normalizes older labels consistently and rejects malformed Unicode', () => {
+  const config = structuredClone(wheel);
+  config.items[0].label = ' cafe\u0301 ';
+  expect(readShareUrl(share(config))!.wheelConfig.items[0].label).toBe('CAFÉ');
+  config.items[0].label = '\ud800';
+  expect(() => share(config)).toThrow();
+});

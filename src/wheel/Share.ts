@@ -1,3 +1,4 @@
+import { normalizeLabel, validLabel } from "./Labels";
 import { DEFAULT_PHYSICS, SIMULATION_VERSION } from "../app/Config";
 import type { SpinRecord } from "../app/State";
 import type { WheelConfig } from "./WheelConfig";
@@ -12,12 +13,12 @@ interface SharedWheel {
 
 function readChoices(value: unknown): WheelConfig {
   if (!Array.isArray(value) || value.length < 2 || value.length > 50
-    || value.some(label => typeof label !== "string" || label.length > 12)) {
+    || value.some(label => typeof label !== "string" || !validLabel(normalizeLabel(label), true))) {
     throw new Error("Invalid shared choices");
   }
   return {
     version: crypto.randomUUID(),
-    items: value.map(label => ({ id: crypto.randomUUID(), label, weight: 1 })),
+    items: value.map(label => ({ id: crypto.randomUUID(), label: normalizeLabel(label), weight: 1 })),
   };
 }
 
@@ -43,11 +44,15 @@ const SHARE_PARAMS = new Set(["wheel", "choices", "replay", "replayChoices"]);
 
 // Split labels before percent-decoding: an encoded comma belongs to a label.
 function decodeChoices(encoded: string): string[] {
-  return encoded.split(",").map(label => decodeURIComponent(label.replace(/\+/g, " ")).toUpperCase().normalize("NFC"));
+  return encoded.split(",").map(label => normalizeLabel(decodeURIComponent(label.replace(/\+/g, " "))));
 }
 
 function encodeChoices(choices: string[]): string {
-  return choices.map(label => encodeURIComponent(label.toLowerCase())).join(",");
+  return choices.map(label => {
+    const normalized = normalizeLabel(label);
+    const lower = normalized.toLowerCase();
+    return encodeURIComponent(normalizeLabel(lower) === normalized ? lower : normalized);
+  }).join(",");
 }
 
 /** Write readable labels and a fixed-width, lossless replay record. */

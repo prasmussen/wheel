@@ -17,7 +17,7 @@ describe("saved choices", () => {
     expect(() => parseChoices("ß".repeat(7) + "\nPizza")).toThrow();
   });
   it("copies validated values", () => {
-    expect(validateConfig(valid)).toEqual(valid);
+    expect(validateConfig(valid)?.items.map(item => item.label)).toEqual(["ÆØÅ", "PIZZA"]);
     expect(validateConfig(valid)).not.toBe(valid);
   });
   it("parses pasted lines without losing duplicate choices", () => {
@@ -27,4 +27,15 @@ describe("saved choices", () => {
     expect(parseChoices(Array(50).fill(" Pizza \n \n").join("\n"))).toHaveLength(50);
   });
   it.each(["one", "x".repeat(13) + "\ny", Array(51).fill("x").join("\n")])("rejects invalid bulk entry", text => expect(() => parseChoices(text)).toThrow());
+});
+
+it('normalizes old saved labels and rejects expansion overflow and unpaired surrogates', () => {
+  const config = structuredClone(valid);
+  config.items[0].label = ' cafe\u0301 ';
+  expect(validateConfig(config)?.items[0].label).toBe('CAFÉ');
+  for (const label of ['ß'.repeat(7), '\ud800', '\udc00']) {
+    config.items[0].label = label;
+    expect(validateConfig(config)).toBeUndefined();
+    expect(() => parseChoices(label + '\nOTHER')).toThrow();
+  }
 });

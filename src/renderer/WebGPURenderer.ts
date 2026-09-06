@@ -21,6 +21,24 @@ export class WebGPURenderer {
   ) {}
 
   onDeviceLost?: () => void;
+  private failure?: Error;
+  private destroyed = false;
+
+  assertAvailable(): void {
+    if (this.failure) throw this.failure;
+    if (this.destroyed) throw new Error("The graphics device was released.");
+  }
+
+  private fail(message: string): void {
+    if (this.destroyed || this.failure) return;
+    this.failure = new Error(message);
+    this.onDeviceLost?.();
+  }
+
+  private readonly onUncapturedError = (event: GPUUncapturedErrorEvent): void => {
+    event.preventDefault();
+    this.fail(event.error.message);
+  };
 
   private readonly wheelUniformData = new Float32Array(4);
   private readonly pointerUniformData = new Float32Array(4);
@@ -59,20 +77,25 @@ export class WebGPURenderer {
     ]);
     if (!adapter) throw new Error("No compatible WebGPU adapter was found.");
     const device = await adapter.requestDevice();
-    const context = canvas.getContext("webgpu");
-    if (!context) throw new Error("Could not create a WebGPU canvas context.");
-    const renderer = new WebGPURenderer(canvas, device, context, navigator.gpu.getPreferredCanvasFormat(), labelFont);
-    device.pushErrorScope("validation");
+    let renderer: WebGPURenderer | undefined;
     try {
-      renderer.initialize(config);
+      const context = canvas.getContext("webgpu");
+      if (!context) throw new Error("Could not create a WebGPU canvas context.");
+      const created = new WebGPURenderer(canvas, device, context, navigator.gpu.getPreferredCanvasFormat(), labelFont);
+      renderer = created;
+      void device.lost.then(info => created.fail(info.message || "The graphics device disconnected."));
+      device.addEventListener("uncapturederror", created.onUncapturedError);
+      device.pushErrorScope("validation");
+      created.initialize(config);
       const error = await device.popErrorScope();
       if (error) throw new Error(error.message);
+      created.assertAvailable();
+      return created;
     } catch (error) {
-      renderer.destroy();
+      if (renderer) renderer.destroy();
+      else device.destroy();
       throw error;
     }
-    void device.lost.then(info => { if (info.reason !== "destroyed") renderer.onDeviceLost?.(); });
-    return renderer;
   }
 
   private initialize(config: WheelConfig): void {
@@ -102,6 +125,7 @@ export class WebGPURenderer {
   }
 
   updateConfig(config: WheelConfig): void {
+    this.assertAvailable();
     const vertices=wheelVertices(config);
     this.wheelBuffer?.destroy(); this.wheelBuffer=this.buffer(vertices,GPUBufferUsage.VERTEX); this.wheelCount=vertices.length/6;
     const pegs=new Float32Array(config.items.length);
@@ -112,6 +136,7 @@ export class WebGPURenderer {
   }
 
   render(state: PhysicsSnapshot, charge: number): void {
+    this.assertAvailable();
     this.resize();
     this.updateLabels();
     const aspect=this.canvas.width/this.canvas.height;
@@ -131,11 +156,13 @@ export class WebGPURenderer {
   }
 
   destroy(): void {
+    if (this.destroyed) return;
+    this.destroyed = true;
+    this.device.removeEventListener("uncapturederror", this.onUncapturedError);
     this.onDeviceLost = undefined;
     this.multisampleTexture?.destroy();
     this.textTexture?.destroy();
-    this.context.unconfigure();
-    this.device.destroy();
+    try { this.context.unconfigure(); } finally { this.device.destroy(); }
   }
 
   invalidateLabels(): void { this.textDirty = true; }
@@ -163,7 +190,13 @@ export class WebGPURenderer {
 
   private resize(): void {
     const ratio=Math.min(devicePixelRatio,2);
-    const width=Math.max(1,Math.floor(this.canvas.clientWidth*ratio)),height=Math.max(1,Math.floor(this.canvas.clientHeight*ratio));
+    const requestedWidth = Math.max(1, Math.floor(this.canvas.clientWidth * ratio));
+    const requestedHeight = Math.max(1, Math.floor(this.canvas.clientHeight * ratio));
+    // Bound both dimensions and total MSAA allocation while retaining aspect ratio.
+    const scale = Math.min(1, this.device.limits.maxTextureDimension2D / Math.max(requestedWidth, requestedHeight),
+      Math.sqrt(4096 * 4096 / (requestedWidth * requestedHeight)));
+    const width = Math.max(1, Math.floor(requestedWidth * scale));
+    const height = Math.max(1, Math.floor(requestedHeight * scale));
     if(this.canvas.width!==width||this.canvas.height!==height){this.canvas.width=width;this.canvas.height=height;}
     if(this.multisampleWidth!==width||this.multisampleHeight!==height){
       this.multisampleTexture?.destroy();

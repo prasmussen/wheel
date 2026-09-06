@@ -1,3 +1,4 @@
+import { normalizeLabel, validLabel } from "../wheel/Labels";
 import { DEFAULT_PHYSICS, FIXED_DT, SIMULATION_VERSION, type PhysicsConfig } from "./Config";
 import type { AppState, SpinRecord } from "./State";
 import { WheelAudio } from "../audio/WheelAudio";
@@ -42,7 +43,8 @@ export class App {
       shared = readShareUrl(url);
     } catch {
       shared = { wheelConfig: createDefaultConfig() };
-      history.replaceState(history.state, "", location.pathname);
+      try { history.replaceState(history.state, "", location.pathname); }
+      catch { /* URL cleanup must not prevent loading the default wheel. */ }
       try {
         localStorage.setItem("momentum-wheel", JSON.stringify(shared.wheelConfig));
       } catch { /* The default wheel remains usable when storage is unavailable. */ }
@@ -67,7 +69,10 @@ export class App {
     this.renderEditor();
     this.loadHistory();
     window.addEventListener("popstate", () => location.reload());
-    this.loop = new FixedStepLoop(FIXED_DT, ticks => this.advance(ticks), alpha => this.render(alpha));
+    this.loop = new FixedStepLoop(FIXED_DT, ticks => this.advance(ticks), alpha => this.render(alpha), error => {
+      console.error("Wheel frame failed", error);
+      this.handleDeviceLoss();
+    });
     this.resizeObserver.observe(this.required("#stage"));
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) this.loop?.stop(); else this.wake();
@@ -77,14 +82,14 @@ export class App {
     const spinButton = this.required<HTMLButtonElement>("#spin-button");
     this.input = new ChargeInput(spinButton, charge => this.launch(charge), charge => {
       this.state.interaction.charging = charge > 0;
-      this.audio.setCharge(charge);
+      this.effect(() => this.audio.setCharge(charge));
       this.updateChargeUI(charge);
       this.updateLocks();
       this.wake();
     }, () => { this.resumeAudio(); }, () => this.gpuReady && !this.spinActive && !this.root.querySelector("dialog[open]"));
     this.physics.onImpact(event => {
-      this.audio.impact(event, this.state.wheelConfig.items.length);
-      if (navigator.vibrate && event.strength > 0.7) navigator.vibrate(8);
+      this.effect(() => this.audio.impact(event, this.state.wheelConfig.items.length));
+      this.effect(() => { if (navigator.vibrate && event.strength > 0.7) navigator.vibrate(8); });
     });
     this.updateLocks();
     this.wake();
@@ -156,7 +161,6 @@ export class App {
     const result = this.state.wheelConfig.items[index]?.label ?? "";
     this.state.result = result; this.resultAnnounced = true; this.spinActive = false;
     const element = this.required("#result"); element.textContent = result; element.classList.add("winner");
-    this.audio.winner();
     if (this.state.lastSpin && !this.replayActive) {
       this.spinHistory = appendSpinHistory(this.spinHistory, {
         completedAt: Date.now(), result,
@@ -166,6 +170,7 @@ export class App {
       this.renderHistory();
     }
     this.updateLocks();
+    this.effect(() => this.audio.winner());
   }
 
   private attachUI(): void {
@@ -211,7 +216,7 @@ export class App {
       this.launch(this.state.lastSpin.charge, this.state.lastSpin);
     });
     this.required("#mute").addEventListener("click", () => {
-      this.audio.setMuted(!this.audio.muted);
+      this.effect(() => this.audio.setMuted(!this.audio.muted));
       this.required("#mute").setAttribute("aria-pressed", String(this.audio.muted));
       this.required("#mute").setAttribute("aria-label", this.audio.muted ? "Unmute" : "Mute");
       this.required("#mute").title = this.audio.muted ? "Unmute" : "Mute";
@@ -254,8 +259,8 @@ export class App {
       const input = (event.target as HTMLElement).closest<HTMLInputElement>("input[data-id]");
       if (!input || this.busy || (event as InputEvent).isComposing) return;
       this.capitalizeInput(input);
-      const label = input.value.trim().normalize("NFC");
-      const valid = label.length > 0 && label.length <= 12;
+      const label = normalizeLabel(input.value);
+      const valid = validLabel(label);
       input.setCustomValidity(valid ? "" : "Enter an option with 1–12 characters.");
       input.toggleAttribute("aria-invalid", !valid);
       if (!valid) { input.setAttribute("aria-invalid", "true"); return; }
@@ -352,7 +357,6 @@ export class App {
   private commitConfig(clearUrl = false): boolean {
     this.state.wheelConfig.version = crypto.randomUUID();
     this.physics.setSegmentCount(this.state.wheelConfig.items.length);
-    if (this.gpuReady) this.renderer?.updateConfig(this.state.wheelConfig);
     const saved = this.store("momentum-wheel", this.state.wheelConfig);
     try {
       const url = new URL(location.href);
@@ -367,6 +371,9 @@ export class App {
     } catch {
       this.notice("The URL could not be updated. Use Share to copy the current wheel.");
     }
+    try {
+      if (this.gpuReady) this.renderer?.updateConfig(this.state.wheelConfig);
+    } catch { this.handleDeviceLoss(); }
     this.wake();
     return saved;
   }
@@ -476,6 +483,11 @@ export class App {
   }
   private get busy(): boolean { return this.spinActive || !!this.input?.charging; }
   private wake(): void { if (this.gpuReady && !document.hidden) this.loop?.start(); }
+  private effect(action: () => void): void {
+    try { action(); }
+    catch { this.notice("Sound or vibration is unavailable. You can still spin the wheel."); }
+  }
+
   private resumeAudio(): void {
     void this.audio.resume().catch(() => this.notice("Audio is unavailable. You can still spin the wheel."));
   }
@@ -508,13 +520,21 @@ export class App {
     this.recovering = true;
     this.required<HTMLButtonElement>("#retry-gpu").disabled = true;
     try {
+      this.gpuReady = false;
+      this.loop?.stop();
       this.renderer?.destroy();
+      this.renderer = undefined;
       this.renderer = await WebGPURenderer.create(this.required<HTMLCanvasElement>("#wheel-canvas"), this.state.wheelConfig);
+      // Choices may have been replaced while adapter/device/font requests awaited.
+      this.renderer.updateConfig(this.state.wheelConfig);
+      this.renderer.assertAvailable();
       this.gpuReady = true;
       this.renderer.onDeviceLost = () => this.handleDeviceLoss();
       this.required("#gpu-error").hidden = true;
       this.wake();
     } catch (error) {
+      this.renderer?.destroy();
+      this.renderer = undefined;
       this.gpuReady = false;
       this.required("#gpu-error").hidden = false;
       this.required("#gpu-message").textContent = error instanceof Error ? error.message : "WebGPU could not be initialized.";
