@@ -173,10 +173,11 @@ export class App {
       ["wheel-editor", "edit-wheel", "close-editor"],
       ["history-dialog", "show-history", "close-history"],
       ["share-dialog", "share-wheel", "close-share"],
+      ["randomness-dialog", "show-randomness", "close-randomness"],
     ]) {
       const dialog = this.required<HTMLDialogElement>(`#${dialogId}`);
       this.required(`#${openId}`).addEventListener("click", () => {
-        if (this.busy) return;
+        if (this.busy && dialogId !== "randomness-dialog") return;
         if (dialogId === "share-dialog") this.shareWheel();
         dialog.showModal();
       });
@@ -541,7 +542,7 @@ export class App {
 
   private renderShell(): void {
     this.root.innerHTML = `
-      <header><div class="header-actions"><button id="edit-wheel" class="ghost" type="button" aria-haspopup="dialog" aria-controls="wheel-editor">Edit wheel</button><button id="share-wheel" class="ghost" type="button" aria-haspopup="dialog" aria-controls="share-dialog">Share</button><button id="show-history" class="ghost" type="button" aria-haspopup="dialog" aria-controls="history-dialog">Spin history</button><button id="mute" class="ghost" type="button" aria-pressed="false" aria-label="Mute" title="Mute"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4Z"/><path class="sound-on" d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/><path class="sound-off" d="m16 9 6 6m0-6-6 6"/></svg></button></div></header>
+      <header><div class="header-actions"><button id="edit-wheel" class="ghost" type="button" aria-haspopup="dialog" aria-controls="wheel-editor">Edit wheel</button><button id="share-wheel" class="ghost" type="button" aria-haspopup="dialog" aria-controls="share-dialog">Share</button><button id="show-history" class="ghost" type="button" aria-haspopup="dialog" aria-controls="history-dialog">Spin history</button><button id="show-randomness" class="ghost" type="button" aria-label="How randomness works" title="How randomness works" aria-haspopup="dialog" aria-controls="randomness-dialog"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><circle cx="12" cy="7" r="1" fill="currentColor" stroke="none"/></svg></button><button id="mute" class="ghost" type="button" aria-pressed="false" aria-label="Mute" title="Mute"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4Z"/><path class="sound-on" d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/><path class="sound-off" d="m16 9 6 6m0-6-6 6"/></svg></button></div></header>
       <main>
         <section id="stage" class="stage" aria-label="Spinning wheel">
           <div class="wheel-glow"></div><canvas id="wheel-canvas" aria-hidden="true"></canvas>
@@ -550,6 +551,13 @@ export class App {
           <div class="spin-controls"><button id="spin-button" class="spin-button" type="button"><span id="charge-label">PRESS & HOLD</span><i id="charge-fill"></i></button></div>
         </section>
       </main>
+      <dialog id="randomness-dialog" class="editor randomness-info" aria-labelledby="randomness-title">
+        <div class="panel-heading"><h2 id="randomness-title">How randomness works</h2><button id="close-randomness" class="ghost" type="button" autofocus>Done</button></div>
+        <p>Every new spin uses fresh random numbers from your browser to vary the starting push, even if you hold the button for the same amount of time.</p>
+        <p>Holding longer adds power. The wheel then slows down and bumps against the pointer until it stops.</p>
+        <p>Each entry gets the same amount of space on the wheel. Randomness can still produce repeats or streaks: a previous winner is not ruled out of the next spin.</p>
+        <p>Replaying a saved spin repeats its original push and starting position, so you see the same result. Start a new spin for fresh randomness.</p>
+      </dialog>
       <dialog id="share-dialog" class="editor" aria-labelledby="share-title">
         <div class="panel-heading"><h2 id="share-title">Share wheel</h2><button id="close-share" class="ghost" type="button">Done</button></div>
         <div class="share-link-panel"><label for="share-link">Wheel link</label><input id="share-link" type="text" readonly spellcheck="false"></div>

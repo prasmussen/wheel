@@ -3,14 +3,18 @@ import { mkdir, writeFile } from 'node:fs/promises';
 
 // Render code-native artwork with the wheel's enamel palette; no remote assets.
 const palette = ['#f54d40', '#fa9e26', '#2bbb99', '#2b8ceb', '#7a57e8', '#e04594', '#57c252', '#1aadca'];
-const sectors = palette.map((color, index) => {
-  const a = index * Math.PI / 4, b = (index + 1) * Math.PI / 4;
-  return `<path d="M128 128 L${128 + Math.cos(a) * 104} ${128 + Math.sin(a) * 104} A104 104 0 0 1 ${128 + Math.cos(b) * 104} ${128 + Math.sin(b) * 104}Z" fill="${color}" stroke="#151c2b" stroke-width="1.5"/>`;
-}).join('');
-const wheel = `<circle cx="128" cy="128" r="116" fill="#111827" stroke="#8590a4" stroke-width="3"/>${sectors}<circle cx="128" cy="128" r="17" fill="#131b2a" stroke="#b9c4d4" stroke-width="4"/><path d="M117 8H139L128 36Z" fill="#eff3fa" stroke="#131b2a" stroke-width="2"/>`;
+function wheelArtwork(colors) {
+  const sectors = colors.map((color, index) => {
+    const a = index * Math.PI * 2 / colors.length, b = (index + 1) * Math.PI * 2 / colors.length;
+    return `<path d="M128 128 L${128 + Math.cos(a) * 104} ${128 + Math.sin(a) * 104} A104 104 0 0 1 ${128 + Math.cos(b) * 104} ${128 + Math.sin(b) * 104}Z" fill="${color}" stroke="#151c2b" stroke-width="1.5"/>`;
+  }).join('');
+  return `<circle cx="128" cy="128" r="116" fill="#111827" stroke="#8590a4" stroke-width="3"/>${sectors}<circle cx="128" cy="128" r="17" fill="#131b2a" stroke="#b9c4d4" stroke-width="4"/><path d="M117 8H139L128 36Z" fill="#eff3fa" stroke="#131b2a" stroke-width="2"/>`;
+}
+const wheel = wheelArtwork(palette);
+const favicon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">${wheelArtwork(palette.slice(0, 5))}</svg>`;
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><rect width="256" height="256" rx="54" fill="#080b12"/>${wheel}</svg>`;
 await mkdir('public', { recursive: true });
-await writeFile('public/favicon.svg', svg + '\n');
+await writeFile('public/favicon.svg', favicon + '\n');
 await writeFile('public/site.webmanifest', JSON.stringify({
   id: '/', name: 'Mechanical Wheel – Spin the Wheel', short_name: 'Mechanical Wheel',
   description: 'A free custom spinning wheel for names, meals, games, and everyday decisions.',
@@ -23,7 +27,7 @@ try {
   const page = await browser.newPage({ deviceScaleFactor: 1 });
   for (const [size, file] of [[48, 'favicon-48'], [180, 'apple-touch-icon'], [192, 'icon-192'], [512, 'icon-512']]) {
     await page.setViewportSize({ width: size, height: size });
-    await page.setContent(`<style>html,body{margin:0}svg{display:block;width:100vw;height:100vh}</style>${svg}`);
+    await page.setContent(`<style>html,body{margin:0}svg{display:block;width:100vw;height:100vh}</style>${size === 48 ? favicon : svg}`);
     await page.screenshot({ path: `public/${file}.png`, omitBackground: true });
   }
   await page.setViewportSize({ width: 1200, height: 630 });

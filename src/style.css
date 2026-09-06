@@ -50,7 +50,7 @@ button:disabled { opacity:.4; cursor:default; }
 #edit-wheel { width:106px; }
 #share-wheel { width:78px; }
 #show-history { width:120px; }
-#mute { width:50px; }
+#mute,#show-randomness { width:50px; }
 .spin-controls { position:absolute; bottom:0; display:grid; justify-items:center; gap:10px; width:100%; }
 .spin-button { position:relative; bottom:auto; }
 .secondary-spin button,details button,.unsupported button { border:1px solid #384156; border-radius:8px; padding:8px 12px; background:#171e2c; cursor:pointer; }
@@ -75,7 +75,7 @@ details > button { margin-top:8px; }
   #edit-wheel { width:80px; }
   #share-wheel { width:58px; }
   #show-history { width:92px; }
-  #mute { width:40px; }
+  #mute,#show-randomness { width:40px; }
   .editor { padding:18px; }
 }
 
@@ -93,9 +93,14 @@ details > button { margin-top:8px; }
 #batch-editor .editor-actions { margin-top:6px; }
 #bulk-choices[aria-invalid="true"] { border-color:#ec9f32; }
 
-#mute { display:grid; place-items:center; }
+#mute,#show-randomness { display:grid; place-items:center; }
 #mute .sound-off { display:none; }
 #mute[aria-pressed="true"] .sound-on { display:none; }
 #mute[aria-pressed="true"] .sound-off { display:initial; }
 
 .editor-row input[aria-invalid="true"] { border-color:#ec9f32; }
+
+.randomness-info .panel-heading { align-items:center; gap:16px; }
+.randomness-info h2 { font-size:24px; }
+.randomness-info p { color:#b9c2d4; font-size:15px; line-height:1.7; }
+.randomness-info p:last-child { margin-bottom:0; }
