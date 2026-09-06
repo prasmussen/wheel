@@ -1,0 +1,50 @@
+import { expect, test } from '@playwright/test';
+import { openEditor } from './editor';
+
+test('batch editing retains current choices, applies changes, and persists them', async ({ page }, testInfo) => {
+  await page.goto('/');
+  await openEditor(page);
+  await page.locator('#editor-list input').first().fill('ÆØÅ');
+  const labels = await page.locator('#editor-list input').evaluateAll(inputs => inputs.map(input => (input as HTMLInputElement).value));
+  await page.getByRole('button', { name: 'Batch edit', exact: true }).click();
+  await expect(page.locator('#individual-editor')).toBeHidden();
+  await expect(page.locator('#bulk-choices')).toHaveValue(labels.join('\n'));
+  await expect(page.locator('#bulk-choices')).toBeFocused();
+  await page.locator('#bulk-choices').fill('ÆØÅ\nCafé\nÆØÅ');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({ path: testInfo.outputPath('batch-edit-mobile.png') });
+  await page.locator('#apply-bulk').click();
+  await expect(page.locator('#batch-editor')).toBeHidden();
+  await expect(page.locator('#editor-list input')).toHaveCount(3);
+  await expect(page.locator('#editor-list input').nth(1)).toHaveValue('Café');
+  await page.locator('#batch-edit').click();
+  await expect(page.locator('#bulk-choices')).toHaveValue('ÆØÅ\nCafé\nÆØÅ');
+  await page.locator('#bulk-choices').fill('Lunch\nDinner');
+  await page.locator('#close-editor').click();
+  await expect(page.locator('#wheel-editor')).toBeHidden();
+  await page.reload();
+  await openEditor(page);
+  await expect(page.locator('#editor-list input')).toHaveCount(2);
+  await expect(page.locator('#editor-list input').first()).toHaveValue('Lunch');
+});
+
+test('invalid batches remain editable and cancel or dismissal preserves the original choices', async ({ page }) => {
+  await page.goto('/');
+  await openEditor(page);
+  await page.locator('#batch-edit').click();
+  await page.locator('#bulk-choices').fill('Only one');
+  await page.locator('#close-editor').click();
+  await expect(page.locator('#wheel-editor')).toBeVisible();
+  await expect(page.locator('#batch-error')).toContainText('between 2 and 50');
+  await expect(page.locator('#bulk-choices')).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.locator('#editor-list input')).toHaveCount(8);
+  await page.locator('#cancel-batch').click();
+  await expect(page.locator('#editor-list input').first()).toHaveValue('PIZZA');
+  await page.locator('#batch-edit').click();
+  await expect(page.locator('#bulk-choices')).toHaveValue(/PIZZA\nSUSHI/);
+  await page.locator('#bulk-choices').fill('New\nDraft');
+  await page.keyboard.press('Escape');
+  await openEditor(page);
+  await expect(page.locator('#individual-editor')).toBeVisible();
+  await expect(page.locator('#editor-list input').first()).toHaveValue('PIZZA');
+});

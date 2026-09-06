@@ -25,6 +25,7 @@ export class App {
   private previousSnapshot: PhysicsSnapshot;
   private currentSnapshot: PhysicsSnapshot;
   private spinActive = false;
+  private batchEditing = false;
   private resultAnnounced = false;
   private spinHistory: SpinHistoryEntry[] = [];
   private readonly resizeObserver = new ResizeObserver(() => this.wake());
@@ -39,7 +40,7 @@ export class App {
       shared = decodeShare(location.hash);
       if (shared) this.shareNotice = shared.replayUnavailable
         ? "Shared wheel loaded. Its replay uses a different physics version and is unavailable."
-        : shared.lastSpin ? "Shared wheel loaded. Choose Replay last spin to watch its latest spin." : "Shared wheel loaded.";
+        : shared.lastSpin ? "" : "Shared wheel loaded.";
     } catch {
       this.shareNotice = "This wheel link is invalid or incomplete. Your local wheel has been loaded instead.";
     }
@@ -78,7 +79,7 @@ export class App {
       this.updateChargeUI(charge);
       this.updateLocks();
       this.wake();
-    }, () => { this.resumeAudio(); }, () => this.gpuReady && !this.spinActive);
+    }, () => { this.resumeAudio(); }, () => this.gpuReady && !this.spinActive && !this.root.querySelector("dialog[open]"));
     this.physics.onImpact(event => {
       this.audio.impact(event, this.state.wheelConfig.items.length);
       if (navigator.vibrate && event.strength > 0.7) navigator.vibrate(8);
@@ -169,6 +170,25 @@ export class App {
   }
 
   private attachUI(): void {
+    for (const [dialogId, openId, closeId] of [
+      ["wheel-editor", "edit-wheel", "close-editor"],
+      ["history-dialog", "show-history", "close-history"],
+    ]) {
+      const dialog = this.required<HTMLDialogElement>(`#${dialogId}`);
+      this.required(`#${openId}`).addEventListener("click", () => {
+        if (!this.busy) dialog.showModal();
+      });
+      this.required(`#${closeId}`).addEventListener("click", () => {
+        if (dialogId === "wheel-editor" && this.batchEditing && !this.applyBatch()) return;
+        dialog.close();
+      });
+      if (dialogId === "wheel-editor") dialog.addEventListener("close", () => this.setBatchEditing(false));
+      dialog.addEventListener("click", event => {
+        const bounds = dialog.getBoundingClientRect();
+        if (event.target === dialog && (event.clientX < bounds.left || event.clientX > bounds.right
+          || event.clientY < bounds.top || event.clientY > bounds.bottom)) dialog.close();
+      });
+    }
     this.required("#share-wheel").addEventListener("click", () => { void this.shareWheel(); });
     this.required("#replay-spin").addEventListener("click", () => {
       if (this.state.lastSpin) this.launch(this.state.lastSpin.charge, this.state.lastSpin);
@@ -176,15 +196,21 @@ export class App {
     this.required("#mute").addEventListener("click", () => {
       this.audio.setMuted(!this.audio.muted);
       this.required("#mute").setAttribute("aria-pressed", String(this.audio.muted));
-      this.required("#mute").textContent = this.audio.muted ? "Unmute" : "Mute";
+      this.required("#mute").setAttribute("aria-label", this.audio.muted ? "Unmute" : "Mute");
+      this.required("#mute").title = this.audio.muted ? "Unmute" : "Mute";
     });
     this.required("#retry-gpu").addEventListener("click", () => { void this.initializeRenderer(); });
-    this.required("#apply-bulk").addEventListener("click", () => {
+    this.required("#batch-edit").addEventListener("click", () => {
       if (this.busy) return;
-      try {
-        if (this.updateItems(parseChoices(this.required<HTMLTextAreaElement>("#bulk-choices").value)))
-          this.notice("Choices replaced.");
-      } catch (error) { this.notice((error as Error).message); }
+      this.setBatchEditing(true);
+      this.required<HTMLTextAreaElement>("#bulk-choices").focus();
+    });
+    this.required("#cancel-batch").addEventListener("click", () => {
+      this.setBatchEditing(false);
+      this.required("#batch-edit").focus();
+    });
+    this.required("#apply-bulk").addEventListener("click", () => {
+      if (this.applyBatch()) this.required<HTMLInputElement>("#editor-list input").focus();
     });
     this.required("#spin-history").addEventListener("click", event => {
       const button = (event.target as HTMLElement).closest<HTMLButtonElement>("button[data-history]");
@@ -194,12 +220,21 @@ export class App {
       const shared = readSharePayload(entry.state);
       this.state.lastSpin = shared.lastSpin;
       if (this.updateItems(shared.wheelConfig.items)) this.notice("Spin loaded. Choose Replay last spin to watch it.");
+      this.required<HTMLDialogElement>("#history-dialog").close();
     });
     this.required("#add-item").addEventListener("click", () => {
       if (this.state.wheelConfig.items.length >= 50) return;
       this.updateItems([...this.state.wheelConfig.items, { id: crypto.randomUUID(), label: `OPTION ${this.state.wheelConfig.items.length + 1}`, weight: 1 }]);
     });
-    this.required("#reset-wheel").addEventListener("click", () => this.updateItems(createDefaultConfig().items));
+    this.required("#reset-wheel").addEventListener("click", () => {
+      if (this.busy) return;
+      if (window.confirm("Reset the wheel to its default choices? Your current choices will be replaced.")) {
+        this.updateItems(createDefaultConfig().items);
+        const url = new URL(location.href);
+        url.hash = "";
+        history.replaceState(history.state, "", url);
+      }
+    });
     this.required("#editor-list").addEventListener("input", event => {
       const input = (event.target as HTMLElement).closest<HTMLInputElement>("input[data-id]");
       if (!input || this.busy) return;
@@ -217,6 +252,31 @@ export class App {
       if (button.dataset.action === "down" && index < items.length - 1) [items[index + 1], items[index]] = [items[index], items[index + 1]];
       this.updateItems(items);
     });
+  }
+
+  private setBatchEditing(active: boolean): void {
+    this.batchEditing = active;
+    this.required("#individual-editor").hidden = active;
+    this.required("#batch-editor").hidden = !active;
+    const textarea = this.required<HTMLTextAreaElement>("#bulk-choices");
+    textarea.removeAttribute("aria-invalid");
+    this.required("#batch-error").textContent = "";
+    if (active) textarea.value = this.state.wheelConfig.items.map(item => item.label).join("\n");
+  }
+
+  private applyBatch(): boolean {
+    if (this.busy) return false;
+    const textarea = this.required<HTMLTextAreaElement>("#bulk-choices");
+    try {
+      const items = parseChoices(textarea.value);
+      if (this.updateItems(items)) this.notice("Choices updated.");
+      return true;
+    } catch (error) {
+      this.required("#batch-error").textContent = (error as Error).message;
+      textarea.setAttribute("aria-invalid", "true");
+      textarea.focus();
+      return false;
+    }
   }
 
   private updateItems(items: WheelItem[]): boolean {
@@ -238,6 +298,7 @@ export class App {
   }
 
   private renderEditor(): void {
+    this.setBatchEditing(false);
     const list = this.required("#editor-list");
     list.replaceChildren(...this.state.wheelConfig.items.map((item, index) => {
       const row = document.createElement("div"); row.className = "editor-row";
@@ -299,7 +360,10 @@ export class App {
     }));
   }
 
-  private notice(message: string): void { this.required("#notice").textContent = message; }
+  private notice(message: string): void {
+    this.required("#notice").textContent = message;
+    this.required("#editor-notice").textContent = message;
+  }
 
   private async shareWheel(): Promise<void> {
     if (this.busy) return;
@@ -334,6 +398,9 @@ export class App {
   }
 
   private updateLocks(): void {
+    this.required<HTMLButtonElement>("#edit-wheel").disabled = this.busy;
+    this.required<HTMLButtonElement>("#show-history").disabled = this.busy;
+    this.required<HTMLFieldSetElement>("#history-controls").disabled = this.busy;
     this.required<HTMLButtonElement>("#share-wheel").disabled = this.busy;
     this.required<HTMLFieldSetElement>("#choice-controls").disabled = this.busy;
     this.required<HTMLButtonElement>("#spin-button").disabled = !this.gpuReady || this.spinActive;
@@ -381,21 +448,28 @@ export class App {
 
   private renderShell(): void {
     this.root.innerHTML = `
-      <header><div><span class="eyebrow">A PHYSICAL RANDOMIZER</span><h1>Momentum</h1></div><div class="header-actions"><button id="share-wheel" class="ghost" type="button">Share wheel</button><button id="mute" class="ghost" aria-pressed="false">Mute</button></div></header>
+      <header><div class="header-actions"><button id="edit-wheel" class="ghost" type="button" aria-haspopup="dialog" aria-controls="wheel-editor">Edit wheel</button><button id="show-history" class="ghost" type="button" aria-haspopup="dialog" aria-controls="history-dialog">Spin history</button><button id="share-wheel" class="ghost" type="button">Share wheel</button><button id="mute" class="ghost" type="button" aria-pressed="false" aria-label="Mute" title="Mute"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4Z"/><path class="sound-on" d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/><path class="sound-off" d="m16 9 6 6m0-6-6 6"/></svg></button></div></header>
       <main>
         <section id="stage" class="stage" aria-label="Spinning wheel">
           <div class="wheel-glow"></div><canvas id="wheel-canvas" aria-hidden="true"></canvas>
           <div id="gpu-error" class="unsupported" hidden><strong>WebGPU unavailable</strong><p id="gpu-message"></p><button id="retry-gpu" type="button">Retry</button></div>
-          <div class="result-wrap"><span class="eyebrow">RESULT</span><div id="result" role="status" aria-live="polite">READY</div></div>
+          <div class="sr-only"><div id="result" role="status" aria-live="polite">READY</div></div>
           <div class="spin-controls"><button id="spin-button" class="spin-button" type="button"><span id="charge-label">PRESS & HOLD</span><i id="charge-fill"></i></button><div id="replay-controls" class="secondary-spin" hidden><button id="replay-spin" type="button" disabled>Replay last spin</button></div></div>
         </section>
-        <aside class="editor"><fieldset id="choice-controls"><legend class="sr-only">Wheel choices</legend><div class="panel-heading"><div><span class="eyebrow">YOUR WHEEL</span><h2>Choices</h2></div><span id="item-count"></span></div>
-          <div id="editor-list" class="editor-list"></div>
-          <div class="editor-actions"><button id="add-item" type="button">+ Add choice</button><button id="reset-wheel" class="ghost" type="button">Reset</button></div>
-          <details><summary>Paste choices</summary><label for="bulk-choices">One choice per line · 2–50 choices</label><textarea id="bulk-choices" rows="5" maxlength="2000"></textarea><button id="apply-bulk" type="button">Replace choices</button></details>
-          <details><summary>Spin history</summary><p id="history-empty">No spins yet.</p><ol id="spin-history" class="spin-history"></ol></details>
-          </fieldset><div id="share-link-panel" class="share-link-panel" hidden><label for="share-link">Share link</label><input id="share-link" type="text" readonly spellcheck="false"></div><p id="notice" role="status" class="hint"></p>
-        </aside>
-      </main>`;
+      </main>
+      <div class="page-feedback"><div id="share-link-panel" class="share-link-panel" hidden><label for="share-link">Share link</label><input id="share-link" type="text" readonly spellcheck="false"></div><p id="notice" role="status" class="hint"></p></div>
+      <dialog id="wheel-editor" class="editor" aria-labelledby="editor-title">
+        <div class="panel-heading"><div><h2 id="editor-title">Edit wheel</h2><span id="item-count"></span></div><button id="close-editor" class="ghost" type="button" autofocus>Done</button></div>
+        <fieldset id="choice-controls"><legend class="sr-only">Wheel choices</legend>
+          <div id="individual-editor"><div id="editor-list" class="editor-list"></div>
+          <div class="editor-actions"><button id="add-item" type="button">+ Add choice</button><button id="batch-edit" type="button">Batch edit</button></div>
+          <div class="reset-actions"><button id="reset-wheel" type="button">Reset</button></div></div>
+          <div id="batch-editor" hidden><label for="bulk-choices">One choice per line</label><textarea id="bulk-choices" rows="12" maxlength="2000" aria-describedby="batch-error"></textarea><p id="batch-error" class="hint" role="alert"></p><div class="editor-actions"><button id="apply-bulk" type="button">Apply choices</button><button id="cancel-batch" type="button">Cancel</button></div></div>
+        </fieldset><p id="editor-notice" role="status" class="hint"></p>
+      </dialog>
+      <dialog id="history-dialog" class="editor" aria-labelledby="history-title">
+        <div class="panel-heading"><h2 id="history-title">Spin history</h2><button id="close-history" class="ghost" type="button" autofocus>Done</button></div>
+        <fieldset id="history-controls"><legend class="sr-only">Previous spins</legend><p id="history-empty">No spins yet.</p><ol id="spin-history" class="spin-history"></ol></fieldset>
+      </dialog>`;
   }
 }

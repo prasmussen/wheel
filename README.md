@@ -17,8 +17,10 @@ Choices stay locked while charging or spinning. Once the wheel settles, its sele
 
 ## Choices
 
+Choose **Edit wheel** to edit choices, or **Spin history** to open previous spins in a separate dialog. Close either dialog with **Done**, Escape, or a click outside it. Loading a history entry closes its dialog so the wheel is ready to replay. The main screen gives the wheel the full available width.
+
 - Edit 2–50 choices, with up to 30 characters each. Blank choices must be named before spinning.
-- **Paste choices** replaces the wheel with one choice per nonblank line.
+- **Batch edit** switches the individual fields to a multiline editor prefilled with the current choices. **Apply choices** returns to individual editing; **Done** applies and closes the dialog. **Cancel**, Escape, or clicking outside discards unapplied batch edits. Keep 2–50 choices, one per nonblank line, with up to 30 characters each.
 - **Spin history** automatically keeps the last 10 completed spins on this device, newest first. Each entry shows its result and completion time. **Load** restores its choices and replay; **Replay last spin** plays it again. Replayed spins are also logged when they finish.
 - Storage failures leave the wheel usable for the session and display a message. Invalid stored configurations fall back to the default wheel.
 

@@ -1,3 +1,4 @@
+import { openEditor, closeEditor } from './editor';
 import { expect, test } from '@playwright/test';
 import { SIMULATION_VERSION } from '../../src/app/Config';
 
@@ -10,10 +11,13 @@ test('automatically stores ten JSON snapshots and restores wheel, replay, and sh
     }))));
   }, SIMULATION_VERSION);
   await page.reload();
-  await page.getByText('Paste choices', { exact: true }).click();
+  await openEditor(page);
+  await page.getByRole('button', { name: 'Batch edit', exact: true }).click();
+  await openEditor(page);
   await page.locator('#bulk-choices').fill('ÆØÅ\nCafé\nLunch');
   await page.locator('#apply-bulk').click();
   await expect(page.locator('#spin-button')).toBeEnabled();
+  await closeEditor(page);
   await page.locator('#spin-button').focus();
   await page.keyboard.press('Space');
   await expect(page.locator('#result')).toHaveClass('winner', { timeout: 45_000 });
@@ -23,6 +27,7 @@ test('automatically stores ten JSON snapshots and restores wheel, replay, and sh
   expect(history[0].result).toBe(winner);
   expect(history[0].state.choices).toEqual(['ÆØÅ', 'Café', 'Lunch']);
   expect(history[9].completedAt).toBe(992);
+  await closeEditor(page);
   await page.locator('#share-wheel').click();
   const url = await page.locator('#share-link').inputValue();
   const shared = await page.evaluate(url => {
@@ -30,14 +35,18 @@ test('automatically stores ten JSON snapshots and restores wheel, replay, and sh
     return JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(text), c => c.charCodeAt(0))));
   }, url);
   expect(history[0].state).toEqual(shared);
+  await openEditor(page);
+  page.once('dialog', dialog => dialog.accept());
   await page.locator('#reset-wheel').click();
   await page.reload();
-  await page.getByText('Spin history', { exact: true }).click();
+  await page.locator('#show-history').click();
   await expect(page.locator('#spin-history li')).toHaveCount(10);
+  if (!await page.locator('#history-dialog').isVisible()) await page.locator('#show-history').click();
   await page.locator('#spin-history button').first().click();
   await expect(page.locator('#editor-list input')).toHaveCount(3);
   await expect(page.locator('#editor-list input').first()).toHaveValue('ÆØÅ');
   await expect(page.locator('#replay-spin')).toBeEnabled();
+  await closeEditor(page);
   await page.locator('#replay-spin').click();
   await expect(page.locator('#spin-history button').first()).toBeDisabled();
   await expect(page.locator('#result')).toHaveClass('winner', { timeout: 45_000 });
@@ -54,15 +63,18 @@ test('corrupt history and failed storage writes leave session history usable', a
     Storage.prototype.setItem = () => { throw new DOMException('Full', 'QuotaExceededError'); };
   });
   await page.goto('/');
-  await page.getByText('Spin history', { exact: true }).click();
+  await page.locator('#show-history').click();
   await expect(page.locator('#history-empty')).toBeVisible();
+  await page.locator('#close-history').click();
   await expect(page.locator('#spin-button')).toBeEnabled();
+  await closeEditor(page);
   await page.locator('#spin-button').focus();
   await page.keyboard.press('Space');
   await expect(page.locator('#result')).toHaveClass('winner', { timeout: 45_000 });
   await expect(page.locator('#notice')).toContainText('could not be saved');
   await expect(page.locator('#spin-history li')).toHaveCount(1);
   await expect(page.locator('#history-empty')).toBeHidden();
+  if (!await page.locator('#history-dialog').isVisible()) await page.locator('#show-history').click();
   await page.locator('#spin-history button').click();
   await expect(page.locator('#replay-spin')).toBeEnabled();
 });

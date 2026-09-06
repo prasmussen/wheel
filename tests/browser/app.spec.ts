@@ -1,8 +1,10 @@
+import { openEditor, closeEditor } from './editor';
 import { expect, test } from "@playwright/test";
 
 test("locks a spin, replays its result, and clears results after editing", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator("#spin-button")).toBeEnabled();
+  await closeEditor(page);
   await page.locator("#spin-button").focus();
   await page.keyboard.down("Space");
   await expect(page.locator("#charge-label")).toHaveText("100%");
@@ -12,8 +14,10 @@ test("locks a spin, replays its result, and clears results after editing", async
   await expect(page.locator("#editor-list input").first()).toBeDisabled();
   await expect(page.locator("#result")).toHaveClass("winner", { timeout: 45_000 });
   const result = await page.locator("#result").textContent();
+  await openEditor(page);
   await page.locator("#editor-list input").first().fill("Changed");
   await expect(page.locator("#result")).toHaveText("READY");
+  await closeEditor(page);
   await page.locator("#replay-spin").click();
   await expect(page.locator("#editor-list input").first()).toHaveValue("PIZZA");
   await expect(page.locator("#result")).toHaveClass("winner", { timeout: 45_000 });
@@ -24,6 +28,7 @@ test("cancels keyboard and pointer charging without launching", async ({ page })
   await page.goto("/");
   const spin = page.locator("#spin-button");
   await expect(spin).toBeEnabled();
+  await closeEditor(page);
   await spin.focus();
   await page.keyboard.down("Space");
   await expect(spin).toHaveClass(/charging/);
@@ -31,6 +36,7 @@ test("cancels keyboard and pointer charging without launching", async ({ page })
   await page.keyboard.up("Space");
   await expect(spin).not.toHaveClass(/charging/);
   await expect(page.locator("#result")).toHaveText("READY");
+  await closeEditor(page);
   await spin.hover();
   await page.mouse.down();
   await expect(spin).toHaveClass(/charging/);
@@ -43,17 +49,32 @@ test("cancels keyboard and pointer charging without launching", async ({ page })
 
 test("bulk edit, reset, persistence, and mute", async ({ page }) => {
   await page.goto("/");
-  await page.getByText("Paste choices", { exact: true }).click();
+  await openEditor(page);
+  await page.getByRole("button", { name: "Batch edit", exact: true }).click();
+  await openEditor(page);
   await page.locator("#bulk-choices").fill("ÆØÅ\nCafé\nLunch");
+  await openEditor(page);
   await page.locator("#apply-bulk").click();
   await expect(page.locator("#editor-list input")).toHaveCount(3);
+  await openEditor(page);
+  page.once("dialog", async dialog => {
+    expect(dialog.type()).toBe("confirm");
+    await dialog.dismiss();
+  });
+  await page.locator("#reset-wheel").click();
+  await expect(page.locator("#editor-list input")).toHaveCount(3);
+  await expect(page.locator("#editor-list input").first()).toHaveValue("ÆØÅ");
+  page.once("dialog", dialog => dialog.accept());
   await page.locator("#reset-wheel").click();
   await expect(page.locator("#editor-list input")).toHaveCount(8);
+  await page.locator("#batch-edit").click();
+  await page.locator("#bulk-choices").fill("ÆØÅ\nCafé\nLunch");
   await page.locator("#apply-bulk").click();
   await expect(page.locator("#editor-list input").first()).toHaveValue("ÆØÅ");
   await page.reload();
   await expect(page.locator("#editor-list input")).toHaveCount(3);
   await expect(page.locator("#editor-list input").first()).toHaveValue("ÆØÅ");
+  await closeEditor(page);
   await page.locator("#mute").click();
   await expect(page.locator("#mute")).toHaveAttribute("aria-pressed", "true");
 });
@@ -65,6 +86,7 @@ test("recovers corrupt storage and reports failed writes", async ({ page }) => {
   });
   await page.goto("/");
   await expect(page.locator("#editor-list input")).toHaveCount(8);
+  await openEditor(page);
   await page.locator("#editor-list input").first().fill("Still works");
   await expect(page.locator("#notice")).toContainText("could not be saved");
   await expect(page.locator("#spin-button")).toBeEnabled();
@@ -75,7 +97,9 @@ test("unsupported WebGPU keeps editing available and offers retry", async ({ pag
   await page.goto("/");
   await expect(page.locator("#gpu-error")).toBeVisible();
   await expect(page.locator("#spin-button")).toBeDisabled();
+  await openEditor(page);
   await page.locator("#editor-list input").first().fill("Offline choice");
+  await closeEditor(page);
   await page.locator("#retry-gpu").click();
   await expect(page.locator("#gpu-message")).toContainText("does not support WebGPU");
 });
@@ -132,12 +156,14 @@ test("stops drawing at rest, wakes on resize, and recovers device loss", async (
   const beforeResize = await frames();
   await page.setViewportSize({ width: 390, height: 844 });
   await expect.poll(frames).toBeGreaterThan(beforeResize);
+  await closeEditor(page);
   await page.locator("#spin-button").focus();
   await page.keyboard.press("Space");
   await expect(page.locator("#result")).toHaveText("IN MOTION");
   await page.evaluate(() => (window as unknown as { loseDevice: () => void }).loseDevice());
   await expect(page.locator("#gpu-error")).toBeVisible();
   await expect(page.locator("#spin-button")).toBeDisabled();
+  await closeEditor(page);
   await page.locator("#retry-gpu").click();
   await expect(page.locator("#gpu-error")).toBeHidden();
   await expect(page.locator("#result")).toHaveClass("winner", { timeout: 45_000 });
