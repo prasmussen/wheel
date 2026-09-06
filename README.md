@@ -19,6 +19,8 @@ Choices stay locked while charging or spinning. Once the wheel settles, its sele
 
 Choose **Edit wheel** to edit choices, or **Spin history** to open previous spins in a separate dialog. Close either dialog with **Done**, Escape, or a click outside it. Choosing Replay closes the history dialog and immediately replays that spin. The main screen gives the wheel the full available width.
 
+On small screens, the hamburger button opens **Edit wheel**, **Share**, and **Spin history**. Selecting an action, pressing Escape, or clicking outside closes the menu. About and Mute stay in the header.
+
 - Edit 2–50 choices, with up to 12 characters each. Blank choices must be named before spinning.
 - **Batch edit** switches the individual fields to a multiline editor prefilled with the current choices. **Apply choices** saves valid changes and closes the dialog. **Cancel**, Escape, or clicking outside discards unapplied batch edits. Keep 2–50 choices, one per nonblank line, with up to 12 characters each. Applying valid choices closes the editor; validation errors keep it open.
 - **Spin history** automatically keeps the last 30 completed spins on this device, newest first. Each entry shows its result and completion time. **Replay** restores its choices and immediately plays that spin again. Replays do not add history entries or change the order of existing spins.

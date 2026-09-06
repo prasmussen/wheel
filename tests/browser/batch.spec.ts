@@ -16,7 +16,7 @@ test('batch editing retains current choices, applies changes, and persists them'
   await page.screenshot({ path: testInfo.outputPath('batch-edit-mobile.png') });
   await page.locator('#apply-bulk').click();
   await expect(page.locator('#wheel-editor')).toBeHidden();
-  await expect(page.locator('#edit-wheel')).toBeFocused();
+  await expect(page.locator('#toggle-actions')).toBeFocused();
   await expect(page.locator('#editor-list input')).toHaveCount(3);
   await expect(page.locator('#editor-list input').nth(1)).toHaveValue('CAFÉ');
   await openEditor(page);

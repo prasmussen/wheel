@@ -178,6 +178,41 @@ export class App {
   }
 
   private attachUI(): void {
+    const menuToggle = this.required("#toggle-actions");
+    const menu = this.required("#wheel-actions");
+    const compactHeader = matchMedia("(max-width: 820px)");
+    const closeMenu = (restoreFocus = false): void => {
+      menuToggle.setAttribute("aria-expanded", "false");
+      menu.classList.remove("open");
+      if (restoreFocus) menuToggle.focus();
+    };
+    menuToggle.addEventListener("click", () => {
+      const open = menuToggle.getAttribute("aria-expanded") !== "true";
+      menuToggle.setAttribute("aria-expanded", String(open));
+      menu.classList.toggle("open", open);
+    });
+    document.addEventListener("pointerdown", event => {
+      if (!(event.target instanceof Node) || this.required(".actions-menu").contains(event.target)) return;
+      closeMenu(menu.contains(document.activeElement));
+    });
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && menuToggle.getAttribute("aria-expanded") === "true") {
+        event.preventDefault();
+        closeMenu(true);
+      }
+    });
+    this.required(".actions-menu").addEventListener("focusout", event => {
+      if (!this.required(".actions-menu").contains(event.relatedTarget as Node | null)) {
+        const hiddenAction = compactHeader.matches && event.target instanceof HTMLElement
+          && menu.contains(event.target) && event.target.getClientRects().length === 0;
+        closeMenu(hiddenAction && !event.relatedTarget);
+      }
+    });
+    compactHeader.addEventListener("change", () => {
+      const focusHidden = compactHeader.matches && menu.contains(document.activeElement);
+      closeMenu(focusHidden);
+      if (!compactHeader.matches && document.activeElement === menuToggle) this.required("#edit-wheel").focus();
+    });
     for (const [dialogId, openId, closeId] of [
       ["wheel-editor", "edit-wheel", "close-editor"],
       ["history-dialog", "show-history", "close-history"],
@@ -185,8 +220,13 @@ export class App {
       ["info-dialog", "show-info", "close-info"],
     ]) {
       const dialog = this.required<HTMLDialogElement>(`#${dialogId}`);
+      dialog.addEventListener("close", () => {
+        // The viewport may have changed while the dialog was open.
+        if (compactHeader.matches && menu.contains(this.required(`#${openId}`)) && !this.root.querySelector("dialog[open]")) menuToggle.focus();
+      });
       this.required(`#${openId}`).addEventListener("click", () => {
         if (this.busy && dialogId !== "info-dialog") return;
+        if (compactHeader.matches && menuToggle.getAttribute("aria-expanded") === "true") closeMenu(true);
         if (dialogId === "share-dialog") this.shareWheel();
         dialog.showModal();
       });
@@ -578,7 +618,7 @@ export class App {
 
   private renderShell(): void {
     this.root.innerHTML = `
-      <header><h1 class="app-title">Mechanical Wheel</h1><div class="header-actions"><button id="edit-wheel" class="ghost" type="button" aria-haspopup="dialog" aria-controls="wheel-editor">Edit wheel</button><button id="share-wheel" class="ghost" type="button" aria-haspopup="dialog" aria-controls="share-dialog">Share</button><button id="show-history" class="ghost" type="button" aria-haspopup="dialog" aria-controls="history-dialog">Spin history</button><button id="show-info" class="ghost" type="button" aria-label="About Mechanical Wheel" title="About Mechanical Wheel" aria-haspopup="dialog" aria-controls="info-dialog"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><circle cx="12" cy="7" r="1" fill="currentColor" stroke="none"/></svg></button><button id="mute" class="ghost" type="button" aria-pressed="false" aria-label="Mute" title="Mute"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4Z"/><path class="sound-on" d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/><path class="sound-off" d="m16 9 6 6m0-6-6 6"/></svg></button></div></header>
+      <header><h1 class="app-title">Mechanical Wheel</h1><div class="header-actions"><div class="actions-menu"><button id="toggle-actions" class="ghost" type="button" aria-label="Wheel menu" aria-expanded="false" aria-controls="wheel-actions"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button><div id="wheel-actions"><button id="edit-wheel" class="ghost" type="button" aria-haspopup="dialog" aria-controls="wheel-editor">Edit wheel</button><button id="share-wheel" class="ghost" type="button" aria-haspopup="dialog" aria-controls="share-dialog">Share</button><button id="show-history" class="ghost" type="button" aria-haspopup="dialog" aria-controls="history-dialog">Spin history</button></div></div><button id="show-info" class="ghost" type="button" aria-label="About Mechanical Wheel" title="About Mechanical Wheel" aria-haspopup="dialog" aria-controls="info-dialog"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><circle cx="12" cy="7" r="1" fill="currentColor" stroke="none"/></svg></button><button id="mute" class="ghost" type="button" aria-pressed="false" aria-label="Mute" title="Mute"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4Z"/><path class="sound-on" d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/><path class="sound-off" d="m16 9 6 6m0-6-6 6"/></svg></button></div></header>
       <main>
         <section id="stage" class="stage" aria-label="Spinning wheel">
           <div class="wheel-glow"></div><canvas id="wheel-canvas" aria-hidden="true"></canvas>

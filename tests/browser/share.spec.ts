@@ -1,3 +1,4 @@
+import { clickHeaderAction } from './editor';
 import { openEditor, closeEditor } from './editor';
 import { expect, test } from '@playwright/test';
 
@@ -55,7 +56,7 @@ test('copies a wheel without a replay and recovers from a malformed link', async
   await openEditor(page);
   await page.locator('#editor-list input').first().fill('Shared item');
   await closeEditor(page);
-  await page.locator('#share-wheel').click();
+  await clickHeaderAction(page, '#share-wheel');
   await expect(page.locator('#notice')).toHaveCount(0);
   expect(await page.evaluate(() => (window as unknown as { copiedLink?: string }).copiedLink)).toBeUndefined();
   await page.locator('#copy-share-link').click();
@@ -151,7 +152,7 @@ test('share modal fits mobile and supports selection, dismissal, and focus resto
   await page.goto('/');
   await expect(page.locator('#spin-button')).toBeEnabled();
   const dialog = page.locator('#share-dialog');
-  await page.locator('#share-wheel').click();
+  await clickHeaderAction(page, '#share-wheel');
   await expect(dialog).toBeVisible();
   await expect(page.locator('#copy-share-link')).toBeFocused();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -163,11 +164,11 @@ test('share modal fits mobile and supports selection, dismissal, and focus resto
   await expect(dialog).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(dialog).toBeHidden();
-  await expect(page.locator('#share-wheel')).toBeFocused();
-  await page.locator('#share-wheel').click();
+  await expect(page.locator('#toggle-actions')).toBeFocused();
+  await clickHeaderAction(page, '#share-wheel');
   await page.locator('#close-share').click();
   await expect(dialog).toBeHidden();
-  await page.locator('#share-wheel').click();
+  await clickHeaderAction(page, '#share-wheel');
   await page.mouse.click(2, 2);
   await expect(dialog).toBeHidden();
 });

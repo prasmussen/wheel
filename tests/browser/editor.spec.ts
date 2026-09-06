@@ -1,3 +1,4 @@
+import { clickHeaderAction } from './editor';
 import { expect, test } from '@playwright/test';
 
 test('opens a responsive editor modal with keyboard and backdrop dismissal', async ({ page }, testInfo) => {
@@ -10,7 +11,7 @@ test('opens a responsive editor modal with keyboard and backdrop dismissal', asy
     const canvas = await page.locator('#wheel-canvas').boundingBox();
     expect(canvas!.width).toBeGreaterThan(width * 0.9);
     await page.screenshot({ path: testInfo.outputPath(`wheel-main-${width}.png`), fullPage: true });
-    await page.getByRole('button', { name: 'Edit wheel', exact: true }).click();
+    await clickHeaderAction(page, '#edit-wheel');
     await expect(dialog).toBeVisible();
     await expect(page.locator('#close-editor')).toBeFocused();
     await page.keyboard.press('Tab');
@@ -20,15 +21,15 @@ test('opens a responsive editor modal with keyboard and backdrop dismissal', asy
     await page.screenshot({ path: testInfo.outputPath(`wheel-editor-${width}.png`), fullPage: true });
     await page.keyboard.press('Escape');
     await expect(dialog).toBeHidden();
-    await expect(page.locator('#edit-wheel')).toBeFocused();
-    await page.locator('#edit-wheel').click();
+    await expect(page.locator(width <= 820 ? '#toggle-actions' : '#edit-wheel')).toBeFocused();
+    await clickHeaderAction(page, '#edit-wheel');
     await expect(page.locator('#editor-list input').first()).toHaveValue('DINNER');
     await page.locator('#close-editor').click();
     await expect(dialog).toBeHidden();
-    await page.locator('#edit-wheel').click();
+    await clickHeaderAction(page, '#edit-wheel');
     await page.mouse.click(2, 2);
     await expect(dialog).toBeHidden();
-    await page.locator('#show-history').click();
+    await clickHeaderAction(page, '#show-history');
     const history = page.getByRole('dialog', { name: 'Spin history' });
     await expect(history).toBeVisible();
     await expect(dialog).toBeHidden();
@@ -37,11 +38,11 @@ test('opens a responsive editor modal with keyboard and backdrop dismissal', asy
     await page.screenshot({ path: testInfo.outputPath(`spin-history-${width}.png`), fullPage: true });
     await page.keyboard.press('Escape');
     await expect(history).toBeHidden();
-    await expect(page.locator('#show-history')).toBeFocused();
-    await page.locator('#show-history').click();
+    await expect(page.locator(width <= 820 ? '#toggle-actions' : '#show-history')).toBeFocused();
+    await clickHeaderAction(page, '#show-history');
     await page.locator('#close-history').click();
     await expect(history).toBeHidden();
-    await page.locator('#show-history').click();
+    await clickHeaderAction(page, '#show-history');
     await page.mouse.click(2, 2);
     await expect(history).toBeHidden();
     await page.locator('#show-info').click();
@@ -61,7 +62,7 @@ test('opens a responsive editor modal with keyboard and backdrop dismissal', asy
 test('keeps the editor open when text selection ends outside the modal', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('#spin-button')).toBeEnabled();
-  await page.locator('#edit-wheel').click();
+  await clickHeaderAction(page, '#edit-wheel');
   const dialog = page.locator('#wheel-editor');
   const input = page.locator('#editor-list input').first();
   await expect(input).toHaveAttribute('maxlength', '12');
@@ -100,7 +101,7 @@ test('capitalizes input without moving the caret and removes blank choices on di
   await page.goto('/');
   await expect(page.locator('#spin-button')).toBeEnabled();
   for (const dismiss of ['done', 'escape', 'backdrop']) {
-    await page.locator('#edit-wheel').click();
+    await clickHeaderAction(page, '#edit-wheel');
     const inputs = page.locator('#editor-list input');
     const count = await inputs.count();
     const first = inputs.first();
@@ -125,12 +126,12 @@ test('capitalizes input without moving the caret and removes blank choices on di
 test('keeps the editor open if removing blanks would leave fewer than two choices', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('#spin-button')).toBeEnabled();
-  await page.locator('#edit-wheel').click();
+  await clickHeaderAction(page, '#edit-wheel');
   await page.locator('#batch-edit').click();
   await page.locator('#bulk-choices').fill('first\nsecond');
   await page.locator('#apply-bulk').click();
   await expect(page.locator('#wheel-editor')).toBeHidden();
-  await page.locator('#edit-wheel').click();
+  await clickHeaderAction(page, '#edit-wheel');
   const first = page.locator('#editor-list input').first();
   await first.fill('');
   await page.locator('#close-editor').click();
