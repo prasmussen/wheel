@@ -34,7 +34,6 @@ export class App {
   private readonly resizeObserver = new ResizeObserver(() => this.wake());
   private gpuReady = false;
   private recovering = false;
-  private readonly reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
 
   constructor(root: HTMLElement) {
     this.root = root;
@@ -67,7 +66,6 @@ export class App {
   async start(): Promise<void> {
     this.renderShell();
     this.attachUI();
-    this.reducedMotion.addEventListener("change", () => this.wake());
     this.renderEditor();
     this.loadHistory();
     window.addEventListener("popstate", () => location.reload());
@@ -123,9 +121,7 @@ export class App {
     state.lastImpact = lerp(a.lastImpact, b.lastImpact, alpha);
     state.stableTime = b.stableTime;
     try {
-      if (this.gpuReady && !(this.reducedMotion.matches && this.spinActive)) {
-        this.renderer?.render(state, this.reducedMotion.matches ? 0 : this.input?.charge ?? 0);
-      }
+      if (this.gpuReady) this.renderer?.render(state, this.input?.charge ?? 0);
     } catch {
       this.handleDeviceLoss();
     }

@@ -20,7 +20,7 @@ test('editor mutations keep focus on the affected choice and dialogs restore the
   await expect(page.locator('#mute')).toHaveAttribute('aria-pressed', 'true');
 });
 
-test('assistive activation spins with a stable name and reduced motion keeps the wheel still', async ({ page }) => {
+test('assistive activation spins with a stable name and animates even with reduced motion', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
   const spin = page.locator('#spin-button');
@@ -32,7 +32,7 @@ test('assistive activation spins with a stable name and reduced motion keeps the
   await expect(page.locator('#result')).toHaveText('IN MOTION');
   await expect(spin).toHaveAccessibleName('Spin');
   await page.waitForTimeout(300);
-  expect((await canvas.screenshot()).equals(before)).toBe(true);
+  expect((await canvas.screenshot()).equals(before)).toBe(false);
   await expect(page.locator('#result')).toHaveClass('winner', { timeout: 45_000 });
   await expect(page.locator('#result')).toBeVisible();
   await expect(spin).toBeEnabled();
